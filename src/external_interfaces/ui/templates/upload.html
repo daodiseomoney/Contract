@@ -1,0 +1,67 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>Create Smart Contract</h2>
+            <p class="text-muted">Upload your BIM file and configure budget allocations</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Upload BIM File</h4>
+                    <form id="uploadForm" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                            <label class="form-label">BIM File</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" name="file" accept=".ifc,.dwg" required>
+                                <span class="input-group-text"><i class="bi bi-file-earmark-arrow-up"></i></span>
+                            </div>
+                            <div class="form-text">Supported formats: .ifc, .dwg</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Budget Splits</label>
+                            <div id="budgetSplits">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" placeholder="Role" name="roles[]">
+                                    <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addBudgetSplit()">
+                                <i class="bi bi-plus"></i> Add Split
+                            </button>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-upload"></i> Upload & Tokenize
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Upload Status</h4>
+                    <div id="uploadStatus">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Ready to process your BIM file
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
