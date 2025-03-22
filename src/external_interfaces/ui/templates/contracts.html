@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0">Real Estate Smart Contracts</h2>
+                    <p class="text-muted mb-0">Manage and monitor your tokenized properties</p>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='/upload'">
+                    <i class="bi bi-plus-lg"></i> Create Contract
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sample Projects Section -->
+    <div class="row mb-4" id="sampleProjectsSection">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> Welcome to RE Tokenizer!</h5>
+                <p class="mb-0">Start by uploading your first BIM file to create a smart contract, or explore our sample projects below to see how it works.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4 mb-0" id="totalContracts">0</h3>
+                    <p class="text-muted">Total Contracts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4 mb-0" id="activeContracts">0</h3>
+                    <p class="text-muted">Active Contracts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h3 class="display-4 mb-0" id="totalValue">$0</h3>
+                    <p class="text-muted">Total Value Locked</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="contractsTable">
+                            <thead>
+                                <tr>
+                                    <th>Contract ID</th>
+                                    <th>Property</th>
+                                    <th>Status</th>
+                                    <th>Value</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title">Recent Activity</h4>
+                    <div class="list-group list-group-flush" id="recentActivity">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
