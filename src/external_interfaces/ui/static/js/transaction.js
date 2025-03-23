@@ -56,7 +56,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
           }
         }
       ],
-      memo: simpleMemo // Use simple string memo instead of JSON
+      memo: `tx:${transactionId}|role:${role}|hash:${contentHash}` // Use string format instead of JSON
     };
 
     // Sign the transaction
