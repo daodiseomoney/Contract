@@ -379,7 +379,7 @@ async function signContract(transactionId) {
             });
             console.log('Chain suggested to Keplr');
 
-            // Enable Keplr for the chain
+            // Enable Keplr for chain
             await window.keplr.enable(chainId);
             console.log('Keplr enabled for chain');
 
