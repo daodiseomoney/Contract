@@ -2,8 +2,12 @@ from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 import os
 import logging
+import hashlib
+import json
+from src.gateways.multisig_gateway import MultiSigBlockchainGateway
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/api')
+blockchain = MultiSigBlockchainGateway(test_mode=True)
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'ifc', 'dwg'}
@@ -34,11 +38,54 @@ def upload_file():
             file.save(file_path)
 
             current_app.logger.info(f"File uploaded successfully: {file_path}")
-            return jsonify({
-                'success': True,
-                'message': 'File uploaded successfully',
-                'file_path': file_path
-            })
+
+            # Get budget splits from form data
+            budget_splits = {}
+            roles = request.form.getlist('roles[]')
+            percentages = request.form.getlist('percentages[]')
+
+            if len(roles) != len(percentages):
+                return jsonify({'error': 'Invalid budget split data'}), 400
+
+            for role, percentage in zip(roles, percentages):
+                try:
+                    budget_splits[role] = float(percentage)
+                except ValueError:
+                    return jsonify({'error': 'Invalid percentage value'}), 400
+
+            # Create content hash from file path and budget splits
+            content = {
+                'file_path': file_path,
+                'budget_splits': budget_splits
+            }
+            content_hash = hashlib.sha256(json.dumps(content).encode()).hexdigest()
+
+            try:
+                # Initialize blockchain transaction
+                current_app.logger.info("Creating blockchain transaction...")
+                transaction_id = blockchain.create_transaction(
+                    content_hash=content_hash,
+                    metadata=content
+                )
+
+                # Get full transaction details
+                transaction = blockchain.get_transaction_status(transaction_id)
+
+                return jsonify({
+                    'success': True,
+                    'message': 'File uploaded and contract created successfully',
+                    'transaction': transaction
+                })
+
+            except Exception as e:
+                current_app.logger.error(f"Error creating blockchain transaction: {str(e)}")
+                return jsonify({
+                    'success': True,
+                    'message': 'File uploaded but blockchain transaction failed',
+                    'file_path': file_path,
+                    'warning': str(e)
+                })
+
         except Exception as e:
             current_app.logger.error(f"Error saving file: {str(e)}")
             return jsonify({'error': f'Error saving file: {str(e)}'}), 500

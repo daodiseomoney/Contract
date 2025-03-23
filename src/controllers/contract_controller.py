@@ -48,16 +48,20 @@ def tokenize_property():
         }
         content_hash = hashlib.sha256(json.dumps(content).encode()).hexdigest()
 
-        # Create multi-signature transaction
+        # Create blockchain transaction
         transaction_id = blockchain.create_transaction(
             content_hash=content_hash,
             metadata=content
         )
 
         current_app.logger.info(f"Created transaction: {transaction_id}")
+
+        # Get full transaction details
+        transaction = blockchain.get_transaction_status(transaction_id)
+
         return jsonify({
-            'status': 'pending_signatures',
-            'transaction_id': transaction_id
+            'status': 'success',
+            'transaction': transaction
         })
     except Exception as e:
         current_app.logger.error(f"Failed to tokenize property: {str(e)}")
@@ -85,15 +89,11 @@ def sign_transaction():
         )
 
         if success:
-            # Check if transaction is complete
-            if blockchain.is_transaction_complete(data['transaction_id']):
-                return jsonify({
-                    'status': 'complete',
-                    'message': 'Transaction fully signed'
-                })
+            # Get updated transaction status
+            transaction = blockchain.get_transaction_status(data['transaction_id'])
             return jsonify({
-                'status': 'signed',
-                'message': f'Successfully signed with role {role.value}'
+                'status': 'success',
+                'transaction': transaction
             })
         return jsonify({
             'status': 'failed',
@@ -111,8 +111,8 @@ def sign_transaction():
 def get_transaction_status(transaction_id):
     """Get the current status of a transaction"""
     try:
-        status = blockchain.get_transaction_status(transaction_id)
-        return jsonify(status)
+        transaction = blockchain.get_transaction_status(transaction_id)
+        return jsonify(transaction)
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:

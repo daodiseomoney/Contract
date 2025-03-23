@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block content %}
@@ -9,7 +8,7 @@
             <p class="text-muted">Upload your BIM file and configure budget allocations</p>
         </div>
     </div>
-    
+
     <div class="row">
         <div class="col-md-7">
             <div class="card shadow-sm">
@@ -24,20 +23,30 @@
                             </div>
                             <div class="form-text">Supported formats: .ifc, .dwg</div>
                         </div>
-                        
+
                         <div class="mb-4">
                             <label class="form-label">Budget Splits</label>
                             <div id="budgetSplits">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                    <input type="text" class="form-control" placeholder="Role" name="roles[]">
-                                    <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100">
+                                    <input type="text" class="form-control" value="owner" name="roles[]" readonly>
+                                    <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" value="contributor" name="roles[]" readonly>
+                                    <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" value="validator" name="roles[]" readonly>
+                                    <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100" required>
                                     <span class="input-group-text">%</span>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addBudgetSplit()">
-                                <i class="bi bi-plus"></i> Add Split
-                            </button>
+                            <div class="form-text">Total percentage must equal 100%</div>
                         </div>
 
                         <div class="d-grid">
@@ -61,7 +70,37 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Contract Preview -->
+            <div class="card shadow-sm mt-4" id="contractPreview" style="display: none;">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Contract Preview</h4>
+                    <dl>
+                        <dt>Transaction ID</dt>
+                        <dd id="previewTxId">-</dd>
+                        <dt>Status</dt>
+                        <dd id="previewStatus">-</dd>
+                        <dt>Explorer Link</dt>
+                        <dd id="previewExplorer">-</dd>
+                    </dl>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+// Add validation for budget splits total
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const percentages = Array.from(document.getElementsByName('percentages[]'))
+        .map(input => parseFloat(input.value) || 0);
+
+    const total = percentages.reduce((sum, val) => sum + val, 0);
+
+    if (total !== 100) {
+        e.preventDefault();
+        alert('Budget splits must total 100%');
+    }
+});
+</script>
 {% endblock %}

@@ -299,6 +299,7 @@ async function handleUpload(e) {
 
     const formData = new FormData(e.target);
     const statusDiv = document.getElementById('uploadStatus');
+    const contractPreview = document.getElementById('contractPreview');
 
     try {
         if (statusDiv) {
@@ -355,6 +356,16 @@ async function handleUpload(e) {
         const tokenizeResult = await tokenizeResponse.json();
         if (tokenizeResult.error) throw new Error(tokenizeResult.error);
 
+        // Show contract preview
+        if (contractPreview && tokenizeResult.transaction) {
+            contractPreview.style.display = 'block';
+            document.getElementById('previewTxId').textContent = tokenizeResult.transaction.transaction_id;
+            document.getElementById('previewStatus').textContent = tokenizeResult.transaction.status;
+            document.getElementById('previewExplorer').innerHTML = tokenizeResult.transaction.explorer_url ?
+                `<a href="${tokenizeResult.transaction.explorer_url}" target="_blank">View on Explorer</a>` :
+                'Not available';
+        }
+
         if (statusDiv) {
             statusDiv.innerHTML = `
                 <div class="alert alert-success">
@@ -362,6 +373,9 @@ async function handleUpload(e) {
                 </div>
             `;
         }
+
+        // Store transaction ID in session storage for contracts page
+        sessionStorage.setItem('last_transaction', JSON.stringify(tokenizeResult.transaction));
 
         // Redirect to contracts page after successful creation
         setTimeout(() => window.location.href = '/contracts', 1500);
@@ -417,40 +431,48 @@ function showSuccess(message) {
     document.querySelector('.container')?.prepend(alert);
 }
 
-// Initialize everything when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('contractsChart')) {
-        updateDashboardStats();
-        updateRecentActivity();
-        updateContractsTable();
 
-        // Refresh data every 30 seconds
-        setInterval(() => {
-            updateDashboardStats();
-            updateRecentActivity();
-            updateContractsTable();
-        }, 30000);
+// Update the contract display logic
+function updateContractsDisplay() {
+    // Check for newly created transaction
+    const lastTransaction = sessionStorage.getItem('last_transaction');
+    if (lastTransaction) {
+        const transaction = JSON.parse(lastTransaction);
+        // Clear the stored transaction
+        sessionStorage.removeItem('last_transaction');
+        // Highlight the new transaction in the table
+        highlightTransaction(transaction.transaction_id);
     }
 
+    // Update all contract displays
+    updateDashboardStats();
+    updateRecentActivity();
+    updateContractsTable();
+}
+
+function highlightTransaction(transactionId) {
+    setTimeout(() => {
+        const row = document.querySelector(`tr[data-transaction-id="${transactionId}"]`);
+        if (row) {
+            row.classList.add('highlight');
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => row.classList.remove('highlight'), 3000);
+        }
+    }, 500);
+}
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
     // Handle file upload form
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {
         uploadForm.addEventListener('submit', handleUpload);
     }
+
+    // Initialize contracts display if on contracts page
+    if (document.getElementById('contractsChart')) {
+        updateContractsDisplay();
+        // Refresh data every 30 seconds
+        setInterval(updateContractsDisplay, 30000);
+    }
 });
-
-//Removed getContractStatusText and isContractFullySigned as they are no longer used.
-
-function getContractStatusText(contract) {
-    const signedCount = Object.values(contract.signatures)
-        .filter(s => s === 'signed').length;
-    const totalSigners = Object.keys(contract.signatures).length;
-
-    if (signedCount === totalSigners) return 'fully signed';
-    return `waiting for signatures (${signedCount}/${totalSigners})`;
-}
-
-function isContractFullySigned(contract) {
-    return Object.values(contract.signatures)
-        .every(s => s === 'signed');
-}
