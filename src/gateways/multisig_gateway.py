@@ -4,6 +4,11 @@ from datetime import datetime
 import json
 import logging
 import base64
+from cosmpy.aerial.client import LedgerClient, NetworkConfig
+from cosmpy.aerial.tx import Transaction, SigningCfg
+from cosmpy.aerial.wallet import LocalWallet
+from cosmpy.crypto.keypairs import PublicKey
+from cosmpy.protos.cosmos.tx.v1beta1.tx_pb2 import TxBody, AuthInfo, SignDoc
 
 class SignatureRole(Enum):
     OWNER = "owner"
@@ -61,6 +66,16 @@ class MultiSigBlockchainGateway:
         self.pending_transactions: Dict[str, MultiSigTransaction] = {}
         self.logger = logging.getLogger(__name__)
 
+        # Initialize Odiseo testnet client with basic configuration
+        self.network_config = NetworkConfig(
+            chain_id="odiseotestnet_1234-1",
+            url="grpc+https://odiseo.test.rpc.nodeshub.online",
+            fee_minimum_gas_price=0.01,
+            fee_denomination="uodis",
+            staking_denomination="uodis"
+        )
+        self.client = LedgerClient(self.network_config)
+
     def create_transaction(self, content_hash: str, metadata: Dict) -> str:
         """Create a new multi-signature transaction"""
         transaction_id = f"tx_{len(self.pending_transactions) + 1}"
@@ -77,7 +92,7 @@ class MultiSigBlockchainGateway:
         self.logger.info(f"Processing signature for transaction {transaction_id}, role: {role}")
 
         try:
-            # Validate Keplr amino signature format
+            # Validate Keplr amino signature
             if not signature or not isinstance(signature, dict):
                 self.logger.error("Invalid signature data format")
                 raise ValueError("Invalid signature data format")
@@ -108,41 +123,56 @@ class MultiSigBlockchainGateway:
                 self.logger.error("Failed to parse memo JSON")
                 raise ValueError("Invalid memo format")
 
-            # Verify signature components
-            if not signature.get('signature'):
-                self.logger.error("Missing signature value")
-                raise ValueError("Missing signature value")
+            # Create transaction body
+            tx_body = TxBody()
+            tx_body.memo = signed.get('memo', '')
 
-            if not signature.get('pub_key'):
-                self.logger.error("Missing public key")
-                raise ValueError("Missing public key")
+            # Process messages from signed data
+            for msg in signed.get('msgs', []):
+                if msg.get('type') == 'cosmos-sdk/MsgSend':
+                    tx_body.messages.append(msg)
 
-            # Update signature status
+            # Create auth info with fee
+            auth_info = AuthInfo()
+            if 'fee' in signed:
+                fee = signed['fee']
+                for amt in fee.get('amount', []):
+                    auth_info.fee.amount.append(amt)
+                auth_info.fee.gas_limit = int(fee.get('gas', '100000'))
+
+            # Create signing configuration
+            signing_cfg = SigningCfg.direct(
+                public_key=PublicKey(
+                    key_type=signature['pub_key']['type'],
+                    key=base64.b64decode(signature['pub_key']['value'])
+                ),
+                sequence=int(signed.get('sequence', '0')),
+                account_number=int(signed.get('account_number', '0'))
+            )
+
+            # Create and broadcast transaction
+            tx = Transaction()
+            tx.body = tx_body
+            tx.auth_info = auth_info
+            tx.signing_cfg = signing_cfg
+
+            self.logger.info("Broadcasting transaction to network")
+            result = self.client.broadcast_tx(tx)
+
+            if result.code != 0:
+                self.logger.error(f"Broadcast failed: {result.raw_log}")
+                raise ValueError(f"Transaction broadcast failed: {result.raw_log}")
+
+            # Update transaction status
             transaction.signatures[role] = SignatureStatus.SIGNED
-            self.logger.info(f"Updated signature status for {role} to SIGNED")
-
-            # Generate transaction hash
-            tx_hash = self._generate_tx_hash(signed, signature['signature'], signature['pub_key'])
-            transaction.update_blockchain_details(tx_hash)
-            self.logger.info(f"Updated blockchain details with hash: {tx_hash}")
+            transaction.update_blockchain_details(result.tx_hash)
+            self.logger.info(f"Transaction broadcast successful. Hash: {result.tx_hash}")
 
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to sign transaction: {str(e)}")
-            raise Exception(f"Failed to sign transaction: {str(e)}")
-
-    def _generate_tx_hash(self, signed_data: Dict, signature: str, pub_key: Dict) -> str:
-        """Generate a deterministic transaction hash from signature components"""
-        # Combine all signature components into a single string
-        combined = json.dumps({
-            'signed': signed_data,
-            'signature': signature,
-            'pub_key': pub_key
-        }, sort_keys=True)
-
-        # Convert to base64 for consistent formatting
-        return base64.b64encode(combined.encode()).decode('utf-8')[:64].upper()
+            self.logger.error(f"Failed to process transaction: {str(e)}")
+            raise
 
     def get_transaction_status(self, transaction_id: str) -> Dict:
         """Get the current status of a transaction"""

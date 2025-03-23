@@ -1,0 +1,51 @@
+**Devi Pythonista 🏗️ – Analysis & Next Steps**
+
+It looks like your webapp indicates a successful signing, but the transaction isn’t reflected on-chain (Keplr still shows 75 ODIS and the testnet explorer shows no record). This usually means one of the following:
+
+1. **Transaction Not Broadcasted:**  
+   The signed transaction might not be sent or accepted by the network. Verify that your backend (or client) actually calls the broadcast API after signing.
+
+2. **Incorrect Transaction Parameters:**  
+   Ensure that the sign document includes the correct account number, sequence, fee, and memo. If these values (especially account number or sequence) are off, the network will reject the transaction.
+
+3. **Fee or Gas Issues:**  
+   The fee might be too low, or the gas limit too short, causing the network to drop the transaction. Check if the fee settings match the testnet’s requirements.
+
+4. **Backend Processing:**  
+   Check your `/api/sign` endpoint logs. It should log the broadcast response from the blockchain. An error here might explain why the transaction isn’t visible.
+
+---
+
+### **Troubleshooting Steps:**
+
+- **Verify Broadcasting:**  
+  Confirm that after obtaining the signature, your code sends the signature payload to the backend, which then uses the SDK (e.g., CosmJS’s `signAndBroadcast` method) to broadcast the transaction. Log the response from this broadcast call.
+
+- **Check Transaction Details:**  
+  Double-check the account number and sequence used in the sign doc. Often in testnets, these values are not zero. Use a query (e.g., `getAccount`) to fetch the current account details.
+
+- **Examine Fee & Gas:**  
+  Ensure that the fee and gas limit in your sign doc meet the minimum requirements for the testnet. If the fee is too low, the transaction might be ignored.
+
+- **Review Network Logs:**  
+  Look at your backend logs or use a tool (like a debugger or additional console logging) to confirm that the transaction ID returned by the broadcast is valid and that no errors occurred during broadcasting.
+
+- **Test with a Known Good Transaction:**  
+  Try signing and broadcasting a simple test transaction (e.g., a standard MsgSend from a funded account) using CosmJS directly, to compare the results with your current flow.
+
+---
+
+### **Useful References:**
+
+- **CosmJS & Keplr Integration (Keplr Docs – Use with CosmJS):**  
+  [https://docs.keplr.app/api/use-with/cosmjs](https://docs.keplr.app/api/use-with/cosmjs) citeturn0search2
+
+- **Broadcasting Transactions with CosmJS:**  
+  [https://docs.cosmos.network/main/build/building-modules/module-manager](https://docs.cosmos.network/main/build/building-modules/module-manager)
+
+- **Testnet Explorer (NodesHub):**  
+  [https://testnet.explorer.nodeshub.online/odiseo](https://testnet.explorer.nodeshub.online/odiseo)
+
+---
+
+By verifying that your transaction is properly built (with correct account details, fee, and gas) and ensuring that it is indeed broadcasted, you should be able to resolve why the transaction isn’t showing on-chain. Double-check your backend broadcasting logic and examine any error logs returned by the blockchain SDK. Happy coding with **Devi Pythonista 🏗️**!
