@@ -26,9 +26,9 @@ class MultiSigTransaction:
         self.content_hash = content_hash
         self.metadata = metadata
         self.signatures = {
-            SignatureRole.OWNER: SignatureStatus.PENDING,
-            SignatureRole.CONTRIBUTOR: SignatureStatus.PENDING,
-            SignatureRole.VALIDATOR: SignatureStatus.PENDING
+            SignatureRole.OWNER.value: SignatureStatus.PENDING.value,
+            SignatureRole.CONTRIBUTOR.value: SignatureStatus.PENDING.value,
+            SignatureRole.VALIDATOR.value: SignatureStatus.PENDING.value
         }
         self.created_at = datetime.utcnow()
         self.blockchain_tx_hash = None
@@ -39,7 +39,7 @@ class MultiSigTransaction:
             "transaction_id": self.transaction_id,
             "content_hash": self.content_hash,
             "metadata": self.metadata,
-            "signatures": {role.value: status.value for role, status in self.signatures.items()},
+            "signatures": self.signatures,
             "created_at": self.created_at.isoformat(),
             "blockchain_tx_hash": self.blockchain_tx_hash,
             "explorer_url": self.explorer_url,
@@ -47,7 +47,7 @@ class MultiSigTransaction:
         }
 
     def get_status(self) -> str:
-        signed_count = len([s for s in self.signatures.values() if s == SignatureStatus.SIGNED])
+        signed_count = len([s for s in self.signatures.values() if s == SignatureStatus.SIGNED.value])
         total_count = len(self.signatures)
         if signed_count == total_count:
             return "completed"
@@ -83,7 +83,7 @@ class MultiSigBlockchainGateway:
         self.pending_transactions[transaction_id] = transaction
         return transaction_id
 
-    def sign_transaction(self, transaction_id: str, role: SignatureRole, signature: Dict) -> bool:
+    def sign_transaction(self, transaction_id: str, role: str, signature: Dict) -> bool:
         """Sign a transaction with Keplr signature"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
@@ -116,21 +116,42 @@ class MultiSigBlockchainGateway:
 
                 if (memo['transaction_id'] != transaction_id or
                     memo['content_hash'] != transaction.content_hash or
-                    memo['role'] != role.value):
+                    memo['role'] != role):
                     self.logger.error("Memo data mismatch")
                     raise ValueError("Invalid memo data")
             except json.JSONDecodeError:
                 self.logger.error("Failed to parse memo JSON")
                 raise ValueError("Invalid memo format")
 
+            # Verify signature components
+            if not signature.get('signature'):
+                self.logger.error("Missing signature value")
+                raise ValueError("Missing signature value")
+
+            if not signature.get('pub_key'):
+                self.logger.error("Missing public key")
+                raise ValueError("Missing public key")
+
             # Create transaction body
             tx_body = TxBody()
             tx_body.memo = signed.get('memo', '')
 
             # Process messages from signed data
-            for msg in signed.get('msgs', []):
-                if msg.get('type') == 'cosmos-sdk/MsgSend':
-                    tx_body.messages.append(msg)
+            msgs = signed.get('msgs', [])
+            if not msgs:
+                self.logger.error("No messages found in signed data")
+                raise ValueError("No messages found in signed data")
+
+            for msg in msgs:
+                if msg.get('type') != 'cosmos-sdk/MsgSend':
+                    continue
+
+                msg_value = msg.get('value', {})
+                if not all(k in msg_value for k in ['from_address', 'to_address', 'amount']):
+                    self.logger.error("Invalid message format")
+                    raise ValueError("Invalid message format")
+
+                tx_body.messages.extend([msg])
 
             # Create auth info with fee
             auth_info = AuthInfo()
@@ -150,12 +171,13 @@ class MultiSigBlockchainGateway:
                 account_number=int(signed.get('account_number', '0'))
             )
 
-            # Create and broadcast transaction
+            # Create transaction
             tx = Transaction()
             tx.body = tx_body
             tx.auth_info = auth_info
             tx.signing_cfg = signing_cfg
 
+            # Broadcast transaction
             self.logger.info("Broadcasting transaction to network")
             result = self.client.broadcast_tx(tx)
 
@@ -164,7 +186,7 @@ class MultiSigBlockchainGateway:
                 raise ValueError(f"Transaction broadcast failed: {result.raw_log}")
 
             # Update transaction status
-            transaction.signatures[role] = SignatureStatus.SIGNED
+            transaction.signatures[role] = SignatureStatus.SIGNED.value
             transaction.update_blockchain_details(result.tx_hash)
             self.logger.info(f"Transaction broadcast successful. Hash: {result.tx_hash}")
 
