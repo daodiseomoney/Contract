@@ -332,9 +332,11 @@ async function signContract(transactionId) {
         const transaction = await response.json();
 
         try {
+            const chainId = "odiseotestnet_1234-1";
+
             // First add the Odiseo testnet chain to Keplr
             await window.keplr.experimentalSuggestChain({
-                chainId: "odiseo_1234-1",
+                chainId: chainId,
                 chainName: "Odiseo Testnet",
                 rpc: "https://odiseo.test.rpc.nodeshub.online",
                 rest: "https://odiseo.test.api.nodeshub.online",
@@ -352,30 +354,33 @@ async function signContract(transactionId) {
                 currencies: [{
                     coinDenom: "ODIS",
                     coinMinimalDenom: "uodis",
-                    coinDecimals: 6
+                    coinDecimals: 6,
+                    displayDenom: "ODIS"
                 }],
                 feeCurrencies: [{
                     coinDenom: "ODIS",
                     coinMinimalDenom: "uodis",
-                    coinDecimals: 6
+                    coinDecimals: 6,
+                    displayDenom: "ODIS",
+                    gasPriceStep: {
+                        low: 0.01,
+                        average: 0.025,
+                        high: 0.04
+                    }
                 }],
                 stakeCurrency: {
                     coinDenom: "ODIS",
                     coinMinimalDenom: "uodis",
-                    coinDecimals: 6
-                },
-                gasPriceStep: {
-                    low: 0.01,
-                    average: 0.025,
-                    high: 0.04
+                    coinDecimals: 6,
+                    displayDenom: "ODIS"
                 }
             });
 
             // Enable Keplr for the chain
-            await window.keplr.enable("odiseo_1234-1");
+            await window.keplr.enable(chainId);
 
             // Get the offline signer
-            const offlineSigner = await window.keplr.getOfflineSigner("odiseo_1234-1");
+            const offlineSigner = await window.keplr.getOfflineSigner(chainId);
 
             // Get user's Odiseo address
             const accounts = await offlineSigner.getAccounts();
@@ -390,29 +395,23 @@ async function signContract(transactionId) {
                 return;
             }
 
-            // Create minimal transaction
-            const txMsg = {
-                typeUrl: "/cosmos.bank.v1beta1.MsgSend",
-                value: {
-                    fromAddress: userAddress,
-                    toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                    amount: [{ denom: "uodis", amount: "1000000" }]
-                }
-            };
-
-            // Get the account details
-            const account = await window.keplr.getKey("odiseo_1234-1");
-
             // Create sign doc
             const signDoc = {
-                chainId: "odiseo_1234-1",
-                accountNumber: account.accountNumber || "0",
-                sequence: account.sequence || "0",
+                chain_id: chainId,
+                account_number: "0",
+                sequence: "0",
                 fee: {
-                    gas: "200000",
-                    amount: [{ denom: "uodis", amount: "1000" }]
+                    amount: [{ denom: "uodis", amount: "1000" }],
+                    gas: "200000"
                 },
-                msgs: [txMsg],
+                msgs: [{
+                    type: "cosmos-sdk/MsgSend",
+                    value: {
+                        from_address: userAddress,
+                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                        amount: [{ denom: "uodis", amount: "1000000" }]
+                    }
+                }],
                 memo: JSON.stringify({
                     transaction_id: transaction.transaction_id,
                     content_hash: transaction.content_hash,
@@ -420,9 +419,9 @@ async function signContract(transactionId) {
                 })
             };
 
-            // Sign with Keplr
+            // Sign with Keplr using amino
             const signResponse = await window.keplr.signAmino(
-                "odiseo_1234-1",
+                chainId,
                 userAddress,
                 signDoc
             );
