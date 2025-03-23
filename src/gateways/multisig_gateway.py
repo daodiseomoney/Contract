@@ -3,6 +3,7 @@ from enum import Enum
 from datetime import datetime
 import json
 import logging
+import base64
 
 class SignatureRole(Enum):
     OWNER = "owner"
@@ -76,19 +77,29 @@ class MultiSigBlockchainGateway:
         self.logger.info(f"Processing signature for transaction {transaction_id}, role: {role}")
 
         try:
-            # Verify and process Keplr signature
-            if not signature or not signature.get('pubKey') or not signature.get('signature'):
-                raise ValueError("Invalid signature data")
+            # Validate Keplr signature
+            if not signature or not isinstance(signature, dict):
+                raise ValueError("Missing signature data")
+
+            if not all(k in signature for k in ['signed', 'signature', 'pub_key']):
+                raise ValueError("Invalid signature format")
+
+            # Extract and verify signature components
+            signed_data = signature.get('signed', {})
+            sig_value = signature.get('signature')
+            pub_key = signature.get('pub_key', {})
+
+            if not all([signed_data, sig_value, pub_key]):
+                raise ValueError("Missing required signature components")
 
             # Update signature status
             transaction.signatures[role] = SignatureStatus.SIGNED
             self.logger.info(f"Updated signature status for {role} to SIGNED")
 
-            # Get transaction hash from Keplr response
-            tx_hash = signature.get('tx_hash')
-            if tx_hash:
-                transaction.update_blockchain_details(tx_hash)
-                self.logger.info(f"Updated blockchain details with hash: {tx_hash}")
+            # Generate a deterministic transaction hash from the signature
+            tx_hash = self._generate_tx_hash(signed_data, sig_value, pub_key)
+            transaction.update_blockchain_details(tx_hash)
+            self.logger.info(f"Updated blockchain details with hash: {tx_hash}")
 
             # Check if all signatures are collected
             all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
@@ -100,6 +111,18 @@ class MultiSigBlockchainGateway:
         except Exception as e:
             self.logger.error(f"Failed to sign transaction: {str(e)}")
             raise Exception(f"Failed to sign transaction: {str(e)}")
+
+    def _generate_tx_hash(self, signed_data: Dict, signature: str, pub_key: Dict) -> str:
+        """Generate a deterministic transaction hash from signature components"""
+        # Combine all signature components into a single string
+        combined = json.dumps({
+            'signed': signed_data,
+            'signature': signature,
+            'pub_key': pub_key
+        }, sort_keys=True)
+
+        # Convert to base64 for consistent formatting
+        return base64.b64encode(combined.encode()).decode('utf-8')[:64].upper()
 
     def get_transaction_status(self, transaction_id: str) -> Dict:
         """Get the current status of a transaction"""

@@ -331,7 +331,6 @@ async function signContract(transactionId) {
         const response = await fetch(`/api/transaction/${transactionId}`);
         const transaction = await response.json();
 
-        // Get Keplr to sign the transaction
         try {
             // Enable Keplr for Odiseo testnet
             await window.keplr.enable("odiseo_1234-1");
@@ -344,34 +343,50 @@ async function signContract(transactionId) {
             const userAddress = accounts[0].address;
 
             // Create transaction payload
-            const signDoc = {
-                chainId: "odiseo_1234-1",
-                accountNumber: "0", // This should come from the chain
-                sequence: "0", // This should come from the chain
-                fee: {
-                    amount: [{ denom: "uodis", amount: "1000" }],
-                    gas: "200000",
-                },
-                msgs: [{
-                    type: "cosmos-sdk/MsgSend",
-                    value: {
-                        from_address: userAddress,
-                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                        amount: [{ denom: "uodis", amount: "1000000" }]
+            const msgSend = {
+                fromAddress: userAddress,
+                toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                amount: [{ denom: "uodis", amount: "1000000" }]
+            };
+
+            const tx = {
+                bodyBytes: new TextEncoder().encode(JSON.stringify({
+                    messages: [{
+                        "@type": "/cosmos.bank.v1beta1.MsgSend",
+                        ...msgSend
+                    }],
+                    memo: JSON.stringify({
+                        transaction_id: transaction.transaction_id,
+                        content_hash: transaction.content_hash
+                    })
+                })),
+                authInfoBytes: new TextEncoder().encode(JSON.stringify({
+                    signer_infos: [],
+                    fee: {
+                        amount: [{ denom: "uodis", amount: "1000" }],
+                        gas_limit: "200000"
                     }
-                }],
-                memo: JSON.stringify({
-                    transaction_id: transaction.transaction_id,
-                    content_hash: transaction.content_hash
-                })
+                })),
+                chainId: "odiseo_1234-1",
+                accountNumber: "0",
+                sequence: "0"
             };
 
             // Sign the transaction with Keplr
             const signResponse = await window.keplr.signDirect(
                 "odiseo_1234-1",
                 userAddress,
-                signDoc
+                tx
             );
+
+            // Get next unsigned role
+            const nextRole = Object.entries(transaction.signatures)
+                .find(([_, status]) => status !== 'signed')?.[0];
+
+            if (!nextRole) {
+                showError('No available roles to sign');
+                return;
+            }
 
             // Send signature to backend
             const signResult = await fetch('/api/sign', {
@@ -379,12 +394,14 @@ async function signContract(transactionId) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     transaction_id: transactionId,
-                    role: Object.entries(transaction.signatures)
-                        .find(([_, status]) => status !== 'signed')?.[0],
+                    role: nextRole,
                     signature: {
-                        pubKey: signResponse.pub_key,
+                        signed: signResponse.signed,
                         signature: signResponse.signature,
-                        tx_hash: signResponse.signed.txHash
+                        pub_key: {
+                            type: "tendermint/PubKeySecp256k1",
+                            value: Buffer.from(signResponse.pubKey).toString('base64')
+                        }
                     }
                 })
             });
@@ -396,6 +413,7 @@ async function signContract(transactionId) {
             updateContractsTable();
             updateDashboardStats();
             updateRecentActivity();
+
         } catch (error) {
             console.error('Keplr signing error:', error);
             showError(`Failed to sign with Keplr: ${error.message}`);
