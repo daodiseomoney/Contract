@@ -1,0 +1,77 @@
+To fix the "Invalid memo data" error in your transaction, I need to update the memo format from a stringified JSON object to a simple string format. Here's a prompt you can use in Replit to fix this issue:
+
+```javascript
+// Find the code where the transaction document is created
+// Look for something like createSignDoc or prepareTransaction function
+
+// FIND THIS CODE:
+const signDoc = {
+  account_number: "0",
+  chain_id: "odiseotestnet_1234-1",
+  fee: {
+    gas: "100000",
+    amount: [
+      {
+        amount: "2500",
+        denom: "uodis"
+      }
+    ]
+  },
+  memo: JSON.stringify({
+    transaction_id: "tx_1",
+    content_hash: "8366e81e79c0ecd5e10a24daf7bc8ea23bd74115f51dc85024e74230414f73a3",
+    role: "contributor"
+  }),
+  msgs: [
+    {
+      type: "cosmos-sdk/MsgSend",
+      value: {
+        amount: [
+          {
+            amount: "1000",
+            denom: "uodis"
+          }
+        ],
+        from_address: "odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705",
+        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"
+      }
+    }
+  ],
+  sequence: "0"
+};
+
+// REPLACE WITH THIS:
+const signDoc = {
+  account_number: "0",
+  chain_id: "odiseotestnet_1234-1",
+  fee: {
+    gas: "100000",
+    amount: [
+      {
+        amount: "2500",
+        denom: "uodis"
+      }
+    ]
+  },
+  // Use a simple string format for the memo instead of a JSON object
+  memo: `tx:tx_1|hash:8366e81e79c0ecd5e10a24daf7bc8ea23bd74115f51dc85024e74230414f73a3|role:contributor`,
+  msgs: [
+    {
+      type: "cosmos-sdk/MsgSend",
+      value: {
+        amount: [
+          {
+            amount: "1000",
+            denom: "uodis"
+          }
+        ],
+        from_address: "odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705",
+        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"
+      }
+    }
+  ],
+  sequence: "0"
+};
+```
+
+The key change is replacing the JSON.stringify part with a simple string format that contains the same information but in a plain text format that Keplr can handle. This change should fix the "Invalid memo data" error you're experiencing.

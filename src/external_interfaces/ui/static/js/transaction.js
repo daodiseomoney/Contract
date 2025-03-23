@@ -33,10 +33,9 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const accountInfo = await fetchAccountInfo(userAddress);
     console.log("Account data:", accountInfo);
 
-    // Create a simple memo string instead of a JSON object
-    const simpleMemo = `tx:${transactionId}|content:${contentHash}|role:${role}`;
-
-    console.log("Signing as role:", role);
+    // Create a simple string memo - no JSON.stringify
+    const simpleMemo = `tx:${transactionId}|hash:${contentHash}|role:${role}`;
+    console.log("Using simple memo:", simpleMemo);
 
     // Create the sign doc with the correct format
     const signDoc = {
@@ -57,7 +56,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
           }
         }
       ],
-      memo: simpleMemo // Use the simple string memo
+      memo: simpleMemo // Use simple string memo instead of JSON
     };
 
     // Sign the transaction
@@ -121,7 +120,7 @@ async function broadcastTransaction(signResponse) {
             signature: signResponse.signature.signature
           }
         ],
-        memo: signResponse.signed.memo
+        memo: signResponse.signed.memo // This will be the simple string memo
       },
       mode: "block" // Use "block" to wait for confirmation
     };
