@@ -15,7 +15,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @upload_bp.route('/upload', methods=['POST'])
-async def upload_file():
+def upload_file():
     """Handle file upload with proper error handling and JSON responses"""
     try:
         if 'file' not in request.files:

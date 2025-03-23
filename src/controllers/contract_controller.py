@@ -16,7 +16,7 @@ def get_contracts():
         return jsonify({'error': str(e)}), 500
 
 @contract_bp.route('/tokenize', methods=['POST'])
-async def tokenize_property():
+def tokenize_property():
     """Initialize a new multi-signature transaction"""
     try:
         data = request.json
@@ -31,7 +31,7 @@ async def tokenize_property():
         content_hash = hashlib.sha256(json.dumps(content).encode()).hexdigest()
 
         # Create multi-signature transaction
-        transaction_id = await blockchain.create_transaction(
+        transaction_id = blockchain.create_transaction(
             content_hash=content_hash,
             metadata=content
         )
@@ -44,7 +44,7 @@ async def tokenize_property():
         return jsonify({'error': str(e)}), 500
 
 @contract_bp.route('/sign', methods=['POST'])
-async def sign_transaction():
+def sign_transaction():
     """Sign a transaction with a specific role"""
     try:
         data = request.json
@@ -55,7 +55,7 @@ async def sign_transaction():
         signature = data.get('signature', 'test_signature')  # Use test signature in test mode
 
         # Sign the transaction
-        success = await blockchain.sign_transaction(
+        success = blockchain.sign_transaction(
             transaction_id=data['transaction_id'],
             role=role,
             signature=signature

@@ -38,26 +38,26 @@ class MultiSigBlockchainGateway:
     def __init__(self, test_mode: bool = True):
         self.test_mode = test_mode
         self.pending_transactions: Dict[str, MultiSigTransaction] = {}
-        
-    async def create_transaction(self, content_hash: str, metadata: Dict) -> str:
+
+    def create_transaction(self, content_hash: str, metadata: Dict) -> str:
         """Create a new multi-signature transaction"""
         transaction_id = f"tx_{len(self.pending_transactions) + 1}"
         transaction = MultiSigTransaction(transaction_id, content_hash, metadata)
         self.pending_transactions[transaction_id] = transaction
         return transaction_id
 
-    async def sign_transaction(self, transaction_id: str, role: SignatureRole, signature: str) -> bool:
+    def sign_transaction(self, transaction_id: str, role: SignatureRole, signature: str) -> bool:
         """Sign a transaction with a specific role"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
-            
+
         transaction = self.pending_transactions[transaction_id]
-        
+
         # In test mode, accept any signature
         if self.test_mode:
             transaction.signatures[role] = SignatureStatus.SIGNED
             return True
-            
+
         # In production mode, verify Kepler signature
         # TODO: Implement Kepler signature verification
         return False
@@ -66,7 +66,7 @@ class MultiSigBlockchainGateway:
         """Get the current status of a transaction"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
-            
+
         transaction = self.pending_transactions[transaction_id]
         return transaction.to_dict()
 
@@ -74,7 +74,7 @@ class MultiSigBlockchainGateway:
         """Check if all required signatures are present"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
-            
+
         transaction = self.pending_transactions[transaction_id]
         return all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
 
