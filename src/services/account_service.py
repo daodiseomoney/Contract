@@ -45,7 +45,8 @@ class AccountService:
                 self.client = LedgerClient(self.network)
                 # Test the client with a basic query
                 try:
-                    self.client.query_params("bank")
+                    # Query bank params as a basic connectivity test
+                    tx = self.client.query_broadcast_tx("0" * 64)  # Query a dummy tx to test connection
                     self.logger.info(f"Successfully connected to endpoint: {endpoint}")
                     return
                 except Exception as e:
@@ -66,41 +67,59 @@ class AccountService:
         try:
             self.logger.info(f"Fetching account data for address: {address}")
 
+            # Validate address format
+            if not address.startswith('odiseo1'):
+                self.logger.error(f"Invalid address format: {address}")
+                raise ValueError("Invalid address format. Must start with 'odiseo1'")
+
             # Create Address object
-            addr = Address(address)
-            self.logger.debug(f"Created Address object: {addr}")
+            try:
+                addr = Address(address)
+                self.logger.debug(f"Created Address object: {addr}")
+            except Exception as e:
+                self.logger.error(f"Failed to create Address object: {str(e)}")
+                raise ValueError(f"Invalid address format: {str(e)}")
 
             # Query account data
-            account_data = self.client.query_account(addr)
-            self.logger.debug(f"Raw account data response: {account_data}")
+            try:
+                account_data = self.client.query_account(addr)
+                self.logger.debug(f"Raw account data response: {account_data}")
 
-            if not account_data:
-                self.logger.error("No account data found")
-                raise ValueError("No account data found")
+                if not account_data:
+                    self.logger.error("No account data found")
+                    raise ValueError("No account data found for the address")
 
-            result = {
-                "account_number": str(account_data.account_number),
-                "sequence": str(account_data.sequence),
-                "address": address
-            }
+                result = {
+                    "account_number": str(account_data.account_number),
+                    "sequence": str(account_data.sequence),
+                    "address": address
+                }
 
-            self.logger.info(f"Successfully retrieved account data: {result}")
-            return result
+                self.logger.info(f"Successfully retrieved account data: {result}")
+                return result
 
+            except Exception as e:
+                error_msg = str(e)
+                if "403" in error_msg or "401" in error_msg:
+                    # Try to reinitialize with a different endpoint
+                    self.logger.warning("Authentication error, attempting to reinitialize with different endpoint")
+                    try:
+                        self.initialize_client()
+                        return self.get_account_data(address)
+                    except Exception as reinit_error:
+                        error_msg = f"Failed to reconnect to alternate endpoints: {str(reinit_error)}"
+                elif "Connection refused" in error_msg:
+                    error_msg = "Could not connect to blockchain network. Please verify the network is accessible."
+                else:
+                    error_msg = f"Failed to get account data: {error_msg}"
+
+                self.logger.error(error_msg, exc_info=True)
+                raise ValueError(error_msg)
+
+        except ValueError as ve:
+            self.logger.error(f"Account data error: {str(ve)}")
+            raise
         except Exception as e:
-            error_msg = str(e)
-            if "403" in error_msg or "401" in error_msg:
-                # Try to reinitialize with a different endpoint
-                self.logger.warning("Authentication error, attempting to reinitialize with different endpoint")
-                try:
-                    self.initialize_client()
-                    return self.get_account_data(address)
-                except Exception as reinit_error:
-                    error_msg = f"Failed to reconnect to alternate endpoints: {str(reinit_error)}"
-            elif "Connection refused" in error_msg:
-                error_msg = "Could not connect to blockchain network. Please verify the network is accessible."
-            else:
-                error_msg = f"Failed to get account data: {error_msg}"
-
+            error_msg = f"Unexpected error getting account data: {str(e)}"
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg)
