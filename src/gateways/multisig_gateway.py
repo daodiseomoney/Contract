@@ -57,8 +57,8 @@ class MultiSigBlockchainGateway:
 
         # Initialize Odiseo testnet client
         self.network_config = NetworkConfig(
-            chain_id="odiseo_1234-1",  # Update with actual chain ID
-            url="grpc+https://odiseo.test.rpc.nodeshub.online",  # Added grpc+https prefix
+            chain_id="odiseo_1234-1",
+            url="grpc+https://odiseo.test.rpc.nodeshub.online",
             fee_minimum_gas_price=0.025,
             fee_denomination="uodis",
             staking_denomination="uodis"
@@ -78,7 +78,7 @@ class MultiSigBlockchainGateway:
                     "/cosmos.bank.v1beta1.MsgSend",
                     {
                         "from_address": self.client.address(),
-                        "to_address": Address("odiseo1..."),  # Contract address
+                        "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",  # Contract address
                         "amount": [{"denom": "uodis", "amount": "1"}],
                         "memo": json.dumps({
                             "transaction_id": transaction_id,
@@ -104,73 +104,45 @@ class MultiSigBlockchainGateway:
 
         transaction = self.pending_transactions[transaction_id]
 
-        if self.test_mode:
-            # Update signature status
-            transaction.signatures[role] = SignatureStatus.SIGNED
+        # Update signature status
+        transaction.signatures[role] = SignatureStatus.SIGNED
 
-            # Check if all signatures are collected
-            all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
+        # Check if all signatures are collected
+        all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
 
-            if all_signed:
-                # In test mode, simulate blockchain submission with a mock hash
-                transaction.blockchain_tx_hash = "83A7F8B75CC931F27B3D2A5EA24B983435C2A9C6C24C8F88B8C94F856C654D3E"
-                transaction.explorer_url = f"https://testnet.explorer.nodeshub.online/odiseo/tx/{transaction.blockchain_tx_hash}"
+        if all_signed:
+            try:
+                # Create and submit final blockchain transaction
+                tx = Transaction()
+                tx.add_message(
+                    "/cosmos.bank.v1beta1.MsgSend",
+                    {
+                        "from_address": self.client.address(),
+                        "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",  # Testnet contract address
+                        "amount": [{"denom": "uodis", "amount": "1000000"}],  # 1 ODIS
+                        "memo": json.dumps({
+                            "transaction_id": transaction_id,
+                            "content_hash": transaction.content_hash,
+                            "type": "property_token_final"
+                        })
+                    }
+                )
 
-            return True
+                # Sign and broadcast transaction
+                tx_result = self.client.broadcast_tx(tx)
+                if tx_result.tx_hash:
+                    transaction.blockchain_tx_hash = tx_result.tx_hash
+                    transaction.explorer_url = f"https://testnet.explorer.nodeshub.online/odiseo/tx/{tx_result.tx_hash}"
+                    return True
+                return False
 
-        try:
-            # Create blockchain transaction for signature
-            tx = Transaction()
-            tx.add_message(
-                "/cosmos.bank.v1beta1.MsgSend",
-                {
-                    "from_address": self.client.address(),
-                    "to_address": Address("odiseo1..."),  # Contract address
-                    "amount": [{"denom": "uodis", "amount": "1"}],
-                    "memo": json.dumps({
-                        "transaction_id": transaction_id,
-                        "role": role.value,
-                        "signature": signature,
-                        "type": "multisig_sign"
-                    })
-                }
-            )
+            except Exception as e:
+                # Assuming current_app is available in the context.  Replace with appropriate logging if needed.
+                #current_app.logger.error(f"Failed to submit blockchain transaction: {str(e)}") 
+                raise Exception(f"Failed to submit blockchain transaction: {str(e)}") #For simplicity, re-raise.
 
-            # Broadcast signature transaction
-            tx_result = self.client.broadcast_tx(tx)
-            if tx_result.tx_hash:
-                transaction.signatures[role] = SignatureStatus.SIGNED
 
-                # Check if all signatures are collected
-                all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
-
-                if all_signed:
-                    # Create and submit final blockchain transaction
-                    final_tx = Transaction()
-                    final_tx.add_message(
-                        "/cosmos.bank.v1beta1.MsgSend",
-                        {
-                            "from_address": self.client.address(),
-                            "to_address": Address("odiseo1..."),  # Contract address
-                            "amount": [{"denom": "uodis", "amount": transaction.metadata['network']['amount']}],
-                            "memo": json.dumps({
-                                "transaction_id": transaction_id,
-                                "content_hash": transaction.content_hash,
-                                "type": "property_token_final"
-                            })
-                        }
-                    )
-
-                    # Submit final transaction
-                    final_result = self.client.broadcast_tx(final_tx)
-                    transaction.blockchain_tx_hash = final_result.tx_hash
-                    transaction.explorer_url = f"https://testnet.explorer.nodeshub.online/odiseo/tx/{final_result.tx_hash}"
-
-                return True
-            return False
-
-        except Exception as e:
-            raise Exception(f"Failed to sign transaction: {str(e)}")
+        return True
 
     def get_transaction_status(self, transaction_id: str) -> Dict:
         """Get the current status of a transaction from blockchain"""
