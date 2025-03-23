@@ -438,6 +438,10 @@ async function signContract(transactionId) {
             );
             console.log('Got sign response:', signResponse);
 
+            if (!signResponse.signed || !signResponse.signature || !signResponse.pub_key) {
+                throw new Error('Invalid Keplr signature response structure');
+            }
+
             // Send signature to backend
             const signResult = await fetch('/api/sign', {
                 method: 'POST',
@@ -445,7 +449,11 @@ async function signContract(transactionId) {
                 body: JSON.stringify({
                     transaction_id: transactionId,
                     role: nextRole,
-                    signature: signResponse
+                    signature: {
+                        signed: signResponse.signed,
+                        signature: signResponse.signature,
+                        pub_key: signResponse.pub_key
+                    }
                 })
             });
 
