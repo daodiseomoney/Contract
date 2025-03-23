@@ -26,6 +26,7 @@ class MultiSigTransaction:
         }
         self.created_at = datetime.utcnow()
         self.blockchain_tx_hash = None
+        self.explorer_url = None
 
     def to_dict(self) -> Dict:
         return {
@@ -35,7 +36,7 @@ class MultiSigTransaction:
             "signatures": {role.value: status.value for role, status in self.signatures.items()},
             "created_at": self.created_at.isoformat(),
             "blockchain_tx_hash": self.blockchain_tx_hash,
-            "explorer_url": f"https://testnet.explorer.nodeshub.online/odiseo/tx/{self.blockchain_tx_hash}" if self.blockchain_tx_hash else None,
+            "explorer_url": self.explorer_url,
             "status": self.get_status()
         }
 
@@ -47,6 +48,11 @@ class MultiSigTransaction:
         elif signed_count > 0:
             return "pending_signatures"
         return "active"
+
+    def update_blockchain_details(self, tx_hash: str):
+        """Update transaction with blockchain details"""
+        self.blockchain_tx_hash = tx_hash
+        self.explorer_url = f"https://testnet.explorer.nodeshub.online/odiseo/tx/{tx_hash}"
 
 class MultiSigBlockchainGateway:
     def __init__(self, test_mode: bool = True):
@@ -67,21 +73,30 @@ class MultiSigBlockchainGateway:
             raise ValueError("Transaction not found")
 
         transaction = self.pending_transactions[transaction_id]
+        self.logger.info(f"Processing signature for transaction {transaction_id}, role: {role}")
 
         try:
-            # Verify Keplr signature (in production, implement proper signature verification)
-            if signature and signature.get('pubKey') and signature.get('signature'):
-                transaction.signatures[role] = SignatureStatus.SIGNED
+            # Verify and process Keplr signature
+            if not signature or not signature.get('pubKey') or not signature.get('signature'):
+                raise ValueError("Invalid signature data")
 
-                # Check if all signatures are collected
-                all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
+            # Update signature status
+            transaction.signatures[role] = SignatureStatus.SIGNED
+            self.logger.info(f"Updated signature status for {role} to SIGNED")
 
-                if all_signed:
-                    # In test mode, use the Keplr tx hash directly
-                    transaction.blockchain_tx_hash = signature.get('tx_hash')
-                    return True
+            # Get transaction hash from Keplr response
+            tx_hash = signature.get('tx_hash')
+            if tx_hash:
+                transaction.update_blockchain_details(tx_hash)
+                self.logger.info(f"Updated blockchain details with hash: {tx_hash}")
+
+            # Check if all signatures are collected
+            all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
+            if all_signed:
+                self.logger.info("All signatures collected, transaction complete")
 
             return True
+
         except Exception as e:
             self.logger.error(f"Failed to sign transaction: {str(e)}")
             raise Exception(f"Failed to sign transaction: {str(e)}")
