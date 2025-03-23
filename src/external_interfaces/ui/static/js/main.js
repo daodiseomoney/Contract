@@ -232,6 +232,7 @@ function formatBudgetSplits(splits) {
 }
 
 // Contract interaction functions
+// Update viewContract function with improved UI
 async function viewContract(transactionId) {
     try {
         const response = await fetch(`/api/transaction/${transactionId}`);
@@ -244,69 +245,108 @@ async function viewContract(transactionId) {
             throw new Error('No contract data received');
         }
 
-        // Create modal to show contract details
+        // Create modal with improved UI
         const modal = document.createElement('div');
         modal.className = 'modal fade';
         modal.innerHTML = `
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Contract Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            Contract Details
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="alert alert-info mb-3">
-                            <strong>Transaction Status:</strong>
-                            <span class="badge bg-${getStatusBadgeColor(contract.status)} ms-2">
-                                ${contract.status}
-                            </span>
+                        <!-- Transaction Status Banner -->
+                        <div class="alert ${contract.status === 'completed' ? 'alert-success' : 'alert-info'} d-flex align-items-center mb-4">
+                            <i class="bi ${contract.status === 'completed' ? 'bi-check-circle' : 'bi-info-circle'} me-2"></i>
+                            <div>
+                                <strong>Transaction Status:</strong>
+                                <span class="badge bg-${getStatusBadgeColor(contract.status)} ms-2">
+                                    ${contract.status.toUpperCase()}
+                                </span>
+                            </div>
                         </div>
 
-                        <dl class="row">
-                            <dt class="col-sm-4">Transaction ID</dt>
-                            <dd class="col-sm-8">${contract.transaction_id}</dd>
+                        <!-- Main Details -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Transaction Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Transaction ID</dt>
+                                    <dd class="col-sm-8">
+                                        <code class="user-select-all">${contract.transaction_id}</code>
+                                    </dd>
 
-                            <dt class="col-sm-4">Content Hash</dt>
-                            <dd class="col-sm-8">
-                                <code class="user-select-all">${contract.content_hash}</code>
-                            </dd>
+                                    <dt class="col-sm-4">Content Hash</dt>
+                                    <dd class="col-sm-8">
+                                        <code class="user-select-all">${contract.content_hash}</code>
+                                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText('${contract.content_hash}')">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </dd>
 
-                            <dt class="col-sm-4">Blockchain Tx Hash</dt>
-                            <dd class="col-sm-8">
-                                ${contract.blockchain_tx_hash ? 
-                                    `<code class="user-select-all">${contract.blockchain_tx_hash}</code>` : 
-                                    '<span class="text-muted">Pending...</span>'}
-                            </dd>
+                                    <dt class="col-sm-4">Blockchain Tx Hash</dt>
+                                    <dd class="col-sm-8">
+                                        ${contract.blockchain_tx_hash ? 
+                                            `<div class="d-flex align-items-center">
+                                                <code class="user-select-all">${contract.blockchain_tx_hash}</code>
+                                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText('${contract.blockchain_tx_hash}')">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>` : 
+                                            '<span class="text-warning"><i class="bi bi-clock-history"></i> Pending...</span>'}
+                                    </dd>
 
-                            <dt class="col-sm-4">Explorer Link</dt>
-                            <dd class="col-sm-8">
-                                ${contract.explorer_url ? 
-                                    `<a href="${contract.explorer_url}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-box-arrow-up-right"></i> View in Explorer
-                                    </a>` : 
-                                    '<span class="text-muted">Not available yet</span>'}
-                            </dd>
+                                    <dt class="col-sm-4">Explorer Link</dt>
+                                    <dd class="col-sm-8">
+                                        ${contract.explorer_url ? 
+                                            `<a href="${contract.explorer_url}" target="_blank" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-box-arrow-up-right"></i> View on Odiseo Explorer
+                                            </a>` : 
+                                            '<span class="text-muted"><i class="bi bi-clock-history"></i> Not available yet</span>'}
+                                    </dd>
 
-                            <dt class="col-sm-4">Created</dt>
-                            <dd class="col-sm-8">${formatDate(contract.created_at)}</dd>
+                                    <dt class="col-sm-4">Created</dt>
+                                    <dd class="col-sm-8">${formatDate(contract.created_at)}</dd>
+                                </dl>
+                            </div>
+                        </div>
 
-                            <dt class="col-sm-4">Signatures</dt>
-                            <dd class="col-sm-8">
+                        <!-- Signatures Section -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Signature Status</h6>
+                            </div>
+                            <div class="card-body">
                                 <div class="d-flex flex-column gap-2">
                                     ${Object.entries(contract.signatures).map(([role, status]) => `
-                                        <div class="d-flex align-items-center">
-                                            <span class="me-2">${role}:</span>
+                                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-person-circle me-2"></i>
+                                                <span class="text-capitalize">${role}</span>
+                                            </div>
                                             <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">
-                                                ${status}
+                                                ${status === 'signed' ? 
+                                                    '<i class="bi bi-check-circle me-1"></i> Signed' : 
+                                                    '<i class="bi bi-clock me-1"></i> Pending'}
                                             </span>
                                         </div>
                                     `).join('')}
                                 </div>
-                            </dd>
-                        </dl>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        ${contract.status !== 'completed' ? 
+                            `<button type="button" class="btn btn-primary" onclick="signContract('${contract.transaction_id}')">
+                                <i class="bi bi-pen"></i> Sign Contract
+                            </button>` : ''}
                     </div>
                 </div>
             </div>
