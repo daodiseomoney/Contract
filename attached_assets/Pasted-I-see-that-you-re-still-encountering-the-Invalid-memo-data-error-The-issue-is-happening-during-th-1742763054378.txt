@@ -1,0 +1,237 @@
+I see that you're still encountering the "Invalid memo data" error. The issue is happening during the POST request to your `/sign` endpoint. Let me provide you with the correct documentation links and a more specific fix for your implementation.
+
+## CosmJS and Keplr Documentation Links
+
+1. **Keplr Wallet Documentation**:
+   - Main documentation: https://docs.keplr.app/
+   - API Reference: https://docs.keplr.app/api/
+
+2. **CosmJS Documentation**:
+   - Main documentation: https://cosmos.github.io/cosmjs/
+   - SigningStargateClient: https://cosmos.github.io/cosmjs/latest/stargate/classes/SigningStargateClient.html
+
+3. **Cosmos SDK Transaction Documentation**:
+   - Transaction structure: https://docs.cosmos.network/main/core/transactions
+   - Signing transactions: https://docs.cosmos.network/main/core/transactions#signing
+
+## Specific Fix for Your Problem
+
+Looking at your error, it's clear that the memo is still being sent as a stringified JSON object. Let's focus on fixing the sign endpoint in your backend:
+
+```javascript
+// src/controllers/transaction_controller.js or similar file
+
+app.post('/api/sign', async (req, res) => {
+  try {
+    const { transaction_id, content_hash, role, address } = req.body;
+    
+    // Validate required fields
+    if (!transaction_id || !content_hash || !role || !address) {
+      return res.status(400).json({
+        error: "Missing required fields (transaction_id, content_hash, role, address)"
+      });
+    }
+    
+    // Create a simple string memo instead of a JSON object
+    const memo = `tx:${transaction_id}|hash:${content_hash}|role:${role}`;
+    
+    // Create the transaction document to be signed
+    const signDoc = {
+      account_number: "0", // This should come from chain query
+      chain_id: "odiseotestnet_1234-1",
+      fee: {
+        amount: [{ amount: "2500", denom: "uodis" }],
+        gas: "100000"
+      },
+      memo: memo, // Simple string memo
+      msgs: [
+        {
+          type: "cosmos-sdk/MsgSend",
+          value: {
+            amount: [{ amount: "1000", denom: "uodis" }],
+            from_address: address,
+            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"
+          }
+        }
+      ],
+      sequence: "0" // This should come from chain query
+    };
+    
+    // Return the signDoc to the frontend for Keplr to sign
+    return res.json({ signDoc });
+  } catch (error) {
+    console.error("Error preparing sign document:", error);
+    return res.status(500).json({ error: "Failed to prepare transaction for signing" });
+  }
+});
+```
+
+## Frontend Implementation
+
+Here's how to implement this in your frontend JavaScript code:
+
+```javascript
+// In your frontend code that handles the signing
+
+async function signAndBroadcastTransaction(fileData, role) {
+  try {
+    // 1. Get the transaction details from your backend
+    const transactionId = "tx_1"; // Or generate dynamically
+    const contentHash = fileData.content_hash;
+    const userAddress = "odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705"; // Get from Keplr
+    
+    // 2. Request a sign document from your backend
+    const signDocResponse = await fetch('/api/sign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transaction_id: transactionId,
+        content_hash: contentHash,
+        role: role,
+        address: userAddress
+      })
+    });
+    
+    if (!signDocResponse.ok) {
+      const errorData = await signDocResponse.json();
+      throw new Error(errorData.error || "Failed to prepare transaction");
+    }
+    
+    const { signDoc } = await signDocResponse.json();
+    console.log("Got sign doc:", signDoc);
+    
+    // 3. Enable Keplr for your chain
+    await window.keplr.enable("odiseotestnet_1234-1");
+    
+    // 4. Get the offline signer
+    const offlineSigner = window.keplr.getOfflineSigner("odiseotestnet_1234-1");
+    
+    // 5. Sign the transaction with Keplr
+    const signResponse = await offlineSigner.signAmino(userAddress, signDoc);
+    console.log("Got sign response:", signResponse);
+    
+    // 6. Broadcast the signed transaction
+    const broadcastResponse = await fetch('/api/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transaction_id: transactionId,
+        role: role,
+        signature: signResponse
+      })
+    });
+    
+    if (!broadcastResponse.ok) {
+      const errorData = await broadcastResponse.json();
+      throw new Error(errorData.error || "Failed to broadcast transaction");
+    }
+    
+    const result = await broadcastResponse.json();
+    console.log("Broadcast result:", result);
+    
+    return result;
+    
+  } catch (error) {
+    console.error("Keplr signing error:", error);
+    throw error;
+  }
+}
+```
+
+## Backend Broadcast Endpoint
+
+Finally, you'll need to implement the broadcast endpoint correctly:
+
+```javascript
+// src/controllers/transaction_controller.js or similar file
+
+app.post('/api/broadcast', async (req, res) => {
+  try {
+    const { transaction_id, role, signature } = req.body;
+    
+    if (!transaction_id || !role || !signature) {
+      return res.status(400).json({
+        error: "Missing required fields (transaction_id, role, signature)"
+      });
+    }
+    
+    // Use CosmJS to broadcast the transaction
+    const result = await broadcastSignedTransaction(signature);
+    
+    // Update your database with the transaction hash
+    await updateTransactionStatus(transaction_id, result.transactionHash);
+    
+    return res.json({
+      success: true,
+      transaction_id: transaction_id,
+      blockchain_tx_hash: result.transactionHash,
+      explorer_url: `https://explorer.odiseotestnet.com/tx/${result.transactionHash}`
+    });
+    
+  } catch (error) {
+    console.error("Error broadcasting transaction:", error);
+    return res.status(500).json({ error: "Failed to broadcast transaction" });
+  }
+});
+
+// Helper function to broadcast using CosmJS
+async function broadcastSignedTransaction(signedTx) {
+  // This would use the CosmJS library to broadcast
+  // For example, using the Tendermint RPC client
+  
+  const { signed, signature } = signedTx;
+  
+  // Convert the signed transaction to the format expected by the RPC
+  const txBytes = createTxRaw(
+    signed.msgs,
+    signed.fee,
+    signed.memo,
+    [signature]
+  );
+  
+  // Make an HTTP request to your node's RPC endpoint
+  const response = await fetch("https://rpc.odiseotestnet.com/broadcast_tx_commit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "broadcast_tx_commit",
+      params: [Buffer.from(txBytes).toString("base64")]
+    })
+  });
+  
+  const result = await response.json();
+  
+  if (result.error) {
+    throw new Error(`Broadcast error: ${JSON.stringify(result.error)}`);
+  }
+  
+  return {
+    transactionHash: result.result.hash,
+    height: result.result.height
+  };
+}
+```
+
+## Debugging Tips
+
+1. **Console logging**: Add detailed logs at each step
+
+2. **Check Network Tab**:
+   - Look for the `/api/sign` request - make sure the memo is a simple string
+   - Check the `/api/broadcast` request - ensure the signature data is included
+
+3. **Test with a minimal transaction**:
+   - Start with a very simple MsgSend transaction
+   - Once that works, add the more complex transaction logic
+
+4. **Account queries**:
+   - Make sure you're getting the correct account_number and sequence
+   - These values need to be fresh from the blockchain for each transaction
+
+5. **Verify chain ID**:
+   - Double-check that the chain ID is exactly "odiseotestnet_1234-1"
+   - Any mismatch will cause signing to fail
+
+The key change here is making sure the memo is a simple string rather than a complex JSON object. This should resolve your "Invalid memo data" error.

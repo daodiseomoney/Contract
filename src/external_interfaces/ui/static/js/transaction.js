@@ -34,19 +34,19 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     console.log("Account data:", accountInfo);
 
     // Create a simple memo string instead of a JSON object
-    const simpleMemo = `tx:${transactionId}|role:${role}`;
+    const simpleMemo = `tx:${transactionId}|content:${contentHash}|role:${role}`;
 
     console.log("Signing as role:", role);
 
     // Create the sign doc with the correct format
     const signDoc = {
-      account_number: accountInfo.account_number,
       chain_id: chainId,
+      account_number: accountInfo.account_number,
+      sequence: accountInfo.sequence,
       fee: {
         amount: [{ amount: "2500", denom: "uodis" }],
         gas: "100000"
       },
-      memo: simpleMemo,
       msgs: [
         {
           type: "cosmos-sdk/MsgSend",
@@ -57,7 +57,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
           }
         }
       ],
-      sequence: accountInfo.sequence
+      memo: simpleMemo // Use the simple string memo
     };
 
     // Sign the transaction
