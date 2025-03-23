@@ -65,7 +65,7 @@ class TransactionService:
             role = msg.get("role", "")
             content_hash = msg.get("content_hash", "")
             # Use a simple string format instead of JSON object
-            memo = f"tx:{tx_id}|role:{role}|hash:{content_hash}"
+            memo = f"tx:{tx_id}|hash:{content_hash}|role:{role}"
             self.logger.debug(f"Generated memo: {memo}")
 
             # Create sign doc for Keplr
