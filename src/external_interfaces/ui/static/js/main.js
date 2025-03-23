@@ -321,37 +321,87 @@ function formatBudgetSplits(splits) {
 // Contract interaction functions
 async function signContract(transactionId) {
     try {
-        // In test mode, we'll simulate signing as each role in sequence
-        const roles = ['owner', 'contributor', 'validator'];
-        const currentSignatures = (await (await fetch(`/api/transaction/${transactionId}`)).json()).signatures;
-
-        // Find the next unsigned role
-        const nextRole = Object.entries(currentSignatures)
-            .find(([_, status]) => status !== 'signed')?.[0];
-
-        if (!nextRole) {
-            showSuccess('Contract is already fully signed');
+        // Check if Keplr is installed
+        if (!window.keplr) {
+            showError('Please install Keplr wallet extension');
             return;
         }
 
-        const response = await fetch('/api/sign', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                transaction_id: transactionId,
-                role: nextRole,
-                signature: 'test_signature'
-            })
-        });
+        // Get transaction details
+        const response = await fetch(`/api/transaction/${transactionId}`);
+        const transaction = await response.json();
 
-        const result = await response.json();
-        if (result.error) throw new Error(result.error);
+        // Get Keplr to sign the transaction
+        try {
+            // Enable Keplr for Odiseo testnet
+            await window.keplr.enable("odiseo_1234-1");
 
-        showSuccess(`Successfully signed as ${nextRole}`);
-        updateContractsTable();
-        updateDashboardStats();
-        updateRecentActivity();
+            // Get the offline signer
+            const offlineSigner = await window.keplr.getOfflineSigner("odiseo_1234-1");
+
+            // Get user's Odiseo address
+            const accounts = await offlineSigner.getAccounts();
+            const userAddress = accounts[0].address;
+
+            // Create transaction payload
+            const signDoc = {
+                chainId: "odiseo_1234-1",
+                accountNumber: "0", // This should come from the chain
+                sequence: "0", // This should come from the chain
+                fee: {
+                    amount: [{ denom: "uodis", amount: "1000" }],
+                    gas: "200000",
+                },
+                msgs: [{
+                    type: "cosmos-sdk/MsgSend",
+                    value: {
+                        from_address: userAddress,
+                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                        amount: [{ denom: "uodis", amount: "1000000" }]
+                    }
+                }],
+                memo: JSON.stringify({
+                    transaction_id: transaction.transaction_id,
+                    content_hash: transaction.content_hash
+                })
+            };
+
+            // Sign the transaction with Keplr
+            const signResponse = await window.keplr.signDirect(
+                "odiseo_1234-1",
+                userAddress,
+                signDoc
+            );
+
+            // Send signature to backend
+            const signResult = await fetch('/api/sign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transaction_id: transactionId,
+                    role: Object.entries(transaction.signatures)
+                        .find(([_, status]) => status !== 'signed')?.[0],
+                    signature: {
+                        pubKey: signResponse.pub_key,
+                        signature: signResponse.signature,
+                        tx_hash: signResponse.signed.txHash
+                    }
+                })
+            });
+
+            const result = await signResult.json();
+            if (result.error) throw new Error(result.error);
+
+            showSuccess('Successfully signed transaction');
+            updateContractsTable();
+            updateDashboardStats();
+            updateRecentActivity();
+        } catch (error) {
+            console.error('Keplr signing error:', error);
+            showError(`Failed to sign with Keplr: ${error.message}`);
+        }
     } catch (error) {
+        console.error('Contract signing error:', error);
         showError(error.message || 'Failed to sign contract');
     }
 }

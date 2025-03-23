@@ -2,9 +2,7 @@ from typing import List, Dict
 from enum import Enum
 from datetime import datetime
 import json
-from cosmpy.aerial.client import LedgerClient, NetworkConfig
-from cosmpy.aerial.tx import Transaction
-from cosmpy.crypto.address import Address
+import logging
 
 class SignatureRole(Enum):
     OWNER = "owner"
@@ -54,157 +52,48 @@ class MultiSigBlockchainGateway:
     def __init__(self, test_mode: bool = True):
         self.test_mode = test_mode
         self.pending_transactions: Dict[str, MultiSigTransaction] = {}
-
-        # Initialize Odiseo testnet client
-        self.network_config = NetworkConfig(
-            chain_id="odiseo_1234-1",
-            url="grpc+https://odiseo.test.rpc.nodeshub.online",
-            fee_minimum_gas_price=0.025,
-            fee_denomination="uodis",
-            staking_denomination="uodis"
-        )
-        self.client = LedgerClient(self.network_config)
+        self.logger = logging.getLogger(__name__)
 
     def create_transaction(self, content_hash: str, metadata: Dict) -> str:
-        """Create a new multi-signature transaction and initialize on blockchain"""
+        """Create a new multi-signature transaction"""
         transaction_id = f"tx_{len(self.pending_transactions) + 1}"
         transaction = MultiSigTransaction(transaction_id, content_hash, metadata)
-
-        if not self.test_mode:
-            try:
-                # Create transaction
-                tx = Transaction()
-                tx.add_message(
-                    "/cosmos.bank.v1beta1.MsgSend",
-                    {
-                        "from_address": self.client.address(),
-                        "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",  # Contract address
-                        "amount": [{"denom": "uodis", "amount": "1"}],
-                        "memo": json.dumps({
-                            "transaction_id": transaction_id,
-                            "content_hash": content_hash,
-                            "type": "property_token"
-                        })
-                    }
-                )
-
-                # Sign and broadcast
-                tx_result = self.client.broadcast_tx(tx)
-                transaction.blockchain_tx_hash = tx_result.tx_hash
-            except Exception as e:
-                raise Exception(f"Failed to deploy contract: {str(e)}")
-
         self.pending_transactions[transaction_id] = transaction
         return transaction_id
 
-    def sign_transaction(self, transaction_id: str, role: SignatureRole, signature: str) -> bool:
-        """Sign a transaction with Kepler signature"""
+    def sign_transaction(self, transaction_id: str, role: SignatureRole, signature: Dict) -> bool:
+        """Sign a transaction with Keplr signature"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
 
         transaction = self.pending_transactions[transaction_id]
 
-        # Update signature status
-        transaction.signatures[role] = SignatureStatus.SIGNED
+        try:
+            # Verify Keplr signature (in production, implement proper signature verification)
+            if signature and signature.get('pubKey') and signature.get('signature'):
+                transaction.signatures[role] = SignatureStatus.SIGNED
 
-        # Check if all signatures are collected
-        all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
+                # Check if all signatures are collected
+                all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
 
-        if all_signed:
-            try:
-                # Create and submit final blockchain transaction
-                tx = Transaction()
-                tx.add_message(
-                    "/cosmos.bank.v1beta1.MsgSend",
-                    {
-                        "from_address": self.client.address(),
-                        "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",  # Testnet contract address
-                        "amount": [{"denom": "uodis", "amount": "1000000"}],  # 1 ODIS
-                        "memo": json.dumps({
-                            "transaction_id": transaction_id,
-                            "content_hash": transaction.content_hash,
-                            "type": "property_token_final"
-                        })
-                    }
-                )
-
-                # Sign and broadcast transaction
-                tx_result = self.client.broadcast_tx(tx)
-                if tx_result.tx_hash:
-                    transaction.blockchain_tx_hash = tx_result.tx_hash
-                    transaction.explorer_url = f"https://testnet.explorer.nodeshub.online/odiseo/tx/{tx_result.tx_hash}"
+                if all_signed:
+                    # In test mode, use the Keplr tx hash directly
+                    transaction.blockchain_tx_hash = signature.get('tx_hash')
                     return True
-                return False
 
-            except Exception as e:
-                # Assuming current_app is available in the context.  Replace with appropriate logging if needed.
-                #current_app.logger.error(f"Failed to submit blockchain transaction: {str(e)}") 
-                raise Exception(f"Failed to submit blockchain transaction: {str(e)}") #For simplicity, re-raise.
-
-
-        return True
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to sign transaction: {str(e)}")
+            raise Exception(f"Failed to sign transaction: {str(e)}")
 
     def get_transaction_status(self, transaction_id: str) -> Dict:
-        """Get the current status of a transaction from blockchain"""
+        """Get the current status of a transaction"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
 
         transaction = self.pending_transactions[transaction_id]
-
-        if not self.test_mode and transaction.blockchain_tx_hash:
-            try:
-                # Query blockchain for latest status
-                tx_result = self.client.query_tx(transaction.blockchain_tx_hash)
-                if tx_result:
-                    # Update local state based on blockchain
-                    pass
-            except Exception as e:
-                raise Exception(f"Failed to query transaction status: {str(e)}")
-
         return transaction.to_dict()
 
     def get_active_contracts(self) -> List[Dict]:
-        """Query active property contracts and update local state"""
-        active_contracts = []
-
-        try:
-            # First update local transactions from blockchain
-            if not self.test_mode:
-                for tx in self.pending_transactions.values():
-                    if tx.blockchain_tx_hash:
-                        try:
-                            # Query blockchain for latest status
-                            tx_result = self.client.query_tx(tx.blockchain_tx_hash)
-                            if tx_result:
-                                # TODO: Update signature status based on events
-                                pass
-                        except Exception:
-                            continue
-
-            # Return all transactions with their current state
-            active_contracts = [tx.to_dict() for tx in self.pending_transactions.values()]
-
-            # If no transactions exist yet, return some test data in test mode
-            if not active_contracts and self.test_mode:
-                active_contracts = [{
-                    "transaction_id": "test_tx_1",
-                    "content_hash": "test_hash",
-                    "metadata": {
-                        "file_path": "test.dwg",
-                        "budget_splits": {"owner": 50, "contributor": 30, "validator": 20}
-                    },
-                    "signatures": {
-                        "owner": "signed",
-                        "contributor": "pending",
-                        "validator": "pending"
-                    },
-                    "created_at": "2025-03-23T00:00:00Z",
-                    "blockchain_tx_hash": "test_hash",
-                    "explorer_url": "https://testnet.explorer.nodeshub.online/odiseo/tx/test_hash",
-                    "status": "pending_signatures"
-                }]
-
-            return active_contracts
-
-        except Exception as e:
-            raise Exception(f"Failed to fetch contracts: {str(e)}")
+        """Get all active contracts/transactions"""
+        return [tx.to_dict() for tx in self.pending_transactions.values()]
