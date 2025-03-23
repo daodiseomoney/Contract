@@ -443,7 +443,7 @@ async function signContract(transactionId) {
                 console.log('Adding public key from account');
                 signResponse.pub_key = {
                     type: "tendermint/PubKeySecp256k1",
-                    value: Buffer.from(accounts[0].pubkey).toString('base64')
+                    value: uint8ToBase64(accounts[0].pubkey)
                 };
             }
 
@@ -483,7 +483,6 @@ async function signContract(transactionId) {
         showError(error.message || 'Failed to sign contract');
     }
 }
-
 
 // File upload handling
 async function handleUpload(e) {
@@ -590,6 +589,15 @@ function showSuccess(message) {
     document.querySelector('.container')?.prepend(alert);
 }
 
+
+// Add the base64 conversion utility function
+function uint8ToBase64(u8Arr) {
+    let binary = '';
+    for (let i = 0; i < u8Arr.length; i++) {
+        binary += String.fromCharCode(u8Arr[i]);
+    }
+    return window.btoa(binary);
+}
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
