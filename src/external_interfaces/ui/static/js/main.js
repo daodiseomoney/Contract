@@ -21,7 +21,8 @@ function initializeCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        align: 'center'
                     }
                 }
             }
@@ -104,7 +105,7 @@ function updateDashboardStats() {
         .catch(console.error);
 }
 
-// Update recent activity section
+// Update recent activity section with proper formatting
 function updateRecentActivity() {
     const activityList = document.getElementById('recentActivity');
     if (!activityList) return;
@@ -112,22 +113,37 @@ function updateRecentActivity() {
     fetch('/api/contracts')
         .then(response => response.json())
         .then(contracts => {
-            // Sort by creation date
+            // Sort by creation date (newest first)
             contracts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             // Take most recent 5
             const activities = contracts.slice(0, 5).map(contract => {
+                const date = new Date(contract.created_at);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
                 return {
                     text: `Contract ${contract.transaction_id} (${contract.status})`,
-                    time: new Date(contract.created_at).toLocaleString(),
-                    href: contract.explorer_url || `/contracts#${contract.transaction_id}`
+                    time: formattedDate,
+                    href: contract.explorer_url || `/contracts#${contract.transaction_id}`,
+                    status: contract.status
                 };
             });
 
             activityList.innerHTML = activities.map(activity => `
                 <a href="${activity.href}" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between">
-                        <p class="mb-1">${activity.text}</p>
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-${getStatusBadgeColor(activity.status)} me-2">
+                                ${activity.status}
+                            </span>
+                            <p class="mb-0">${activity.text}</p>
+                        </div>
                         <small class="text-muted">${activity.time}</small>
                     </div>
                 </a>
@@ -136,7 +152,7 @@ function updateRecentActivity() {
         .catch(console.error);
 }
 
-// Update contracts table
+// Update contracts table with proper spacing
 function updateContractsTable() {
     const contractsTable = document.querySelector('#contractsTable tbody');
     const sampleSection = document.getElementById('sampleProjectsSection');
@@ -151,7 +167,7 @@ function updateContractsTable() {
 
             contractsTable.innerHTML = contracts.map(contract => `
                 <tr>
-                    <td>
+                    <td class="align-middle">
                         ${contract.transaction_id}
                         ${contract.blockchain_tx_hash ? `
                             <a href="${contract.explorer_url}" target="_blank" class="ms-2">
@@ -159,15 +175,15 @@ function updateContractsTable() {
                             </a>
                         ` : ''}
                     </td>
-                    <td>${contract.metadata?.file_path || 'N/A'}</td>
-                    <td>
+                    <td class="align-middle">${contract.metadata?.file_path || 'N/A'}</td>
+                    <td class="align-middle">
                         <span class="badge bg-${getStatusBadgeColor(contract.status)}">
                             ${contract.status}
                         </span>
                     </td>
-                    <td>${formatBudgetSplits(contract.metadata?.budget_splits)}</td>
-                    <td>${new Date(contract.created_at).toLocaleDateString()}</td>
-                    <td>
+                    <td class="align-middle">${formatBudgetSplits(contract.metadata?.budget_splits)}</td>
+                    <td class="align-middle">${new Date(contract.created_at).toLocaleDateString()}</td>
+                    <td class="align-middle">
                         <div class="btn-group">
                             <button class="btn btn-sm btn-primary" onclick="viewContract('${contract.transaction_id}')">View</button>
                             <button class="btn btn-sm btn-success" onclick="signContract('${contract.transaction_id}')" 
