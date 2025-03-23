@@ -39,8 +39,15 @@ def sign_transaction():
             logger.error("Invalid memo format: JSON object not allowed")
             return jsonify({"error": "Memo must be a simple text string"}), 400
 
+        # Validate memo format (tx:|hash:|role:)
+        expected_parts = ["tx:", "hash:", "role:"]
+        if not all(part in memo for part in expected_parts):
+            logger.error(f"Invalid memo format. Expected format: tx:ID|hash:HASH|role:ROLE, got: {memo}")
+            return jsonify({"error": "Invalid memo format"}), 400
+
         # Broadcast the signed transaction
-        result = transaction_service.broadcast_signed_tx(data)
+        result = transaction_service.broadcast_transaction(data)
+        logger.debug(f"Broadcast result: {result}")
 
         if not result.get("success"):
             logger.error(f"Failed to broadcast transaction: {result.get('error')}")
