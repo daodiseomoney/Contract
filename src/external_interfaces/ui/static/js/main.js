@@ -343,41 +343,14 @@ async function signContract(transactionId) {
             const userAddress = accounts[0].address;
 
             // Create transaction payload
-            const msgSend = {
-                fromAddress: userAddress,
-                toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                amount: [{ denom: "uodis", amount: "1000000" }]
+            const msg = {
+                typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+                value: {
+                    fromAddress: userAddress,
+                    toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                    amount: [{ denom: "uodis", amount: "1000000" }]
+                }
             };
-
-            const tx = {
-                bodyBytes: new TextEncoder().encode(JSON.stringify({
-                    messages: [{
-                        "@type": "/cosmos.bank.v1beta1.MsgSend",
-                        ...msgSend
-                    }],
-                    memo: JSON.stringify({
-                        transaction_id: transaction.transaction_id,
-                        content_hash: transaction.content_hash
-                    })
-                })),
-                authInfoBytes: new TextEncoder().encode(JSON.stringify({
-                    signer_infos: [],
-                    fee: {
-                        amount: [{ denom: "uodis", amount: "1000" }],
-                        gas_limit: "200000"
-                    }
-                })),
-                chainId: "odiseo_1234-1",
-                accountNumber: "0",
-                sequence: "0"
-            };
-
-            // Sign the transaction with Keplr
-            const signResponse = await window.keplr.signDirect(
-                "odiseo_1234-1",
-                userAddress,
-                tx
-            );
 
             // Get next unsigned role
             const nextRole = Object.entries(transaction.signatures)
@@ -387,6 +360,42 @@ async function signContract(transactionId) {
                 showError('No available roles to sign');
                 return;
             }
+
+            // Create signing payload
+            const memo = JSON.stringify({
+                transaction_id: transaction.transaction_id,
+                content_hash: transaction.content_hash,
+                role: nextRole
+            });
+
+            // Sign with Keplr
+            const signDoc = {
+                bodyBytes: new TextEncoder().encode(JSON.stringify({
+                    messages: [msg],
+                    memo: memo,
+                    timeout_height: "0",
+                    extension_options: [],
+                    non_critical_extension_options: []
+                })),
+                authInfoBytes: new TextEncoder().encode(JSON.stringify({
+                    signer_infos: [],
+                    fee: {
+                        amount: [{ denom: "uodis", amount: "1000" }],
+                        gas_limit: "200000",
+                        payer: "",
+                        granter: ""
+                    }
+                })),
+                chainId: "odiseo_1234-1",
+                accountNumber: "0",
+                sequence: "0"
+            };
+
+            const signResponse = await window.keplr.signDirect(
+                "odiseo_1234-1",
+                userAddress,
+                signDoc
+            );
 
             // Send signature to backend
             const signResult = await fetch('/api/sign', {
