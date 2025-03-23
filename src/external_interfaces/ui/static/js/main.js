@@ -161,7 +161,7 @@ function formatDate(dateString) {
     });
 }
 
-// Update contracts table with proper spacing
+// Update contracts table with expandable details
 function updateContractsTable() {
     const contractsTable = document.querySelector('#contractsTable tbody');
     if (!contractsTable) return;
@@ -179,18 +179,17 @@ function updateContractsTable() {
             }
 
             contractsTable.innerHTML = contracts.map(contract => {
-                const isNew = sessionStorage.getItem('last_transaction') && 
+                const isNew = sessionStorage.getItem('last_transaction') &&
                     JSON.parse(sessionStorage.getItem('last_transaction')).transaction_id === contract.transaction_id;
 
                 return `
                     <tr class="${isNew ? 'table-info' : ''}">
                         <td class="align-middle">
-                            ${contract.transaction_id}
-                            ${contract.blockchain_tx_hash ? `
-                                <a href="${contract.explorer_url}" target="_blank" class="ms-2">
-                                    <i class="bi bi-box-arrow-up-right"></i>
-                                </a>
-                            ` : ''}
+                            <button class="btn btn-link p-0 text-decoration-none"
+                                    onclick="toggleDetails('${contract.transaction_id}')">
+                                <i class="bi bi-chevron-down me-1" id="icon-${contract.transaction_id}"></i>
+                                ${contract.transaction_id}
+                            </button>
                         </td>
                         <td class="align-middle">${contract.metadata?.file_path || 'N/A'}</td>
                         <td class="align-middle">
@@ -201,22 +200,73 @@ function updateContractsTable() {
                         <td class="align-middle">${formatBudgetSplits(contract.metadata?.budget_splits)}</td>
                         <td class="align-middle">${formatDate(contract.created_at)}</td>
                         <td class="align-middle">
-                            <div class="btn-group">
-                                <button class="btn ${isNew ? 'btn-info' : 'btn-primary'}" onclick="viewContract('${contract.transaction_id}')">
-                                    <i class="bi bi-search"></i> View Details
-                                </button>
-                                <button class="btn btn-success" onclick="signContract('${contract.transaction_id}')" 
-                                    ${contract.status === 'completed' ? 'disabled' : ''}>
-                                    <i class="bi bi-pen"></i> Sign
-                                </button>
-                            </div>
-                            ${isNew ? `
-                                <div class="mt-1">
-                                    <small class="text-info">
-                                        <i class="bi bi-info-circle"></i> Click View Details to see blockchain information
-                                    </small>
+                            <button class="btn btn-success" onclick="signContract('${contract.transaction_id}')"
+                                ${contract.status === 'completed' ? 'disabled' : ''}>
+                                <i class="bi bi-pen"></i> Sign
+                            </button>
+                        </td>
+                    </tr>
+                    <tr id="details-${contract.transaction_id}" class="d-none">
+                        <td colspan="6" class="p-0">
+                            <div class="card border-0">
+                                <div class="card-body bg-dark">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="mb-3">Transaction Details</h6>
+                                            <dl class="row mb-0">
+                                                <dt class="col-sm-4">Content Hash</dt>
+                                                <dd class="col-sm-8">
+                                                    <code class="user-select-all">${contract.content_hash}</code>
+                                                    <button class="btn btn-sm btn-outline-secondary ms-2"
+                                                            onclick="navigator.clipboard.writeText('${contract.content_hash}')">
+                                                        <i class="bi bi-clipboard"></i>
+                                                    </button>
+                                                </dd>
+
+                                                <dt class="col-sm-4">Blockchain Tx</dt>
+                                                <dd class="col-sm-8">
+                                                    ${contract.blockchain_tx_hash ?
+                                                        `<div class="d-flex align-items-center">
+                                                            <code class="user-select-all">${contract.blockchain_tx_hash}</code>
+                                                            <button class="btn btn-sm btn-outline-secondary ms-2"
+                                                                    onclick="navigator.clipboard.writeText('${contract.blockchain_tx_hash}')">
+                                                                <i class="bi bi-clipboard"></i>
+                                                            </button>
+                                                        </div>` :
+                                                        '<span class="text-warning"><i class="bi bi-clock-history"></i> Pending...</span>'}
+                                                </dd>
+
+                                                <dt class="col-sm-4">Explorer</dt>
+                                                <dd class="col-sm-8">
+                                                    ${contract.explorer_url ?
+                                                        `<a href="${contract.explorer_url}" target="_blank" class="btn btn-sm btn-primary">
+                                                            <i class="bi bi-box-arrow-up-right"></i> View on Odiseo Explorer
+                                                        </a>` :
+                                                        '<span class="text-muted"><i class="bi bi-clock-history"></i> Not available yet</span>'}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-3">Signature Status</h6>
+                                            <div class="d-flex flex-column gap-2">
+                                                ${Object.entries(contract.signatures).map(([role, status]) => `
+                                                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-person-circle me-2"></i>
+                                                            <span class="text-capitalize">${role}</span>
+                                                        </div>
+                                                        <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">
+                                                            ${status === 'signed' ?
+                                                                '<i class="bi bi-check-circle me-1"></i> Signed' :
+                                                                '<i class="bi bi-clock me-1"></i> Pending'}
+                                                        </span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            ` : ''}
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -231,6 +281,20 @@ function updateContractsTable() {
             console.error('Error fetching contracts:', error);
             showError('Failed to load contracts');
         });
+}
+
+// Toggle contract details visibility
+function toggleDetails(transactionId) {
+    const detailsRow = document.getElementById(`details-${transactionId}`);
+    const icon = document.getElementById(`icon-${transactionId}`);
+
+    if (detailsRow.classList.contains('d-none')) {
+        detailsRow.classList.remove('d-none');
+        icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+    } else {
+        detailsRow.classList.add('d-none');
+        icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
+    }
 }
 
 // Helper functions for contract display
@@ -255,152 +319,6 @@ function formatBudgetSplits(splits) {
 }
 
 // Contract interaction functions
-// Update viewContract function with improved cleanup
-async function viewContract(transactionId) {
-    try {
-        const response = await fetch(`/api/transaction/${transactionId}`);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch contract: ${response.status}`);
-        }
-
-        const contract = await response.json();
-        if (!contract) {
-            throw new Error('No contract data received');
-        }
-
-        // Remove any existing modals and backdrops
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-        document.querySelectorAll('.modal').forEach(el => el.remove());
-
-        // Create modal with improved UI
-        const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.id = 'contractDetailsModal';
-        modal.setAttribute('data-bs-backdrop', 'static'); // Prevent closing on outside click
-        modal.innerHTML = `
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark text-white">
-                        <h5 class="modal-title">
-                            <i class="bi bi-file-earmark-text me-2"></i>
-                            Contract Details
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Transaction Status Banner -->
-                        <div class="alert ${contract.status === 'completed' ? 'alert-success' : 'alert-info'} d-flex align-items-center mb-4">
-                            <i class="bi ${contract.status === 'completed' ? 'bi-check-circle' : 'bi-info-circle'} me-2"></i>
-                            <div>
-                                <strong>Transaction Status:</strong>
-                                <span class="badge bg-${getStatusBadgeColor(contract.status)} ms-2">
-                                    ${contract.status.toUpperCase()}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Main Details -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h6 class="mb-0">Transaction Information</h6>
-                            </div>
-                            <div class="card-body">
-                                <dl class="row mb-0">
-                                    <dt class="col-sm-4">Transaction ID</dt>
-                                    <dd class="col-sm-8">
-                                        <code class="user-select-all">${contract.transaction_id}</code>
-                                    </dd>
-
-                                    <dt class="col-sm-4">Content Hash</dt>
-                                    <dd class="col-sm-8">
-                                        <code class="user-select-all">${contract.content_hash}</code>
-                                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText('${contract.content_hash}')">
-                                            <i class="bi bi-clipboard"></i>
-                                        </button>
-                                    </dd>
-
-                                    <dt class="col-sm-4">Blockchain Tx Hash</dt>
-                                    <dd class="col-sm-8">
-                                        ${contract.blockchain_tx_hash ? 
-                                            `<div class="d-flex align-items-center">
-                                                <code class="user-select-all">${contract.blockchain_tx_hash}</code>
-                                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText('${contract.blockchain_tx_hash}')">
-                                                    <i class="bi bi-clipboard"></i>
-                                                </button>
-                                            </div>` : 
-                                            '<span class="text-warning"><i class="bi bi-clock-history"></i> Pending...</span>'}
-                                    </dd>
-
-                                    <dt class="col-sm-4">Explorer Link</dt>
-                                    <dd class="col-sm-8">
-                                        ${contract.explorer_url ? 
-                                            `<a href="${contract.explorer_url}" target="_blank" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-box-arrow-up-right"></i> View on Odiseo Explorer
-                                            </a>` : 
-                                            '<span class="text-muted"><i class="bi bi-clock-history"></i> Not available yet</span>'}
-                                    </dd>
-
-                                    <dt class="col-sm-4">Created</dt>
-                                    <dd class="col-sm-8">${formatDate(contract.created_at)}</dd>
-                                </dl>
-                            </div>
-                        </div>
-
-                        <!-- Signatures Section -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="mb-0">Signature Status</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex flex-column gap-2">
-                                    ${Object.entries(contract.signatures).map(([role, status]) => `
-                                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2">
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-person-circle me-2"></i>
-                                                <span class="text-capitalize">${role}</span>
-                                            </div>
-                                            <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">
-                                                ${status === 'signed' ? 
-                                                    '<i class="bi bi-check-circle me-1"></i> Signed' : 
-                                                    '<i class="bi bi-clock me-1"></i> Pending'}
-                                            </span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        ${contract.status !== 'completed' ? 
-                            `<button type="button" class="btn btn-primary" onclick="signContract('${contract.transaction_id}')">
-                                <i class="bi bi-pen"></i> Sign Contract
-                            </button>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        const modalInstance = new bootstrap.Modal(modal);
-
-        // Setup proper cleanup on modal hidden
-        modal.addEventListener('hidden.bs.modal', () => {
-            modalInstance.dispose();
-            modal.remove();
-            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-        });
-
-        modalInstance.show();
-    } catch (error) {
-        console.error('Error viewing contract:', error);
-        showError(`Failed to load contract details: ${error.message}`);
-    }
-}
-
 async function signContract(transactionId) {
     try {
         // In test mode, we'll simulate signing as each role in sequence
@@ -437,6 +355,7 @@ async function signContract(transactionId) {
         showError(error.message || 'Failed to sign contract');
     }
 }
+
 
 // File upload handling
 async function handleUpload(e) {
