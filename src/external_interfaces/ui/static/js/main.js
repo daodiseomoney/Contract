@@ -377,10 +377,9 @@ async function signContract(transactionId) {
                 },
                 beta: true
             });
-
             console.log('Chain suggested to Keplr');
 
-            // Enable Keplr for chain
+            // Enable Keplr for the chain
             await window.keplr.enable(chainId);
             console.log('Keplr enabled for chain');
 
@@ -410,7 +409,7 @@ async function signContract(transactionId) {
                 account_number: "0",
                 sequence: "0",
                 fee: {
-                    amount: [{ denom: "uodis", amount: "5000" }], // 0.005 ODIS
+                    amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
                 msgs: [{
@@ -418,7 +417,7 @@ async function signContract(transactionId) {
                     value: {
                         from_address: userAddress,
                         to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                        amount: [{ denom: "uodis", amount: "1000" }] // 0.001 ODIS
+                        amount: [{ denom: "uodis", amount: "1000" }]
                     }
                 }],
                 memo: JSON.stringify({
@@ -446,7 +445,7 @@ async function signContract(transactionId) {
                 body: JSON.stringify({
                     transaction_id: transactionId,
                     role: nextRole,
-                    signature: signResponse // Send the complete signature response
+                    signature: signResponse
                 })
             });
 

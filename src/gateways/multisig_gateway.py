@@ -77,44 +77,54 @@ class MultiSigBlockchainGateway:
         self.logger.info(f"Processing signature for transaction {transaction_id}, role: {role}")
 
         try:
-            # Validate complete Keplr signature response
+            # Validate Keplr amino signature format
             if not signature or not isinstance(signature, dict):
-                raise ValueError("Missing signature data")
+                self.logger.error("Invalid signature data format")
+                raise ValueError("Invalid signature data format")
 
-            # Expected Keplr signature response format
-            required_fields = ['signed', 'signature', 'pub_key']
-            if not all(field in signature for field in required_fields):
-                self.logger.error(f"Missing required fields in signature: {signature}")
-                raise ValueError("Invalid Keplr signature format")
+            signed = signature.get('signed')
+            if not signed or not isinstance(signed, dict):
+                self.logger.error("Invalid signed data in signature")
+                raise ValueError("Invalid signed data")
 
-            # Extract signed data and signature components
-            signed_data = signature.get('signed', {})
-            sig_bytes = signature.get('signature', '')
-            pub_key = signature.get('pub_key', {})
+            # Verify chain ID
+            if signed.get('chain_id') != 'odiseotestnet_1234-1':
+                self.logger.error(f"Chain ID mismatch: {signed.get('chain_id')}")
+                raise ValueError("Invalid chain ID in signature")
 
-            if not all([signed_data, sig_bytes, pub_key]):
-                self.logger.error("Missing signature components")
-                raise ValueError("Invalid signature components")
+            # Parse and verify memo
+            try:
+                memo = json.loads(signed.get('memo', '{}'))
+                if not all(k in memo for k in ['transaction_id', 'content_hash', 'role']):
+                    self.logger.error("Missing required fields in memo")
+                    raise ValueError("Invalid memo format")
 
-            # Verify memo contains correct transaction details
-            memo = json.loads(signed_data.get('memo', '{}'))
-            if memo.get('transaction_id') != transaction_id or memo.get('content_hash') != transaction.content_hash:
-                self.logger.error("Signature memo mismatch")
-                raise ValueError("Invalid signature memo")
+                if (memo['transaction_id'] != transaction_id or
+                    memo['content_hash'] != transaction.content_hash or
+                    memo['role'] != role.value):
+                    self.logger.error("Memo data mismatch")
+                    raise ValueError("Invalid memo data")
+            except json.JSONDecodeError:
+                self.logger.error("Failed to parse memo JSON")
+                raise ValueError("Invalid memo format")
+
+            # Verify signature components
+            if not signature.get('signature'):
+                self.logger.error("Missing signature value")
+                raise ValueError("Missing signature value")
+
+            if not signature.get('pub_key'):
+                self.logger.error("Missing public key")
+                raise ValueError("Missing public key")
 
             # Update signature status
             transaction.signatures[role] = SignatureStatus.SIGNED
             self.logger.info(f"Updated signature status for {role} to SIGNED")
 
-            # Generate transaction hash from signature components
-            tx_hash = self._generate_tx_hash(signed_data, sig_bytes, pub_key)
+            # Generate transaction hash
+            tx_hash = self._generate_tx_hash(signed, signature['signature'], signature['pub_key'])
             transaction.update_blockchain_details(tx_hash)
             self.logger.info(f"Updated blockchain details with hash: {tx_hash}")
-
-            # Check if all signatures are collected
-            all_signed = all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
-            if all_signed:
-                self.logger.info("All signatures collected, transaction complete")
 
             return True
 
