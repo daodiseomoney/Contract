@@ -52,3 +52,54 @@ def sign_transaction():
     except Exception as e:
         logger.error(f"Error processing sign request: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
+
+
+@transaction_bp.route('/api/broadcast', methods=['POST'])
+def broadcast_transaction():
+    """Broadcast a signed transaction to the blockchain"""
+    try:
+        # Get transaction data from request
+        transaction_data = request.get_json()
+        logger.debug(f"Received broadcast request: {transaction_data}")
+
+        if not transaction_data or not transaction_data.get('tx'):
+            logger.warning("No transaction data provided in request")
+            return jsonify({"error": "Transaction data is required"}), 400
+
+        # Validate transaction structure
+        tx = transaction_data.get('tx', {})
+        required_fields = ['msg', 'fee', 'signatures', 'memo']
+        missing_fields = [field for field in required_fields if field not in tx]
+
+        if missing_fields:
+            error_msg = f"Missing required fields in transaction: {', '.join(missing_fields)}"
+            logger.error(error_msg)
+            return jsonify({"error": error_msg}), 400
+
+        # Log the incoming broadcast request
+        logger.info("Broadcasting transaction to blockchain")
+
+        # Broadcast transaction via service
+        result = transaction_service.broadcast_transaction(transaction_data)
+        logger.debug(f"Broadcast result: {result}")
+
+        if not result.get("success"):
+            return jsonify({"error": result.get("error")}), 400
+
+        # Return successful response with transaction details
+        return jsonify({
+            "success": True,
+            "txhash": result.get("txhash"),
+            "height": result.get("height"),
+            "code": result.get("code", 0),
+            "gas_used": result.get("gas_used"),
+            "raw_log": result.get("raw_log", "")
+        })
+
+    except ValueError as e:
+        logger.error(f"Transaction broadcast error: {str(e)}")
+        return jsonify({"error": str(e)}), 400
+
+    except Exception as e:
+        logger.error(f"Unexpected error broadcasting transaction: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to broadcast transaction"}), 500
