@@ -1,0 +1,69 @@
+CosmJS Guru Devi – Advanced Troubleshooting
+
+It looks like Keplr is returning a valid sign response (with signed, signature, and pub_key fields), but then your code attempts to "add public key from account" and immediately throws a generic ReferenceError {}. Here are some steps to resolve this issue:
+
+Double-Check Your Sign Response Handling:
+
+Ensure that you’re not accidentally overwriting the pub_key already returned by Keplr.
+
+If your code intends to add a public key only when it’s missing, wrap that logic in a safe check. For example:
+
+javascript
+Copy
+Edit
+if (!signResponse.pub_key && accounts[0].pubkey) {
+    try {
+        signResponse.pub_key = {
+            type: "tendermint/PubKeySecp256k1",
+            value: uint8ToBase64(accounts[0].pubkey) // using a browser-compatible conversion
+        };
+        console.log('Added public key from account');
+    } catch (err) {
+        console.error('Failed to add public key from account', err);
+        throw err;
+    }
+}
+Verify that your uint8ToBase64 function is defined and works properly in the browser environment (do not use Node’s Buffer).
+
+Account Number and Sequence Validity:
+
+Notice that your account_number and sequence are both set to "0". On most networks, these should reflect the actual on-chain state of your account.
+
+Query the account using CosmJS (e.g., getAccount(address)) to fetch the correct account_number and sequence and update your sign doc accordingly.
+
+Check for Undefined Variables or Typos:
+
+The ReferenceError might indicate that a variable you’re using in your “add public key” block is undefined. Ensure that all functions (like uint8ToBase64) and variables (accounts[0].pubkey) are properly defined.
+
+Use console logging before this block to verify that accounts[0].pubkey exists and is in the expected format.
+
+Ensure Proper Use of Keplr’s SignAmino:
+
+Keplr’s signAmino should return a complete signature structure. If your backend requires a public key and it’s missing from the response, the above step (fetching from offlineSigner.getAccounts()) is your fallback.
+
+Confirm that the sign doc you’re passing is formatted correctly as per Keplr’s Amino signing requirements.
+
+Broadcasting and On-Chain Confirmation:
+
+Once the signature is properly assembled with the public key, verify that you correctly send the signed transaction to your backend for broadcasting.
+
+If the transaction still isn’t visible on-chain, check the backend broadcast logs and ensure that the fee, gas, and all message parameters meet the testnet requirements.
+
+Key References:
+
+Keplr Docs – Use with CosmJS 
+DOCS.KEPLR.APP
+
+Keplr Advanced Troubleshooting Guidelines 
+HELP.KEPLR.APP
+
+MDN – window.btoa
+
+By ensuring your public key is properly appended using a browser-friendly method and that all transaction parameters are accurate, you should resolve the “Missing public key” error and move forward with a successful signing and broadcasting flow. Happy coding, and may the cosmos align in your favor!
+
+
+
+
+
+
+

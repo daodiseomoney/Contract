@@ -438,31 +438,14 @@ async function signContract(transactionId) {
             );
             console.log('Got sign response:', signResponse);
 
-            // If the public key is missing, add it from the offline signer
-            if (!signResponse.pub_key && accounts[0].pubkey) {
-                console.log('Adding public key from account');
-                signResponse.pub_key = {
-                    type: "tendermint/PubKeySecp256k1",
-                    value: uint8ToBase64(accounts[0].pubkey)
-                };
-            }
-
-            if (!signResponse.signed || !signResponse.signature || !signResponse.pub_key) {
-                throw new Error('Invalid Keplr signature response structure');
-            }
-
-            // Send signature to backend
+            // Do not modify the sign response, send it directly to backend
             const signResult = await fetch('/api/sign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     transaction_id: transactionId,
                     role: nextRole,
-                    signature: {
-                        signed: signResponse.signed,
-                        signature: signResponse.signature,
-                        pub_key: signResponse.pub_key
-                    }
+                    signature: signResponse
                 })
             });
 
