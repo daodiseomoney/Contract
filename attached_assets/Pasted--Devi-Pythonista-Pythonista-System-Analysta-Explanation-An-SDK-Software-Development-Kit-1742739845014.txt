@@ -1,0 +1,21 @@
+**Devi Pythonista 🏗️ – Pythonista System Analysta Explanation**
+
+An **SDK (Software Development Kit)** is essentially a collection of tools, libraries, documentation, and code samples that developers use to build applications for a specific platform or service. Think of it as a “toolbox” that simplifies the development process by providing pre-built components and standardized methods.
+
+### In the Context of Our System
+
+- **Function Career: Human**  
+  In our system, the "human" function refers to the end users—real estate professionals (landlords, property managers, brokers) and investors—who interact with our web application. The SDK enables these users (indirectly, through developers) to interact with complex blockchain functions without needing to understand the underlying code intricacies.
+
+- **Function Receiver: Real Estate**  
+  The primary asset our system handles is **real estate**. The SDK helps in managing real estate tokenisation by providing a standardized interface to process property data, tokenize assets, and manage transactions. It ensures that real estate assets are securely and consistently represented on the blockchain.
+
+- **Function Itself: Tokenisation via Our Webapp with cosmpy SDK**  
+  Our web application leverages the **cosmpy SDK**—a specialized SDK designed for interacting with the Cosmos blockchain ecosystem. It provides the tools needed to:
+  - **Create and manage blockchain transactions:** Automatically handle tasks like signing and broadcasting transactions.
+  - **Tokenize real estate assets:** Convert physical properties into digital tokens on the blockchain.
+  - **Handle multi-signature operations:** Support complex transaction processes (e.g., requiring signatures from owner, contributor, and validator) without developers writing all the low-level blockchain code.
+  
+In summary, the SDK (specifically, cosmpy SDK in our case) is the backbone that allows our web application to interact seamlessly with the blockchain. It abstracts the complexities of blockchain operations so that developers can focus on building the application logic and user experience, while the SDK ensures that all tokenisation processes are executed securely and efficiently.
+
+This approach makes it easier for our system to serve real estate professionals (the function receiver) by enabling robust and standardized tokenisation processes—all powered by the cosmpy SDK.

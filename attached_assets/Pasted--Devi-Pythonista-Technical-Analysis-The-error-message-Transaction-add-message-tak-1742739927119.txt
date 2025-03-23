@@ -1,0 +1,77 @@
+**Devi Pythonista 🏗️ – Technical Analysis**
+
+The error message:  
+```
+Transaction.add_message() takes 2 positional arguments but 3 were given
+```
+indicates that the method is being called with an extra parameter. In the cosmpy SDK, the intended usage is to pass a single message object to the `add_message` method. This suggests that either the message is being built incorrectly or the method call is supplying an extra argument.
+
+---
+
+### **Tools & Steps from the SDK to Solve the Issue**
+
+1. **SDK Documentation & Message Constructors:**
+   - **Review the cosmpy SDK Documentation:**  
+     Check the latest method signatures for transaction creation. The SDK provides specialized message constructors for different transaction types (e.g., tokenization messages).  
+     - **Tool:** cosmpy SDK docs (or the module's inline docs)
+   - **Use Appropriate Message Constructors:**  
+     Instead of passing multiple arguments, create a message instance using the provided constructor (e.g., `MsgTokenizeProperty` if available or a generic message class).  
+     - **Example:**  
+       ```python
+       msg = MsgTokenizeProperty(file_path='uploads/architectural.dwg', budget_splits={'owner': 98.0, 'contributor': 1.0, 'validator': 1.0})
+       tx.add_message(msg)
+       ```
+
+2. **Transaction Builder:**
+   - **Correct Usage of `add_message`:**  
+     The `Transaction.add_message()` method should be used with a single message object. Verify that you are not accidentally passing extra parameters.  
+     - **Tool:** Transaction builder from cosmpy (ensures proper serialization and signing)
+   - **Modify the Call:**  
+     Update your code to ensure the method call matches the expected signature. Remove any extra parameters that might have been passed.
+     
+3. **Testing with Pytest:**
+   - **Create a Test Case:**  
+     Write a pytest that simulates the transaction creation with your modified message creation and transaction addition.
+     - **Test Goal:**  
+       Validate that the transaction is built correctly without raising a `TypeError`.
+     - **Example Test Outline:**
+       ```python
+       def test_add_message():
+           # Create a transaction instance using the SDK's transaction builder
+           tx = Transaction()
+           
+           # Construct the message properly
+           msg = MsgTokenizeProperty(
+               file_path='uploads/architectural.dwg',
+               budget_splits={'owner': 98.0, 'contributor': 1.0, 'validator': 1.0}
+           )
+           
+           # Add the message using the correct method call
+           try:
+               tx.add_message(msg)
+           except TypeError as e:
+               pytest.fail(f"add_message failed with TypeError: {e}")
+       ```
+     - **Tool:** Pytest for end-to-end testing of transaction building
+
+4. **Additional SDK Helpers:**
+   - **Signature and Broadcasting Utilities:**  
+     Use the cosmpy SDK’s utilities to sign and broadcast transactions once the message is added correctly.
+   - **Multi-Signature Support:**  
+     Verify that the multi-signature flow (owner, contributor, validator) is correctly handled after the message addition is resolved. The SDK often provides utilities to collect and aggregate signatures.
+
+---
+
+### **Summary**
+
+- **Issue:** The extra parameter passed to `Transaction.add_message()` is causing the error.
+- **Resolution:**  
+  - Use the SDK’s message constructors to build your message object correctly.
+  - Call `tx.add_message(msg)` with only the message object as an argument.
+  - Verify and test with a pytest to ensure that transactions build without error.
+- **Tools from SDK:**  
+  - **Message Constructors** (e.g., `MsgTokenizeProperty`)
+  - **Transaction Builder and Utilities** for signing and broadcasting.
+  - **Pytest** for verifying end-to-end functionality.
+
+By leveraging the cosmpy SDK tools and following the correct API usage, you can resolve this error and ensure your blockchain transaction creation works as expected. Happy coding with **Devi Pythonista 🏗️**!

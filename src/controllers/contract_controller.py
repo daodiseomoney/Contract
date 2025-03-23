@@ -4,7 +4,7 @@ from src.gateways.multisig_gateway import MultiSigBlockchainGateway, SignatureRo
 from src.gateways.kepler_gateway import KeplerGateway
 from cosmpy.aerial.client import LedgerClient, NetworkConfig
 from cosmpy.aerial.wallet import LocalWallet
-from cosmpy.aerial.tx import Transaction
+from cosmpy.aerial.tx import Transaction, SigningCfg
 import hashlib
 import json
 
@@ -68,26 +68,26 @@ def tokenize_property():
                 staking_denomination="uodis"
             )
 
-            # Initialize client and wallet
-            client = LedgerClient(network)
+            # Initialize wallet and client
             wallet = LocalWallet.generate()
-            client.wallet = wallet  # Set wallet as property
+            client = LedgerClient(network)
+            client.wallet = wallet
 
             current_app.logger.debug(f"Connected to network: {network.chain_id}")
             current_app.logger.debug(f"Using wallet address: {wallet.address()}")
 
-            # Prepare the transaction message
+            # Create transaction
             tx = Transaction()
-            tx.add_message(
-                "/cosmos.bank.v1beta1.MsgSend",
-                {
-                    "from_address": wallet.address(),
-                    "to_address": content_hash,
-                    "amount": [{"denom": "uodis", "amount": "1000000"}],
-                    "memo": json.dumps(content)  # Include metadata in the message
-                }
-            )
-            current_app.logger.debug("Transaction prepared")
+            tx_msg = {
+                "@type": "/cosmos.bank.v1beta1.MsgSend",
+                "from_address": wallet.address(),
+                "to_address": content_hash,
+                "amount": [{"denom": "uodis", "amount": "1000000"}]
+            }
+
+            # Add the message to transaction with metadata
+            tx.messages.append(tx_msg)
+            tx.metadata = json.dumps(content)
 
             # Create blockchain transaction
             transaction_id = blockchain.create_transaction(
