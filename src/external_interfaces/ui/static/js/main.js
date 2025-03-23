@@ -403,21 +403,21 @@ async function signContract(transactionId) {
 
             console.log('Signing as role:', nextRole);
 
-            // Create sign doc
+            // Create sign doc with minimal fees for testnet
             const signDoc = {
                 chain_id: chainId,
                 account_number: "0",
                 sequence: "0",
                 fee: {
-                    amount: [{ denom: "uodis", amount: "1000" }],
-                    gas: "200000"
+                    amount: [{ denom: "uodis", amount: "50" }], // Absolute minimum fee
+                    gas: "50000" // Reduced gas
                 },
                 msgs: [{
                     type: "cosmos-sdk/MsgSend",
                     value: {
                         from_address: userAddress,
                         to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                        amount: [{ denom: "uodis", amount: "1000000" }]
+                        amount: [{ denom: "uodis", amount: "1" }] // Minimal amount for testing
                     }
                 }],
                 memo: JSON.stringify({
@@ -470,6 +470,7 @@ async function signContract(transactionId) {
         showError(error.message || 'Failed to sign contract');
     }
 }
+
 
 
 // File upload handling
