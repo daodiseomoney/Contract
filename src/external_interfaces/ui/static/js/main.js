@@ -113,6 +113,15 @@ function updateRecentActivity() {
     fetch('/api/contracts')
         .then(response => response.json())
         .then(contracts => {
+            if (!contracts || contracts.length === 0) {
+                activityList.innerHTML = `
+                    <div class="list-group-item">
+                        <p class="mb-0 text-muted">No recent transactions</p>
+                    </div>
+                `;
+                return;
+            }
+
             // Sort by creation date (newest first)
             contracts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -128,7 +137,7 @@ function updateRecentActivity() {
                 });
 
                 return {
-                    text: `Contract ${contract.transaction_id} (${contract.status})`,
+                    text: `Contract ${contract.transaction_id}`,
                     time: formattedDate,
                     href: contract.explorer_url || `/contracts#${contract.transaction_id}`,
                     status: contract.status
@@ -149,7 +158,14 @@ function updateRecentActivity() {
                 </a>
             `).join('');
         })
-        .catch(console.error);
+        .catch(error => {
+            console.error('Error fetching recent activity:', error);
+            activityList.innerHTML = `
+                <div class="list-group-item">
+                    <p class="mb-0 text-danger">Error loading recent transactions</p>
+                </div>
+            `;
+        });
 }
 
 // Update contracts table with proper spacing
@@ -339,31 +355,7 @@ async function handleUpload(e) {
         const uploadResult = await uploadResponse.json();
         if (uploadResult.error) throw new Error(uploadResult.error);
 
-        // Show success message for upload
-        if (statusDiv) {
-            statusDiv.innerHTML = `
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle"></i> File uploaded and contract created successfully!
-                </div>
-            `;
-        }
-
-        // Show contract preview if we have transaction data
-        if (contractPreview && uploadResult.transaction) {
-            contractPreview.style.display = 'block';
-            document.getElementById('previewTxId').textContent = uploadResult.transaction.transaction_id;
-            document.getElementById('previewStatus').textContent = uploadResult.transaction.status;
-            document.getElementById('previewExplorer').innerHTML = uploadResult.transaction.explorer_url ?
-                `<a href="${uploadResult.transaction.explorer_url}" target="_blank">View on Explorer</a>` :
-                'Not available';
-        }
-
-        // Store transaction ID in session storage for contracts page
-        if (uploadResult.transaction) {
-            sessionStorage.setItem('last_transaction', JSON.stringify(uploadResult.transaction));
-            // Redirect to contracts page after successful creation
-            setTimeout(() => window.location.href = '/contracts', 1500);
-        }
+        handleUploadSuccess(uploadResult);
 
     } catch (error) {
         console.error('Upload error:', error);
@@ -374,6 +366,21 @@ async function handleUpload(e) {
                 </div>
             `;
         }
+    }
+}
+
+// Handle successful upload
+async function handleUploadSuccess(result) {
+    // Update UI immediately
+    updateDashboardStats();
+    updateRecentActivity();
+    updateContractsTable();
+
+    // Store transaction ID in session storage for contracts page
+    if (result.transaction) {
+        sessionStorage.setItem('last_transaction', JSON.stringify(result.transaction));
+        // Redirect to contracts page after successful creation
+        setTimeout(() => window.location.href = '/contracts', 1500);
     }
 }
 
