@@ -36,8 +36,19 @@ class MultiSigTransaction:
             "metadata": self.metadata,
             "signatures": {role.value: status.value for role, status in self.signatures.items()},
             "created_at": self.created_at.isoformat(),
-            "blockchain_tx_hash": self.blockchain_tx_hash
+            "blockchain_tx_hash": self.blockchain_tx_hash,
+            "explorer_url": f"https://testnet.explorer.nodeshub.online/odiseo/tx/{self.blockchain_tx_hash}" if self.blockchain_tx_hash else None,
+            "status": self.get_status()
         }
+
+    def get_status(self) -> str:
+        signed_count = len([s for s in self.signatures.values() if s == SignatureStatus.SIGNED])
+        total_count = len(self.signatures)
+        if signed_count == total_count:
+            return "completed"
+        elif signed_count > 0:
+            return "pending_signatures"
+        return "active"
 
 class MultiSigBlockchainGateway:
     def __init__(self, test_mode: bool = True):
@@ -180,7 +191,9 @@ class MultiSigBlockchainGateway:
                         "validator": "pending"
                     },
                     "created_at": "2025-03-23T00:00:00Z",
-                    "blockchain_tx_hash": "test_hash"
+                    "blockchain_tx_hash": "test_hash",
+                    "explorer_url": "https://testnet.explorer.nodeshub.online/odiseo/tx/test_hash",
+                    "status": "pending_signatures"
                 }]
 
             return active_contracts

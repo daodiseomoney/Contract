@@ -46,16 +46,16 @@ function updateDashboardStats() {
             };
 
             contracts.forEach(contract => {
-                const signedCount = Object.values(contract.signatures)
-                    .filter(s => s === 'signed').length;
-                const totalSigners = Object.keys(contract.signatures).length;
-
-                if (signedCount === totalSigners) {
-                    stats.completed++;
-                } else if (signedCount > 0) {
-                    stats.pendingSignatures++;
-                } else {
-                    stats.active++;
+                switch (contract.status) {
+                    case 'completed':
+                        stats.completed++;
+                        break;
+                    case 'pending_signatures':
+                        stats.pendingSignatures++;
+                        break;
+                    case 'active':
+                        stats.active++;
+                        break;
                 }
             });
 
@@ -117,18 +117,10 @@ function updateRecentActivity() {
 
             // Take most recent 5
             const activities = contracts.slice(0, 5).map(contract => {
-                const signedCount = Object.values(contract.signatures)
-                    .filter(s => s === 'signed').length;
-                const totalSigners = Object.keys(contract.signatures).length;
-
-                let status = signedCount === totalSigners ?
-                    'fully signed' :
-                    `waiting for signatures (${signedCount}/${totalSigners})`;
-
                 return {
-                    text: `Contract ${contract.transaction_id} ${status}`,
+                    text: `Contract ${contract.transaction_id} (${contract.status})`,
                     time: new Date(contract.created_at).toLocaleString(),
-                    href: `/contracts#${contract.transaction_id}`
+                    href: contract.explorer_url || `/contracts#${contract.transaction_id}`
                 };
             });
 
@@ -142,16 +134,6 @@ function updateRecentActivity() {
             `).join('');
         })
         .catch(console.error);
-}
-
-// Get human-readable contract status
-function getContractStatusText(contract) {
-    const signedCount = Object.values(contract.signatures)
-        .filter(s => s === 'signed').length;
-    const totalSigners = Object.keys(contract.signatures).length;
-
-    if (signedCount === totalSigners) return 'fully signed';
-    return `waiting for signatures (${signedCount}/${totalSigners})`;
 }
 
 // Update contracts table
@@ -169,15 +151,29 @@ function updateContractsTable() {
 
             contractsTable.innerHTML = contracts.map(contract => `
                 <tr>
-                    <td>${contract.transaction_id}</td>
+                    <td>
+                        ${contract.transaction_id}
+                        ${contract.blockchain_tx_hash ? `
+                            <a href="${contract.explorer_url}" target="_blank" class="ms-2">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        ` : ''}
+                    </td>
                     <td>${contract.metadata?.file_path || 'N/A'}</td>
-                    <td><span class="badge bg-${getStatusBadgeColor(contract)}">${getContractStatusText(contract)}</span></td>
+                    <td>
+                        <span class="badge bg-${getStatusBadgeColor(contract.status)}">
+                            ${contract.status}
+                        </span>
+                    </td>
                     <td>${formatBudgetSplits(contract.metadata?.budget_splits)}</td>
                     <td>${new Date(contract.created_at).toLocaleDateString()}</td>
                     <td>
                         <div class="btn-group">
                             <button class="btn btn-sm btn-primary" onclick="viewContract('${contract.transaction_id}')">View</button>
-                            <button class="btn btn-sm btn-success" onclick="signContract('${contract.transaction_id}')" ${isContractFullySigned(contract) ? 'disabled' : ''}>Sign</button>
+                            <button class="btn btn-sm btn-success" onclick="signContract('${contract.transaction_id}')" 
+                                ${contract.status === 'completed' ? 'disabled' : ''}>
+                                Sign
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -190,14 +186,15 @@ function updateContractsTable() {
 }
 
 // Helper functions for contract display
-function getStatusBadgeColor(contract) {
-    const signedCount = Object.values(contract.signatures)
-        .filter(s => s === 'signed').length;
-    const totalSigners = Object.keys(contract.signatures).length;
-
-    if (signedCount === totalSigners) return 'success';
-    if (signedCount > 0) return 'warning';
-    return 'secondary';
+function getStatusBadgeColor(status) {
+    switch (status) {
+        case 'completed':
+            return 'success';
+        case 'pending_signatures':
+            return 'warning';
+        default:
+            return 'secondary';
+    }
 }
 
 function formatBudgetSplits(splits) {
@@ -205,11 +202,6 @@ function formatBudgetSplits(splits) {
     return Object.entries(splits)
         .map(([role, percentage]) => `${role}: ${percentage}%`)
         .join(', ');
-}
-
-function isContractFullySigned(contract) {
-    return Object.values(contract.signatures)
-        .every(s => s === 'signed');
 }
 
 // Contract interaction functions
@@ -242,6 +234,9 @@ async function viewContract(transactionId) {
                                     `<div>${role}: <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">${status}</span></div>`
                                 ).join('')}
                             </dd>
+                            <dt>Explorer URL</dt>
+                            <dd>${contract.explorer_url || 'N/A'}</dd>
+
                         </dl>
                     </div>
                 </div>
@@ -427,11 +422,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('contractsChart')) {
         updateDashboardStats();
         updateRecentActivity();
+        updateContractsTable();
 
         // Refresh data every 30 seconds
         setInterval(() => {
             updateDashboardStats();
             updateRecentActivity();
+            updateContractsTable();
         }, 30000);
     }
 
@@ -441,3 +438,19 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadForm.addEventListener('submit', handleUpload);
     }
 });
+
+//Removed getContractStatusText and isContractFullySigned as they are no longer used.
+
+function getContractStatusText(contract) {
+    const signedCount = Object.values(contract.signatures)
+        .filter(s => s === 'signed').length;
+    const totalSigners = Object.keys(contract.signatures).length;
+
+    if (signedCount === totalSigners) return 'fully signed';
+    return `waiting for signatures (${signedCount}/${totalSigners})`;
+}
+
+function isContractFullySigned(contract) {
+    return Object.values(contract.signatures)
+        .every(s => s === 'signed');
+}
