@@ -144,26 +144,46 @@ class MultiSigBlockchainGateway:
 
         return transaction.to_dict()
 
-    def is_transaction_complete(self, transaction_id: str) -> bool:
-        """Check if all required signatures are present"""
-        if transaction_id not in self.pending_transactions:
-            raise ValueError("Transaction not found")
-
-        transaction = self.pending_transactions[transaction_id]
-        return all(status == SignatureStatus.SIGNED for status in transaction.signatures.values())
-
     def get_active_contracts(self) -> List[Dict]:
-        """Query active property contracts"""
+        """Query active property contracts and update local state"""
+        active_contracts = []
+
         try:
-            query = self.client.query_bank_balance(self.client.address())
-            # In real implementation, we would query contract state
-            # This is simplified for demo
-            return [{
-                "id": query.tx_hash,
-                "status": "active",
-                "balance": query.balance,
-                "property": "Property Token",
-                "created": "2025-03-17"
-            }]
+            # First update local transactions from blockchain
+            if not self.test_mode:
+                for tx in self.pending_transactions.values():
+                    if tx.blockchain_tx_hash:
+                        try:
+                            # Query blockchain for latest status
+                            tx_result = self.client.query_tx(tx.blockchain_tx_hash)
+                            if tx_result:
+                                # TODO: Update signature status based on events
+                                pass
+                        except Exception:
+                            continue
+
+            # Return all transactions with their current state
+            active_contracts = [tx.to_dict() for tx in self.pending_transactions.values()]
+
+            # If no transactions exist yet, return some test data in test mode
+            if not active_contracts and self.test_mode:
+                active_contracts = [{
+                    "transaction_id": "test_tx_1",
+                    "content_hash": "test_hash",
+                    "metadata": {
+                        "file_path": "test.dwg",
+                        "budget_splits": {"owner": 50, "contributor": 30, "validator": 20}
+                    },
+                    "signatures": {
+                        "owner": "signed",
+                        "contributor": "pending",
+                        "validator": "pending"
+                    },
+                    "created_at": "2025-03-23T00:00:00Z",
+                    "blockchain_tx_hash": "test_hash"
+                }]
+
+            return active_contracts
+
         except Exception as e:
             raise Exception(f"Failed to fetch contracts: {str(e)}")

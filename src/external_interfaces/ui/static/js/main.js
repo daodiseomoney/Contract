@@ -38,20 +38,68 @@ function updateDashboardStats() {
     fetch('/api/contracts')
         .then(response => response.json())
         .then(contracts => {
-            const elements = {
-                totalContracts: document.getElementById('totalContracts'),
-                activeContracts: document.getElementById('activeContracts'),
-                totalValue: document.getElementById('totalValue')
+            const stats = {
+                total: contracts.length,
+                active: 0,
+                pendingSignatures: 0,
+                completed: 0
             };
 
-            if (elements.totalContracts) elements.totalContracts.textContent = contracts.length || '0';
-            if (elements.activeContracts) {
-                const active = contracts.filter(c =>
-                    Object.values(c.signatures).every(s => s === 'signed')
-                ).length;
-                elements.activeContracts.textContent = active;
+            contracts.forEach(contract => {
+                const signedCount = Object.values(contract.signatures)
+                    .filter(s => s === 'signed').length;
+                const totalSigners = Object.keys(contract.signatures).length;
+
+                if (signedCount === totalSigners) {
+                    stats.completed++;
+                } else if (signedCount > 0) {
+                    stats.pendingSignatures++;
+                } else {
+                    stats.active++;
+                }
+            });
+
+            // Update chart
+            const ctx = document.getElementById('contractsChart')?.getContext('2d');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pending Signatures', 'Active', 'Completed'],
+                        datasets: [{
+                            data: [stats.pendingSignatures, stats.active, stats.completed],
+                            backgroundColor: [
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(40, 167, 69, 0.8)',
+                                'rgba(23, 162, 184, 0.8)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
             }
-            if (elements.totalValue) elements.totalValue.textContent = '$2.5M'; // TODO: Calculate from contracts
+
+            // Update stats display
+            const elements = {
+                totalContracts: document.getElementById('totalContracts'),
+                activeContracts: document.getElementById('activeContracts')
+            };
+
+            if (elements.totalContracts) {
+                elements.totalContracts.textContent = stats.total;
+            }
+            if (elements.activeContracts) {
+                elements.activeContracts.textContent = stats.active + stats.pendingSignatures;
+            }
         })
         .catch(console.error);
 }
@@ -64,13 +112,28 @@ function updateRecentActivity() {
     fetch('/api/contracts')
         .then(response => response.json())
         .then(contracts => {
-            const activities = contracts.slice(0, 5).map(contract => ({
-                text: `Contract ${contract.transaction_id} ${getContractStatusText(contract)}`,
-                time: new Date(contract.created_at).toLocaleString()
-            }));
+            // Sort by creation date
+            contracts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            // Take most recent 5
+            const activities = contracts.slice(0, 5).map(contract => {
+                const signedCount = Object.values(contract.signatures)
+                    .filter(s => s === 'signed').length;
+                const totalSigners = Object.keys(contract.signatures).length;
+
+                let status = signedCount === totalSigners ?
+                    'fully signed' :
+                    `waiting for signatures (${signedCount}/${totalSigners})`;
+
+                return {
+                    text: `Contract ${contract.transaction_id} ${status}`,
+                    time: new Date(contract.created_at).toLocaleString(),
+                    href: `/contracts#${contract.transaction_id}`
+                };
+            });
 
             activityList.innerHTML = activities.map(activity => `
-                <a class="list-group-item list-group-item-action">
+                <a href="${activity.href}" class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
                         <p class="mb-1">${activity.text}</p>
                         <small class="text-muted">${activity.time}</small>
@@ -232,18 +295,25 @@ async function signContract(transactionId) {
 // File upload handling
 async function handleUpload(e) {
     e.preventDefault();
+
+    // Ensure wallet is connected
+    if (!window.keplerWallet?.isConnected()) {
+        alert('Please connect your wallet first');
+        return;
+    }
+
     const formData = new FormData(e.target);
     const statusDiv = document.getElementById('uploadStatus');
 
-    if (statusDiv) {
-        statusDiv.innerHTML = `
-            <div class="alert alert-info">
-                <i class="bi bi-arrow-repeat spin"></i> Uploading file...
-            </div>
-        `;
-    }
-
     try {
+        if (statusDiv) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-arrow-repeat spin"></i> Uploading file...
+                </div>
+            `;
+        }
+
         // First upload the file
         const uploadResponse = await fetch('/api/upload', {
             method: 'POST',
@@ -298,7 +368,9 @@ async function handleUpload(e) {
             `;
         }
 
+        // Redirect to contracts page after successful creation
         setTimeout(() => window.location.href = '/contracts', 1500);
+
     } catch (error) {
         console.error('Upload error:', error);
         if (statusDiv) {
@@ -352,18 +424,20 @@ function showSuccess(message) {
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    const uploadForm = document.getElementById('uploadForm');
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', handleUpload);
-    }
-
     if (document.getElementById('contractsChart')) {
-        initializeCharts();
+        updateDashboardStats();
+        updateRecentActivity();
+
         // Refresh data every 30 seconds
         setInterval(() => {
-            updateContractsTable();
             updateDashboardStats();
             updateRecentActivity();
         }, 30000);
+    }
+
+    // Handle file upload form
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', handleUpload);
     }
 });

@@ -27,7 +27,7 @@ def get_network_config():
 def get_contracts():
     """Get all contracts/transactions"""
     try:
-        contracts = blockchain.get_pending_transactions()
+        contracts = blockchain.get_active_contracts()
         return jsonify(contracts)
     except Exception as e:
         current_app.logger.error(f"Failed to get contracts: {str(e)}")
