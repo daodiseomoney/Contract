@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 import os
+import logging
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/api')
 
@@ -15,24 +16,33 @@ def allowed_file(filename):
 
 @upload_bp.route('/upload', methods=['POST'])
 async def upload_file():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+    """Handle file upload with proper error handling and JSON responses"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part'}), 400
 
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
 
-    if file and allowed_file(file.filename):
+        if not file or not allowed_file(file.filename):
+            return jsonify({'error': 'Invalid file type. Allowed types: .ifc, .dwg'}), 400
+
         try:
             filename = secure_filename(file.filename)
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
 
+            current_app.logger.info(f"File uploaded successfully: {file_path}")
             return jsonify({
+                'success': True,
                 'message': 'File uploaded successfully',
                 'file_path': file_path
             })
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            current_app.logger.error(f"Error saving file: {str(e)}")
+            return jsonify({'error': f'Error saving file: {str(e)}'}), 500
 
-    return jsonify({'error': 'Invalid file type'}), 400
+    except Exception as e:
+        current_app.logger.error(f"Upload error: {str(e)}")
+        return jsonify({'error': f'Upload error: {str(e)}'}), 500

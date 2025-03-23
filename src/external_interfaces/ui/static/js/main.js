@@ -46,7 +46,7 @@ function updateDashboardStats() {
 
             if (elements.totalContracts) elements.totalContracts.textContent = contracts.length || '0';
             if (elements.activeContracts) {
-                const active = contracts.filter(c => 
+                const active = contracts.filter(c =>
                     Object.values(c.signatures).every(s => s === 'signed')
                 ).length;
                 elements.activeContracts.textContent = active;
@@ -175,7 +175,7 @@ async function viewContract(transactionId) {
                             <dd>${new Date(contract.created_at).toLocaleString()}</dd>
                             <dt>Signatures</dt>
                             <dd>
-                                ${Object.entries(contract.signatures).map(([role, status]) => 
+                                ${Object.entries(contract.signatures).map(([role, status]) =>
                                     `<div>${role}: <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">${status}</span></div>`
                                 ).join('')}
                             </dd>
@@ -235,6 +235,14 @@ async function handleUpload(e) {
     const formData = new FormData(e.target);
     const statusDiv = document.getElementById('uploadStatus');
 
+    if (statusDiv) {
+        statusDiv.innerHTML = `
+            <div class="alert alert-info">
+                <i class="bi bi-arrow-repeat spin"></i> Uploading file...
+            </div>
+        `;
+    }
+
     try {
         // First upload the file
         const uploadResponse = await fetch('/api/upload', {
@@ -242,8 +250,20 @@ async function handleUpload(e) {
             body: formData
         });
 
+        if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.status}`);
+        }
+
         const uploadResult = await uploadResponse.json();
         if (uploadResult.error) throw new Error(uploadResult.error);
+
+        if (statusDiv) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> File uploaded successfully
+                </div>
+            `;
+        }
 
         // Then create the contract
         const budgetSplits = {};
@@ -263,13 +283,31 @@ async function handleUpload(e) {
             })
         });
 
+        if (!tokenizeResponse.ok) {
+            throw new Error(`Contract creation failed: ${tokenizeResponse.status}`);
+        }
+
         const tokenizeResult = await tokenizeResponse.json();
         if (tokenizeResult.error) throw new Error(tokenizeResult.error);
 
-        showSuccess('Contract created successfully! Waiting for signatures...');
+        if (statusDiv) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> Contract created successfully! Redirecting...
+                </div>
+            `;
+        }
+
         setTimeout(() => window.location.href = '/contracts', 1500);
     } catch (error) {
-        showError(error.message || 'An error occurred during upload');
+        console.error('Upload error:', error);
+        if (statusDiv) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i> ${error.message || 'An error occurred during upload'}
+                </div>
+            `;
+        }
     }
 }
 

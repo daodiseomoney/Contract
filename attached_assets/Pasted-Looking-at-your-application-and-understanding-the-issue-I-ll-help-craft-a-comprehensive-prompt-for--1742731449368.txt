@@ -1,0 +1,65 @@
+Looking at your application and understanding the issue, I'll help craft a comprehensive prompt for implementing real data connectivity between your backend endpoints and frontend templates, specifically for displaying accurate contract data in the charts.
+
+Here's a complete prompt that addresses your needs:
+
+# Prompt: Connect Real Contract Data to Dashboard Charts in Flask Application
+
+## Task Overview
+I need to connect my Flask backend endpoints with frontend templates to display real contract data in the dashboard charts instead of the current static/placeholder data. The application is a real estate tokenization platform using blockchain technology with multi-signature support.
+
+## Current Implementation
+- The application uses Flask with Jinja2 templates
+- The dashboard displays graphs/charts with placeholder data 
+- The backend has working endpoints for contract data
+- Multi-signature blockchain functionality is implemented
+- Key files: `base.html`, `contracts.html`, `multisig_gateway.py`, `contract_controller.py`
+
+## Requirements
+1. Modify the backend endpoints to return real contract data in a format suitable for charts
+2. Update the frontend templates to fetch and display this data
+3. Ensure the charts accurately reflect:
+   - Contract statuses (Pending Signatures, Active, Completed)
+   - Recent transactions with correct values and dates
+   - Budget allocations
+4. Handle edge cases (no data, loading states, errors)
+
+## Specific Technical Details
+1. Create a new endpoint in `contract_controller.py` to aggregate contract metrics
+2. Update the JavaScript in `base.html` to fetch data from this endpoint
+3. Use proper error handling for API requests
+4. Implement data refresh functionality
+5. Use Chart.js data format for visualization
+
+## Example Endpoint Structure
+The API endpoint should return data structured like:
+```json
+{
+  "contract_status": {
+    "pending": 25,
+    "active": 45,
+    "completed": 30
+  },
+  "recent_transactions": [
+    {
+      "id": "tx_123",
+      "status": "pending",
+      "value": "25000",
+      "date": "2025-03-20T14:32:10"
+    },
+    ...
+  ]
+}
+```
+
+## Implementation Priority
+1. First, create the data aggregation endpoints
+2. Then update the chart initialization code
+3. Finally, add refresh functionality
+
+## Additional Notes
+- The existing multi-signature implementation in `multisig_gateway.py` should be leveraged
+- Maintain test mode functionality for development
+- Consider paginating large datasets for performance
+- Follow the established clean architecture pattern
+
+Would this prompt help with your implementation? I can further refine any specific aspects if needed.
