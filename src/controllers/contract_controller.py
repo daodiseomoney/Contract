@@ -1,5 +1,5 @@
 import logging
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, render_template
 from src.gateways.multisig_gateway import MultiSigBlockchainGateway, SignatureRole
 from src.gateways.kepler_gateway import KeplerGateway
 from cosmpy.aerial.client import LedgerClient, NetworkConfig
@@ -194,4 +194,13 @@ def get_network_config():
         return jsonify(kepler.get_network_config())
     except Exception as e:
         current_app.logger.error(f"Failed to get network config: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@contract_bp.route('/transaction-status/<transaction_id>')
+def view_transaction_status(transaction_id):
+    """Render transaction status tracking page"""
+    try:
+        return render_template('transaction_status.html', transaction_id=transaction_id)
+    except Exception as e:
+        current_app.logger.error(f"Failed to render transaction status: {str(e)}")
         return jsonify({'error': str(e)}), 500
