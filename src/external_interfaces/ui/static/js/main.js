@@ -7,11 +7,11 @@ function initializeCharts() {
             data: {
                 labels: ['Pending Signatures', 'Active', 'Completed'],
                 datasets: [{
-                    data: [4, 8, 3],
+                    data: [0, 0, 0], // Will be updated by updateDashboardStats
                     backgroundColor: [
-                        'rgba(255, 193, 7, 0.8)',
-                        'rgba(40, 167, 69, 0.8)',
-                        'rgba(23, 162, 184, 0.8)'
+                        'rgba(255, 193, 7, 0.8)',  // warning yellow for pending
+                        'rgba(40, 167, 69, 0.8)',  // success green for active
+                        'rgba(23, 162, 184, 0.8)'  // info blue for completed
                     ],
                     borderWidth: 1
                 }]
@@ -60,46 +60,36 @@ function updateDashboardStats() {
                 }
             });
 
-            // Update chart
-            const ctx = document.getElementById('contractsChart')?.getContext('2d');
-            if (ctx) {
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pending Signatures', 'Active', 'Completed'],
-                        datasets: [{
-                            data: [stats.pendingSignatures, stats.active, stats.completed],
-                            backgroundColor: [
-                                'rgba(255, 193, 7, 0.8)',
-                                'rgba(40, 167, 69, 0.8)',
-                                'rgba(23, 162, 184, 0.8)'
-                            ],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }
-                });
+            // Update chart if it exists
+            const chart = Chart.getChart('contractsChart');
+            if (chart) {
+                chart.data.datasets[0].data = [
+                    stats.pendingSignatures,
+                    stats.active,
+                    stats.completed
+                ];
+                chart.update();
             }
 
             // Update stats display
             const elements = {
                 totalContracts: document.getElementById('totalContracts'),
-                activeContracts: document.getElementById('activeContracts')
+                activeContracts: document.getElementById('activeContracts'),
+                valueLocked: document.getElementById('valueLocked')
             };
 
             if (elements.totalContracts) {
                 elements.totalContracts.textContent = stats.total;
             }
             if (elements.activeContracts) {
-                elements.activeContracts.textContent = stats.active + stats.pendingSignatures;
+                elements.activeContracts.textContent = stats.active;
+            }
+            if (elements.valueLocked) {
+                const totalValue = contracts.reduce((sum, contract) => {
+                    const amount = parseInt(contract.metadata?.network?.amount || '0');
+                    return sum + amount;
+                }, 0);
+                elements.valueLocked.textContent = formatValue(totalValue.toString());
             }
         })
         .catch(console.error);
@@ -227,6 +217,8 @@ function getStatusBadgeColor(status) {
             return 'success';
         case 'pending_signatures':
             return 'warning';
+        case 'active':
+            return 'primary';
         default:
             return 'secondary';
     }
@@ -374,15 +366,16 @@ async function handleUpload(e) {
 
 // Handle successful upload
 async function handleUploadSuccess(result) {
-    // Update UI immediately
-    updateDashboardStats();
-    updateRecentActivity();
-    updateContractsTable();
-
-    // Store transaction ID in session storage for contracts page
     if (result.transaction) {
+        // Store transaction ID in session storage
         sessionStorage.setItem('last_transaction', JSON.stringify(result.transaction));
-        // Redirect to contracts page after successful creation
+
+        // Update all displays immediately before redirect
+        updateDashboardStats();
+        updateRecentActivity();
+        updateContractsTable();
+
+        // Redirect to contracts page after short delay
         setTimeout(() => window.location.href = '/contracts', 1500);
     }
 }
@@ -466,8 +459,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize contracts display if on contracts page
     if (document.getElementById('contractsChart')) {
-        updateContractsDisplay();
+        initializeCharts();
         // Refresh data every 30 seconds
-        setInterval(updateContractsDisplay, 30000);
+        setInterval(updateDashboardStats, 30000);
+        setInterval(updateRecentActivity, 30000);
+        setInterval(updateContractsTable, 30000);
     }
 });
