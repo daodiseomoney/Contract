@@ -327,12 +327,15 @@ async function signContract(transactionId) {
             return;
         }
 
+        console.log('Starting Keplr signing process...');
+
         // Get transaction details
         const response = await fetch(`/api/transaction/${transactionId}`);
         const transaction = await response.json();
 
         try {
             const chainId = "odiseotestnet_1234-1";
+            console.log('Using chain ID:', chainId);
 
             // First add the Odiseo testnet chain to Keplr
             await window.keplr.experimentalSuggestChain({
@@ -354,14 +357,12 @@ async function signContract(transactionId) {
                 currencies: [{
                     coinDenom: "ODIS",
                     coinMinimalDenom: "uodis",
-                    coinDecimals: 6,
-                    displayDenom: "ODIS"
+                    coinDecimals: 6
                 }],
                 feeCurrencies: [{
                     coinDenom: "ODIS",
                     coinMinimalDenom: "uodis",
                     coinDecimals: 6,
-                    displayDenom: "ODIS",
                     gasPriceStep: {
                         low: 0.01,
                         average: 0.025,
@@ -371,20 +372,25 @@ async function signContract(transactionId) {
                 stakeCurrency: {
                     coinDenom: "ODIS",
                     coinMinimalDenom: "uodis",
-                    coinDecimals: 6,
-                    displayDenom: "ODIS"
-                }
+                    coinDecimals: 6
+                },
+                beta: true
             });
+
+            console.log('Chain suggested to Keplr');
 
             // Enable Keplr for the chain
             await window.keplr.enable(chainId);
+            console.log('Keplr enabled for chain');
 
             // Get the offline signer
             const offlineSigner = await window.keplr.getOfflineSigner(chainId);
+            console.log('Got offline signer');
 
             // Get user's Odiseo address
             const accounts = await offlineSigner.getAccounts();
             const userAddress = accounts[0].address;
+            console.log('User address:', userAddress);
 
             // Get next unsigned role
             const nextRole = Object.entries(transaction.signatures)
@@ -394,6 +400,8 @@ async function signContract(transactionId) {
                 showError('No available roles to sign');
                 return;
             }
+
+            console.log('Signing as role:', nextRole);
 
             // Create sign doc
             const signDoc = {
@@ -419,12 +427,16 @@ async function signContract(transactionId) {
                 })
             };
 
+            console.log('Prepared sign doc:', signDoc);
+
             // Sign with Keplr using amino
+            console.log('Requesting Keplr signature...');
             const signResponse = await window.keplr.signAmino(
                 chainId,
                 userAddress,
                 signDoc
             );
+            console.log('Got sign response:', signResponse);
 
             // Send signature to backend
             const signResult = await fetch('/api/sign', {
