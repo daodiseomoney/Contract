@@ -84,34 +84,33 @@ class AccountService:
                 try:
                     # Get raw account data
                     account = self.client.query_account(addr)
-                    self.logger.debug(f"Raw account response type: {type(account)}")
+                    self.logger.debug(f"Raw account data type: {type(account)}")
                     self.logger.debug(f"Raw account data: {account.__dict__ if hasattr(account, '__dict__') else account}")
 
-                    # Extract account data using proper attribute access
-                    account_info = {}
-                    # Try different attribute patterns based on CosmPy response structure
-                    if hasattr(account, 'base_account'):
-                        account_info = {
-                            'account_number': str(getattr(account.base_account, 'account_number', 0)),
-                            'sequence': str(getattr(account.base_account, 'sequence', 0))
+                    # Extract account data based on CosmPy 0.9.0 structure
+                    if hasattr(account, 'sequence'):
+                        # New CosmPy structure
+                        result = {
+                            'account_number': str(getattr(account, 'account_number', '0')),
+                            'sequence': str(account.sequence),
+                            'address': address
                         }
-                    elif hasattr(account, 'sequence_number'):
-                        account_info = {
-                            'account_number': str(getattr(account, 'account_number', 0)),
-                            'sequence': str(account.sequence_number)
+                    elif hasattr(account, 'base_vesting_account'):
+                        # Handle vesting account structure
+                        base_account = account.base_vesting_account.base_account
+                        result = {
+                            'account_number': str(getattr(base_account, 'account_number', '0')),
+                            'sequence': str(getattr(base_account, 'sequence', '0')),
+                            'address': address
                         }
                     else:
-                        # Fallback to accessing as dictionary
-                        account_dict = account if isinstance(account, dict) else account.__dict__
-                        account_info = {
-                            'account_number': str(account_dict.get('account_number', 0)),
-                            'sequence': str(account_dict.get('sequence', 0))
+                        # Handle other account types
+                        self.logger.debug("Account attributes:", vars(account))
+                        result = {
+                            'account_number': '0',  # Default values if not found
+                            'sequence': '0',
+                            'address': address
                         }
-
-                    result = {
-                        **account_info,
-                        'address': address
-                    }
 
                     self.logger.info(f"Successfully retrieved account data: {result}")
                     return result
