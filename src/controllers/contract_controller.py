@@ -2,9 +2,6 @@ import logging
 from flask import Blueprint, jsonify, request, current_app, render_template
 from src.gateways.multisig_gateway import MultiSigBlockchainGateway, SignatureRole
 from src.gateways.kepler_gateway import KeplerGateway
-from cosmpy.aerial.client import LedgerClient, NetworkConfig
-from cosmpy.aerial.wallet import LocalWallet
-from cosmpy.aerial.tx import Transaction, SigningCfg
 import hashlib
 import json
 
@@ -49,51 +46,26 @@ def tokenize_property():
             current_app.logger.error(f"Invalid budget splits format: {str(e)}")
             return jsonify({'error': 'Invalid budget splits format'}), 400
 
-        # Create content hash
-        content = {
-            'file_path': data['file_path'],
-            'budget_splits': data['budget_splits']
-        }
-        content_hash = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
-        current_app.logger.debug(f"Generated content hash: {content_hash}")
-
         try:
-            # Initialize network configuration
-            current_app.logger.debug("Initializing network configuration")
-            network = NetworkConfig(
-                chain_id="odiseo_1234-1",
-                url="grpc+https://odiseo.test.rpc.nodeshub.online",
-                fee_minimum_gas_price=0.025,
-                fee_denomination="uodis",
-                staking_denomination="uodis"
-            )
-
-            # Initialize wallet and client
-            wallet = LocalWallet.generate()
-            client = LedgerClient(network)
-            client.wallet = wallet
-
-            current_app.logger.debug(f"Connected to network: {network.chain_id}")
-            current_app.logger.debug(f"Using wallet address: {wallet.address()}")
-
-            # Create bank message for token transfer
-            bank_msg = {
-                "@type": "/cosmos.bank.v1beta1.MsgSend",
-                "from_address": wallet.address(),
-                "to_address": content_hash,
-                "amount": [{"denom": "uodis", "amount": "1000000"}]
+            # Create content hash and metadata including transaction details
+            content = {
+                'file_path': data['file_path'],
+                'budget_splits': data['budget_splits'],
+                'network': {
+                    'chain_id': 'odiseo_1234-1',
+                    'denom': 'uodis',
+                    'amount': '1000000'  # 1 ODIS = 1,000,000 uodis
+                }
             }
-            current_app.logger.debug(f"Prepared bank message: {bank_msg}")
 
-            # Create transaction with message
-            tx = Transaction()
-            tx.add_message(bank_msg)  # Use add_message() instead of direct attribute manipulation
+            # Generate content hash
+            content_hash = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
+            current_app.logger.debug(f"Generated content hash: {content_hash}")
 
-            # Create blockchain transaction
+            # Create blockchain transaction with metadata
             transaction_id = blockchain.create_transaction(
                 content_hash=content_hash,
-                metadata=content,
-                tx=tx
+                metadata=content
             )
             current_app.logger.info(f"Created transaction with ID: {transaction_id}")
 

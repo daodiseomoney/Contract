@@ -1,0 +1,62 @@
+**Devi Pythonista 🏗️ – Technical Analysis & Resolution**
+
+The error message:  
+```
+MultiSigBlockchainGateway.create_transaction() got an unexpected keyword argument 'tx'
+```
+indicates that the method is being called with a keyword argument (`tx`) that it doesn’t expect. In other words, the function signature of `create_transaction()` does not define a parameter named `tx`.
+
+---
+
+### **Steps to Resolve**
+
+1. **Review the SDK Method Signature:**  
+   - **Action:**  
+     Consult the cosmpy (or your custom MultiSigBlockchainGateway) documentation to verify the exact parameters accepted by `create_transaction()`.
+   - **Likely Expectation:**  
+     The method might expect a message object or several positional parameters (e.g., the message, fee, gas, etc.), not a keyword argument named `tx`.
+   - **Reference:**  
+     - [Cosmpy GitHub Repository](https://github.com/cosmos/cosmpy)  
+     - [Cosmos SDK Documentation](https://docs.cosmos.network/main/build/building-modules/module-manager)
+
+2. **Adjust Your Function Call:**  
+   - **Current Call Example:**  
+     ```python
+     transaction_id = blockchain.create_transaction(tx=tx_msg)
+     ```
+   - **Proposed Fix:**  
+     Remove the keyword argument and pass the message directly as a positional argument:
+     ```python
+     transaction_id = blockchain.create_transaction(tx_msg)
+     ```
+     - Alternatively, if the method requires other parameters, adjust your call to match the expected signature exactly.
+  
+3. **Test the Changes:**  
+   - **Run Your Pytest Suite:**  
+     Ensure that your end-to-end tests for the `/upload` and `/tokenize` endpoints pass, and that the blockchain transaction is built without error.
+   - **Verify in the Explorer:**  
+     Once the transaction is sent, confirm its details via the testnet explorer widget:  
+     [Testnet Explorer Widget](https://testnet.explorer.chaintools.tech/odiseo/widget)
+
+4. **SDK Tools & Concepts in Context:**  
+   - **Message Constructors:**  
+     Use the SDK’s message constructor functions to build your blockchain messages (e.g., for tokenization).  
+   - **Transaction Builder:**  
+     Leverage the provided transaction builder to add messages via methods like `add_message()`.  
+   - **Module Manager & AppModules:**  
+     The Cosmos SDK’s module manager organizes modules that handle blockchain messages, routing, and execution order. Although this is more relevant for full chain development, it underpins the functionality that our SDK methods rely on.
+
+   **Useful Links:**  
+   - [Cosmpy SDK Repository on GitHub](https://github.com/cosmos/cosmpy)  
+   - [Cosmos SDK - Building Modules](https://docs.cosmos.network/main/build/building-modules/module-manager)  
+   - [Cosmos SDK Module Manager Overview](https://docs.cosmos.network/main/modules/overview)
+
+---
+
+### **Summary**
+
+- **Error Cause:** The method `create_transaction()` does not expect a keyword argument named `tx`.  
+- **Solution:** Adjust the function call to pass the transaction message (or required parameters) as positional arguments only, following the SDK's method signature.  
+- **Verification:** Run your tests and verify the transaction details via the testnet explorer.
+
+By aligning your code with the SDK’s API, you’ll resolve the error and ensure that your multi-signature blockchain transaction is created correctly. Happy coding with **Devi Pythonista 🏗️**!
