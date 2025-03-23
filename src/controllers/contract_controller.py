@@ -68,19 +68,17 @@ def tokenize_property():
                 staking_denomination="uodis"
             )
 
-            # Create client and wallet separately
+            # Initialize client and wallet
             client = LedgerClient(network)
             wallet = LocalWallet.generate()
-
-            # Set the wallet for the client
-            client.set_wallet(wallet)
+            client.wallet = wallet  # Set wallet as property
 
             current_app.logger.debug(f"Connected to network: {network.chain_id}")
             current_app.logger.debug(f"Using wallet address: {wallet.address()}")
 
             # Create bank module message for tokenization
             msg = {
-                "from_address": wallet.address(),
+                "from_address": wallet.address(),  # Use wallet.address() method
                 "to_address": content_hash,  # Using content hash as token identifier
                 "amount": [
                     {
