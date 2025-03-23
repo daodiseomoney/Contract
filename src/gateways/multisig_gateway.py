@@ -77,27 +77,37 @@ class MultiSigBlockchainGateway:
         self.logger.info(f"Processing signature for transaction {transaction_id}, role: {role}")
 
         try:
-            # Validate Keplr signature
+            # Validate complete Keplr signature response
             if not signature or not isinstance(signature, dict):
                 raise ValueError("Missing signature data")
 
-            if not all(k in signature for k in ['signed', 'signature', 'pub_key']):
-                raise ValueError("Invalid signature format")
+            # Expected Keplr signature response format
+            required_fields = ['signed', 'signature', 'pub_key']
+            if not all(field in signature for field in required_fields):
+                self.logger.error(f"Missing required fields in signature: {signature}")
+                raise ValueError("Invalid Keplr signature format")
 
-            # Extract and verify signature components
+            # Extract signed data and signature components
             signed_data = signature.get('signed', {})
-            sig_value = signature.get('signature')
+            sig_bytes = signature.get('signature', '')
             pub_key = signature.get('pub_key', {})
 
-            if not all([signed_data, sig_value, pub_key]):
-                raise ValueError("Missing required signature components")
+            if not all([signed_data, sig_bytes, pub_key]):
+                self.logger.error("Missing signature components")
+                raise ValueError("Invalid signature components")
+
+            # Verify memo contains correct transaction details
+            memo = json.loads(signed_data.get('memo', '{}'))
+            if memo.get('transaction_id') != transaction_id or memo.get('content_hash') != transaction.content_hash:
+                self.logger.error("Signature memo mismatch")
+                raise ValueError("Invalid signature memo")
 
             # Update signature status
             transaction.signatures[role] = SignatureStatus.SIGNED
             self.logger.info(f"Updated signature status for {role} to SIGNED")
 
-            # Generate a deterministic transaction hash from the signature
-            tx_hash = self._generate_tx_hash(signed_data, sig_value, pub_key)
+            # Generate transaction hash from signature components
+            tx_hash = self._generate_tx_hash(signed_data, sig_bytes, pub_key)
             transaction.update_blockchain_details(tx_hash)
             self.logger.info(f"Updated blockchain details with hash: {tx_hash}")
 

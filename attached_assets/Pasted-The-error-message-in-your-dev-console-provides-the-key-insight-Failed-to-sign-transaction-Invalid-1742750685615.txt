@@ -1,0 +1,191 @@
+The error message in your dev console provides the key insight: "Failed to sign transaction: Invalid signature format."
+
+This indicates that there's an issue with how the transaction is being formatted or prepared before it's sent to Keplr for signing. The error is occurring at line 458 of your main.js file during the `signContract` function.
+
+Here are the likely causes and solutions:
+
+1. **Incorrect Transaction Structure**:
+   The Cosmos SDK and Keplr have specific requirements for transaction formats. Your transaction might not be following the expected structure.
+
+2. **Signature Type Mismatch**:
+   Keplr supports different signing methods (`signAmino` and `signDirect`). Make sure you're using the correct one for your blockchain.
+
+3. **Chain Configuration Issue**:
+   Your chain configuration might have inconsistencies with what Keplr expects.
+
+Here's what I recommend:
+
+1. **Check your transaction construction code**:
+   Make sure you're building the transaction according to Cosmos SDK specifications. Here's a proper example:
+
+```javascript
+// For direct signing (preferred method)
+async function signTransaction() {
+  try {
+    // Get the user's account info
+    const key = await window.keplr.getKey(chainId);
+    const account = await fetchAccount(key.bech32Address);
+
+    // Prepare the transaction
+    const msgSend = {
+      typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+      value: {
+        fromAddress: key.bech32Address,
+        toAddress: recipientAddress,
+        amount: [{ denom: "uodis", amount: amount.toString() }]
+      }
+    };
+
+    // Create transaction with proper proto encoding
+    const txBody = {
+      messages: [msgSend],
+      memo: memo
+    };
+
+    // Get auth info for the account
+    const authInfo = {
+      signerInfos: [{
+        publicKey: {
+          typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+          value: key.pubKey
+        },
+        sequence: account.sequence,
+        modeInfo: { single: { mode: 1 } } // DIRECT
+      }],
+      fee: {
+        amount: [{ denom: "uodis", amount: "5000" }],
+        gasLimit: "200000"
+      }
+    };
+
+    // Sign the transaction
+    const signDoc = {
+      bodyBytes: encodeTxBody(txBody),
+      authInfoBytes: encodeAuthInfo(authInfo),
+      chainId: chainId,
+      accountNumber: account.accountNumber
+    };
+
+    const signResponse = await window.keplr.signDirect(
+      chainId,
+      key.bech32Address,
+      signDoc
+    );
+
+    // Broadcast the signed transaction
+    // ...
+
+  } catch (error) {
+    console.error("Error signing transaction:", error);
+  }
+}
+```
+
+2. **Check your transaction broadcasting code**:
+   After signing, ensure you're correctly forwarding the signed transaction to the blockchain:
+
+```javascript
+// After getting signResponse from Keplr
+const signedTx = {
+  txBytes: encodeTxRaw({
+    bodyBytes: signResponse.signed.bodyBytes,
+    authInfoBytes: signResponse.signed.authInfoBytes,
+    signatures: [signResponse.signature.signature]
+  })
+};
+
+// Send to backend for broadcasting
+const response = await fetch('/api/broadcast', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(signedTx),
+});
+```
+
+3. **Use the CosmJS library**:
+   Consider using the CosmJS library which handles much of this complexity for you:
+
+```javascript
+import { SigningStargateClient } from "@cosmjs/stargate";
+
+async function signAndBroadcast() {
+  // Enable Keplr for your chain
+  await window.keplr.enable(chainId);
+  
+  // Get the offlineSigner from Keplr
+  const offlineSigner = window.keplr.getOfflineSigner(chainId);
+  
+  // Get the user's account
+  const accounts = await offlineSigner.getAccounts();
+  
+  // Create a SigningStargateClient
+  const client = await SigningStargateClient.connectWithSigner(
+    rpcEndpoint,
+    offlineSigner
+  );
+  
+  // Send tokens
+  const result = await client.sendTokens(
+    accounts[0].address,
+    recipientAddress,
+    [{ denom: "uodis", amount: "1000000" }],
+    {
+      amount: [{ denom: "uodis", amount: "5000" }],
+      gas: "200000"
+    },
+    memo
+  );
+  
+  console.log("Transaction result:", result);
+}
+```
+
+4. **Check your network configuration**:
+   Make sure your chain configuration matches what Keplr expects:
+
+```javascript
+// Suggest the chain to Keplr if it's not already added
+async function suggestChain() {
+  await window.keplr.experimentalSuggestChain({
+    chainId: "odiseo_1234-1",
+    chainName: "Odiseo Testnet",
+    rpc: "https://odiseo.test.rpc.nodeshub.online",
+    rest: "https://odiseo.test.api.nodeshub.online",
+    bip44: {
+      coinType: 118,
+    },
+    bech32Config: {
+      bech32PrefixAccAddr: "odiseo",
+      bech32PrefixAccPub: "odiseopub",
+      bech32PrefixValAddr: "odiseoval",
+      bech32PrefixValPub: "odiseovalpub",
+      bech32PrefixConsAddr: "odiseovalcons",
+      bech32PrefixConsPub: "odiseovalconspub"
+    },
+    currencies: [{
+      coinDenom: "ODIS",
+      coinMinimalDenom: "uodis",
+      coinDecimals: 6,
+    }],
+    feeCurrencies: [{
+      coinDenom: "ODIS",
+      coinMinimalDenom: "uodis",
+      coinDecimals: 6,
+    }],
+    stakeCurrency: {
+      coinDenom: "ODIS",
+      coinMinimalDenom: "uodis",
+      coinDecimals: 6,
+    },
+    gasPriceStep: {
+      low: 0.01,
+      average: 0.025,
+      high: 0.04
+    }
+  });
+}
+```
+
+Since the error specifically mentions "Invalid signature format," focus on how you're constructing the transaction and the signing request. Add detailed logging at each step of your transaction preparation to pinpoint exactly where the issue occurs.
