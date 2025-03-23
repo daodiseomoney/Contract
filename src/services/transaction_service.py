@@ -113,7 +113,47 @@ class TransactionService:
 
             # Set messages
             self.logger.debug(f"Setting transaction messages: {tx['msg']}")
-            transaction.body.messages.extend(tx['msg'])
+            
+            # Handle Amino messages and convert them to protobuf
+            for msg in tx['msg']:
+                # Check if we have an Amino message format (type and value fields)
+                if isinstance(msg, dict) and 'type' in msg and 'value' in msg:
+                    self.logger.debug(f"Converting Amino message to protobuf: {msg}")
+                    
+                    # For MsgSend message type specifically
+                    if msg['type'] == 'cosmos-sdk/MsgSend':
+                        try:
+                            from cosmpy.protos.cosmos.bank.v1beta1.tx_pb2 import MsgSend
+                            from cosmpy.protos.cosmos.base.v1beta1.coin_pb2 import Coin
+                            
+                            # Extract the value data
+                            value = msg['value']
+                            
+                            # Create a MsgSend protobuf message
+                            msg_send = MsgSend()
+                            msg_send.from_address = value['from_address']
+                            msg_send.to_address = value['to_address']
+                            
+                            # Add coins
+                            for coin in value['amount']:
+                                coin_msg = Coin()
+                                coin_msg.denom = coin['denom']
+                                coin_msg.amount = coin['amount']
+                                msg_send.amount.append(coin_msg)
+                            
+                            # Add the message to transaction
+                            transaction.body.messages.append(msg_send)
+                            self.logger.debug("Added MsgSend protobuf message")
+                        except Exception as e:
+                            self.logger.error(f"Failed to convert MsgSend message: {str(e)}")
+                            raise ValueError(f"Message conversion error: {str(e)}")
+                    else:
+                        self.logger.error(f"Unsupported message type: {msg['type']}")
+                        raise ValueError(f"Unsupported message type: {msg['type']}")
+                else:
+                    # Assume it's already a protobuf message
+                    transaction.body.messages.append(msg)
+            
             transaction.body.memo = tx['memo']
 
             # Set fee

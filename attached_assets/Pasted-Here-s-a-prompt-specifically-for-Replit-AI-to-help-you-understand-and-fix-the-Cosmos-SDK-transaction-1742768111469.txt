@@ -1,0 +1,61 @@
+Here's a prompt specifically for Replit AI to help you understand and fix the Cosmos SDK transaction message structure issue:
+CopyDebug Keplr Transaction Signing Message Structure Error
+
+I'm getting this error when trying to sign a Cosmos SDK transaction with Keplr:
+"Expected a message object, but got {'type': 'cosmos-sdk/MsgSend', 'value': {'amount': [{'amount': '1000', 'denom': 'uodis'}], 'from_address': 'odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705', 'to_address': 'odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt'}}."
+
+This error occurs at line 414 in my main.js file in the signContract function.
+
+Please provide:
+
+1. The correct message structure for both Keplr signing methods:
+
+   A. For signAmino (Amino encoding):
+   ```javascript
+   // Example of correct Amino message structure
+   const msg = {
+     type: "cosmos-sdk/MsgSend",
+     value: {
+       from_address: "sender_address",
+       to_address: "recipient_address",
+       amount: [{ denom: "uodis", amount: "1000" }]
+     }
+   };
+   
+   // How to use with Keplr
+   const signDoc = {
+     chain_id: chainId,
+     account_number: accountNumber,
+     sequence: sequence,
+     fee: fee,
+     msgs: [msg],
+     memo: memo
+   };
+   const signResponse = await window.keplr.signAmino(chainId, senderAddress, signDoc);
+B. For signDirect (Protobuf encoding):
+javascriptCopy// Example of correct Protobuf message structure
+import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
+
+const message = {
+  typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+  value: MsgSend.encode({
+    fromAddress: "sender_address",
+    toAddress: "recipient_address",
+    amount: [{ denom: "uodis", amount: "1000" }]
+  }).finish()
+};
+
+// How to use with Keplr
+const signDoc = {
+  chainId: chainId,
+  accountNumber: accountNumber,
+  authInfoBytes: authInfoBytes,
+  bodyBytes: bodyBytes
+};
+const signResponse = await window.keplr.signDirect(chainId, senderAddress, signDoc);
+
+Check which signing method I'm using in my code and ensure message structure matches.
+Identify what's wrong with my current message structure and how to correct it.
+
+Copy
+This prompt provides both correct message formats side by side and instructs Replit AI to help you identify which signing method you're using and what adjustments you need to make to your code.

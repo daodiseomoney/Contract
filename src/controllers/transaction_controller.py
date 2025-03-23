@@ -45,8 +45,25 @@ def sign_transaction():
             logger.error(f"Invalid memo format. Expected format: tx:ID|hash:HASH|role:ROLE, got: {memo}")
             return jsonify({"error": "Invalid memo format"}), 400
 
+        # Format the data for transaction service
+        # We need to convert from Keplr's signAmino response format to the expected format for broadcast
+        tx_data = {
+            'tx': {
+                'msg': signed_data.get('msgs', []),  # Get messages from signed data
+                'fee': signed_data.get('fee', {'amount': [], 'gas': '100000'}),
+                'memo': memo,
+                'signatures': [{
+                    'signature': data.get('signature', {}).get('signature', ''),
+                    'pub_key': data.get('signature', {}).get('pub_key', {})
+                }]
+            },
+            'mode': 'block'  # Wait for block confirmation
+        }
+        
+        logger.debug(f"Formatted transaction data for broadcast: {tx_data}")
+        
         # Broadcast the signed transaction
-        result = transaction_service.broadcast_transaction(data)
+        result = transaction_service.broadcast_transaction(tx_data)
         logger.debug(f"Broadcast result: {result}")
 
         if not result.get("success"):
