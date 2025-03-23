@@ -10,7 +10,7 @@ contract_bp = Blueprint('contract', __name__, url_prefix='/api')
 # Initialize gateways
 blockchain = MultiSigBlockchainGateway(test_mode=True)
 kepler = KeplerGateway({
-    'chain_id': 'odiseo_1234-1',
+    'chain_id': 'odiseotestnet_1234-1',
     'rpc_url': 'https://odiseo.test.rpc.nodeshub.online',
     'api_url': 'https://odiseo.test.api.nodeshub.online'
 })
@@ -52,7 +52,7 @@ def tokenize_property():
                 'file_path': data['file_path'],
                 'budget_splits': data['budget_splits'],
                 'network': {
-                    'chain_id': 'odiseo_1234-1',
+                    'chain_id': 'odiseotestnet_1234-1',
                     'denom': 'uodis',
                     'amount': '1000000'  # 1 ODIS = 1,000,000 uodis
                 }
