@@ -386,11 +386,7 @@ async function signContract(transactionId) {
                         amount: [{ denom: "uodis", amount: "1000" }]
                     }
                 }],
-                memo: JSON.stringify({
-                    transaction_id: transaction.transaction_id,
-                    content_hash: transaction.content_hash,
-                    role: nextRole
-                })
+                memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
 
             console.log('Requesting Keplr signature...');
