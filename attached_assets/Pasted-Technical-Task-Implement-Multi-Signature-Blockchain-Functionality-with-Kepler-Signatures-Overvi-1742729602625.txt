@@ -1,0 +1,69 @@
+Technical Task: Implement Multi-Signature Blockchain Functionality with Kepler Signatures
+
+⸻
+
+Overview:
+
+Develop and integrate a blockchain module into the DAODISEO MVP codebase that uses Kepler wallet integration for signing transactions instead of a provided cosmos_mnemonic. This module must simulate a multi-signature process with three distinct roles: owner, contributor, and validator. The goal is to test blockchain transactions on the Cosmos testnet (via https://testnet.explorer.chaintools.tech/odiseo/widget) without requiring the project owner to share their cosmos_mnemonic.
+
+⸻
+
+Requirements:
+	1.	Blockchain Integration Module:
+	•	Multi-Signature Workflow:
+	•	Design the module to require signatures from three distinct roles: owner, contributor, and validator.
+	•	Instead of a single cosmos_mnemonic, implement a mechanism to simulate or capture signatures from Kepler wallets.
+	•	Provide a test mode that mimics Kepler signatures, where each role’s signature is simulated, allowing end-to-end testing of the multi-sig process.
+	•	Signature Abstraction:
+	•	Abstract the signing process so that it can dynamically switch between test mode (using simulated Kepler signatures) and production mode (using actual Kepler wallet integration).
+	•	Define clear interfaces for collecting signatures from each role and aggregating them into a single multi-sig transaction.
+	2.	Endpoint Integration:
+	•	/upload Endpoint:
+	•	Modify the existing /upload endpoint so that when a file is uploaded, a blockchain transaction is created that requires multi-signature approval.
+	•	The transaction should incorporate file metadata and relevant contract details.
+	•	Root (/) Endpoint:
+	•	Update the root endpoint to display the status and details of the blockchain contract.
+	•	Integrate the testnet explorer widget (https://testnet.explorer.chaintools.tech/odiseo/widget) to visually confirm transaction details.
+	3.	Testing & Validation (Pytest):
+	•	End-to-End Test Cases:
+	•	Create tests that simulate a file upload via /upload, trigger the multi-signature process using simulated Kepler signatures, and verify that the transaction is correctly registered on the testnet.
+	•	Ensure that the multi-signature process only completes when all three roles have provided their signatures.
+	•	Test that the contract details displayed on / reflect the correct status as seen on the explorer widget.
+	•	Test Configuration:
+	•	Provide a configuration flag or environment variable to toggle between test mode (simulated signatures) and production mode (Kepler integration).
+	4.	Documentation:
+	•	Document the new blockchain module, explaining:
+	•	How multi-signature transactions are processed.
+	•	How the system collects and aggregates signatures.
+	•	How to run tests and switch between simulated and actual Kepler signing modes.
+	•	Update the README with instructions for deploying and testing the blockchain functionality.
+
+⸻
+
+Deliverables:
+	•	Updated Codebase:
+	•	A blockchain module integrated into the DAODISEO MVP that supports multi-signature transactions.
+	•	Modified /upload and / endpoints to incorporate blockchain functionality.
+	•	Testing Suite:
+	•	Comprehensive pytest tests covering:
+	•	File upload and transaction creation.
+	•	The multi-signature process (simulated via Kepler signatures for owner, contributor, and validator).
+	•	Verification of contract display on the root endpoint.
+	•	Documentation:
+	•	Detailed documentation on module design, configuration, testing instructions, and steps to transition from test mode (simulated Kepler signatures) to production mode (actual Kepler wallet integration).
+
+⸻
+
+Outcome:
+
+Upon successful completion, the DAODISEO MVP will:
+	•	Allow file uploads to trigger blockchain transactions without needing a cosmos_mnemonic.
+	•	Simulate multi-signature transactions using Kepler wallet signatures for three roles.
+	•	Display the contract status accurately on the root endpoint and via the testnet explorer widget.
+	•	Be fully testable using pytest, ensuring a reliable and secure blockchain integration ready for production.
+
+⸻
+
+This task ensures that blockchain functionality is implemented in a secure, role-based manner while aligning with project owner requirements and enabling full end-to-end testing without exposing sensitive mnemonic data.
+
+With Devi Pythonista 🏗️ guiding the process, this integration will be robust, testable, and ready for production deployment!

@@ -1,11 +1,11 @@
-// Initialize charts
+// Initialize charts and data
 function initializeCharts() {
     const ctx = document.getElementById('contractsChart')?.getContext('2d');
     if (ctx) {
         new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Pending', 'Active', 'Completed'],
+                labels: ['Pending Signatures', 'Active', 'Completed'],
                 datasets: [{
                     data: [4, 8, 3],
                     backgroundColor: [
@@ -28,116 +28,208 @@ function initializeCharts() {
         });
     }
 
-    // Update stats
-    const elements = {
-        totalContracts: document.getElementById('totalContracts'),
-        activeContracts: document.getElementById('activeContracts'),
-        totalValue: document.getElementById('totalValue')
-    };
-
-    if (elements.totalContracts) elements.totalContracts.textContent = '15';
-    if (elements.activeContracts) elements.activeContracts.textContent = '8';
-    if (elements.totalValue) elements.totalValue.textContent = '$2.5M';
-
+    updateDashboardStats();
     updateRecentActivity();
     updateContractsTable();
 }
 
+// Update dashboard statistics
+function updateDashboardStats() {
+    fetch('/api/contracts')
+        .then(response => response.json())
+        .then(contracts => {
+            const elements = {
+                totalContracts: document.getElementById('totalContracts'),
+                activeContracts: document.getElementById('activeContracts'),
+                totalValue: document.getElementById('totalValue')
+            };
+
+            if (elements.totalContracts) elements.totalContracts.textContent = contracts.length || '0';
+            if (elements.activeContracts) {
+                const active = contracts.filter(c => 
+                    Object.values(c.signatures).every(s => s === 'signed')
+                ).length;
+                elements.activeContracts.textContent = active;
+            }
+            if (elements.totalValue) elements.totalValue.textContent = '$2.5M'; // TODO: Calculate from contracts
+        })
+        .catch(console.error);
+}
+
 // Update recent activity section
 function updateRecentActivity() {
-    const activities = [
-        'Contract #123 tokenized successfully',
-        'New property added to blockchain',
-        'Budget split updated for Contract #456',
-        'Compliance check completed'
-    ];
-
     const activityList = document.getElementById('recentActivity');
-    if (activityList) {
-        activities.forEach(activity => {
-            const item = document.createElement('a');
-            item.className = 'list-group-item list-group-item-action';
-            item.innerHTML = `
-                <div class="d-flex w-100 justify-content-between">
-                    <p class="mb-1">${activity}</p>
-                    <small class="text-muted">Just now</small>
-                </div>
-            `;
-            activityList.appendChild(item);
-        });
-    }
+    if (!activityList) return;
+
+    fetch('/api/contracts')
+        .then(response => response.json())
+        .then(contracts => {
+            const activities = contracts.slice(0, 5).map(contract => ({
+                text: `Contract ${contract.transaction_id} ${getContractStatusText(contract)}`,
+                time: new Date(contract.created_at).toLocaleString()
+            }));
+
+            activityList.innerHTML = activities.map(activity => `
+                <a class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <p class="mb-1">${activity.text}</p>
+                        <small class="text-muted">${activity.time}</small>
+                    </div>
+                </a>
+            `).join('');
+        })
+        .catch(console.error);
+}
+
+// Get human-readable contract status
+function getContractStatusText(contract) {
+    const signedCount = Object.values(contract.signatures)
+        .filter(s => s === 'signed').length;
+    const totalSigners = Object.keys(contract.signatures).length;
+
+    if (signedCount === totalSigners) return 'fully signed';
+    return `waiting for signatures (${signedCount}/${totalSigners})`;
 }
 
 // Update contracts table
 function updateContractsTable() {
-    const sampleProjects = [
-        { id: 'DEMO-001', property: 'Silicon Valley Office Complex', status: 'Demo', value: '$12.5M', created: '2025-03-17' },
-        { id: 'DEMO-002', property: 'Manhattan Residential Tower', status: 'Demo', value: '$25M', created: '2025-03-17' },
-        { id: 'DEMO-003', property: 'Dubai Smart City Project', status: 'Demo', value: '$40M', created: '2025-03-17' }
-    ];
-
     const contractsTable = document.querySelector('#contractsTable tbody');
     const sampleSection = document.getElementById('sampleProjectsSection');
+    if (!contractsTable) return;
 
-    if (contractsTable) {
-        fetch('/api/contracts')
-            .then(response => response.json())
-            .then(contracts => {
-                const displayContracts = contracts.length > 0 ? contracts : sampleProjects;
+    fetch('/api/contracts')
+        .then(response => response.json())
+        .then(contracts => {
+            if (sampleSection) {
+                sampleSection.style.display = contracts.length > 0 ? 'none' : 'block';
+            }
 
-                if (sampleSection) {
-                    sampleSection.style.display = contracts.length > 0 ? 'none' : 'block';
-                }
-
-                contractsTable.innerHTML = displayContracts.map(contract => `
-                    <tr>
-                        <td>${contract.id}</td>
-                        <td>${contract.property || 'N/A'}</td>
-                        <td><span class="badge bg-${contract.status === 'Active' ? 'success' : 'info'}">${contract.status}</span></td>
-                        <td>${contract.value || 'N/A'}</td>
-                        <td>${contract.created || 'N/A'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary">View</button>
-                            <button class="btn btn-sm btn-secondary">Export</button>
-                        </td>
-                    </tr>
-                `).join('');
-            })
-            .catch(error => console.error('Error fetching contracts:', error));
-    }
+            contractsTable.innerHTML = contracts.map(contract => `
+                <tr>
+                    <td>${contract.transaction_id}</td>
+                    <td>${contract.metadata?.file_path || 'N/A'}</td>
+                    <td><span class="badge bg-${getStatusBadgeColor(contract)}">${getContractStatusText(contract)}</span></td>
+                    <td>${formatBudgetSplits(contract.metadata?.budget_splits)}</td>
+                    <td>${new Date(contract.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-primary" onclick="viewContract('${contract.transaction_id}')">View</button>
+                            <button class="btn btn-sm btn-success" onclick="signContract('${contract.transaction_id}')" ${isContractFullySigned(contract) ? 'disabled' : ''}>Sign</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        })
+        .catch(error => {
+            console.error('Error fetching contracts:', error);
+            showError('Failed to load contracts');
+        });
 }
 
-// Unified form handling
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadForm = document.getElementById('uploadForm');
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', handleUpload);
-    }
+// Helper functions for contract display
+function getStatusBadgeColor(contract) {
+    const signedCount = Object.values(contract.signatures)
+        .filter(s => s === 'signed').length;
+    const totalSigners = Object.keys(contract.signatures).length;
 
-    if (document.getElementById('contractsChart')) {
-        initializeCharts();
-    }
-});
+    if (signedCount === totalSigners) return 'success';
+    if (signedCount > 0) return 'warning';
+    return 'secondary';
+}
 
-// Add budget split field
-function addBudgetSplit() {
-    const container = document.getElementById('budgetSplits');
-    if (container) {
-        const newSplit = document.createElement('div');
-        newSplit.className = 'input-group mb-2';
-        newSplit.innerHTML = `
-            <span class="input-group-text"><i class="bi bi-person"></i></span>
-            <input type="text" class="form-control" placeholder="Role" name="roles[]">
-            <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100">
-            <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
-                <i class="bi bi-trash"></i>
-            </button>
+function formatBudgetSplits(splits) {
+    if (!splits) return 'N/A';
+    return Object.entries(splits)
+        .map(([role, percentage]) => `${role}: ${percentage}%`)
+        .join(', ');
+}
+
+function isContractFullySigned(contract) {
+    return Object.values(contract.signatures)
+        .every(s => s === 'signed');
+}
+
+// Contract interaction functions
+async function viewContract(transactionId) {
+    try {
+        const response = await fetch(`/api/transaction/${transactionId}`);
+        const contract = await response.json();
+
+        // Create modal to show contract details
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Contract Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <dl>
+                            <dt>Transaction ID</dt>
+                            <dd>${contract.transaction_id}</dd>
+                            <dt>Content Hash</dt>
+                            <dd>${contract.content_hash}</dd>
+                            <dt>Created</dt>
+                            <dd>${new Date(contract.created_at).toLocaleString()}</dd>
+                            <dt>Signatures</dt>
+                            <dd>
+                                ${Object.entries(contract.signatures).map(([role, status]) => 
+                                    `<div>${role}: <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">${status}</span></div>`
+                                ).join('')}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
         `;
-        container.appendChild(newSplit);
+        document.body.appendChild(modal);
+        new bootstrap.Modal(modal).show();
+        modal.addEventListener('hidden.bs.modal', () => modal.remove());
+    } catch (error) {
+        showError('Failed to load contract details');
     }
 }
 
-// Handle file upload and contract creation
+async function signContract(transactionId) {
+    try {
+        // In test mode, we'll simulate signing as each role in sequence
+        const roles = ['owner', 'contributor', 'validator'];
+        const currentSignatures = (await (await fetch(`/api/transaction/${transactionId}`)).json()).signatures;
+
+        // Find the next unsigned role
+        const nextRole = Object.entries(currentSignatures)
+            .find(([_, status]) => status !== 'signed')?.[0];
+
+        if (!nextRole) {
+            showSuccess('Contract is already fully signed');
+            return;
+        }
+
+        const response = await fetch('/api/sign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                transaction_id: transactionId,
+                role: nextRole,
+                signature: 'test_signature'
+            })
+        });
+
+        const result = await response.json();
+        if (result.error) throw new Error(result.error);
+
+        showSuccess(`Successfully signed as ${nextRole}`);
+        updateContractsTable();
+        updateDashboardStats();
+        updateRecentActivity();
+    } catch (error) {
+        showError(error.message || 'Failed to sign contract');
+    }
+}
+
+// File upload handling
 async function handleUpload(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -174,14 +266,32 @@ async function handleUpload(e) {
         const tokenizeResult = await tokenizeResponse.json();
         if (tokenizeResult.error) throw new Error(tokenizeResult.error);
 
-        showSuccess('Contract created successfully!');
+        showSuccess('Contract created successfully! Waiting for signatures...');
         setTimeout(() => window.location.href = '/contracts', 1500);
     } catch (error) {
         showError(error.message || 'An error occurred during upload');
     }
 }
 
-// Utility functions
+// Budget split field management
+function addBudgetSplit() {
+    const container = document.getElementById('budgetSplits');
+    if (!container) return;
+
+    const newSplit = document.createElement('div');
+    newSplit.className = 'input-group mb-2';
+    newSplit.innerHTML = `
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input type="text" class="form-control" placeholder="Role" name="roles[]" required>
+        <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100" required>
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-trash"></i>
+        </button>
+    `;
+    container.appendChild(newSplit);
+}
+
+// Utility functions for alerts
 function showError(message) {
     const alert = document.createElement('div');
     alert.className = 'alert alert-danger alert-dismissible fade show';
@@ -201,3 +311,21 @@ function showSuccess(message) {
     `;
     document.querySelector('.container')?.prepend(alert);
 }
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', handleUpload);
+    }
+
+    if (document.getElementById('contractsChart')) {
+        initializeCharts();
+        // Refresh data every 30 seconds
+        setInterval(() => {
+            updateContractsTable();
+            updateDashboardStats();
+            updateRecentActivity();
+        }, 30000);
+    }
+});
