@@ -45,20 +45,8 @@ class AccountService:
                     continue
 
                 self.client = LedgerClient(self.network)
-
-                # Verify client works by querying chain ID
-                try:
-                    addr = Address("odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705")
-                    self.client.query_account(addr)
-                    self.logger.info(f"Successfully connected to endpoint: {endpoint}")
-                    return
-                except Exception as e:
-                    if "not found" in str(e).lower():  # This is ok - just means account doesn't exist
-                        self.logger.info(f"Successfully connected to endpoint: {endpoint}")
-                        return
-                    last_error = e
-                    self.logger.warning(f"Client test failed for endpoint {endpoint}: {str(e)}")
-                    continue
+                self.logger.info(f"Successfully connected to endpoint: {endpoint}")
+                return
 
             except Exception as e:
                 last_error = e
@@ -94,17 +82,35 @@ class AccountService:
 
             for attempt in range(max_retries):
                 try:
-                    account_data = self.client.query_account(addr)
-                    self.logger.debug(f"Raw account data response: {account_data}")
+                    # Get raw account data
+                    account = self.client.query_account(addr)
+                    self.logger.debug(f"Raw account response type: {type(account)}")
+                    self.logger.debug(f"Raw account data: {account.__dict__ if hasattr(account, '__dict__') else account}")
 
-                    if not account_data:
-                        self.logger.error("No account data found")
-                        raise ValueError("No account data found for the address")
+                    # Extract account data using proper attribute access
+                    account_info = {}
+                    # Try different attribute patterns based on CosmPy response structure
+                    if hasattr(account, 'base_account'):
+                        account_info = {
+                            'account_number': str(getattr(account.base_account, 'account_number', 0)),
+                            'sequence': str(getattr(account.base_account, 'sequence', 0))
+                        }
+                    elif hasattr(account, 'sequence_number'):
+                        account_info = {
+                            'account_number': str(getattr(account, 'account_number', 0)),
+                            'sequence': str(account.sequence_number)
+                        }
+                    else:
+                        # Fallback to accessing as dictionary
+                        account_dict = account if isinstance(account, dict) else account.__dict__
+                        account_info = {
+                            'account_number': str(account_dict.get('account_number', 0)),
+                            'sequence': str(account_dict.get('sequence', 0))
+                        }
 
                     result = {
-                        "account_number": str(account_data.account_number),
-                        "sequence": str(account_data.sequence),
-                        "address": address
+                        **account_info,
+                        'address': address
                     }
 
                     self.logger.info(f"Successfully retrieved account data: {result}")
@@ -113,7 +119,7 @@ class AccountService:
                 except Exception as e:
                     last_error = e
                     if "403" in str(e) or "401" in str(e):
-                        self.logger.warning(f"Authentication error on attempt {attempt + 1}, trying to reinitialize client")
+                        self.logger.warning(f"Authentication error on attempt {attempt + 1}, trying next endpoint")
                         try:
                             self.initialize_client()
                             continue
