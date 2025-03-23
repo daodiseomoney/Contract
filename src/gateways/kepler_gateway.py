@@ -58,21 +58,21 @@ class KeplerGateway:
         """This function will be called from JavaScript to connect Kepler wallet"""
         # The actual connection happens in JavaScript
         # This is just a placeholder for the backend interface
-        pass
+        return self.connected_address
 
     async def sign_transaction(self, tx_data: Dict, role: KeplerSignatureRole) -> Dict:
         """This function will be called from JavaScript to sign a transaction"""
         # The actual signing happens in JavaScript
         # This is just a placeholder for the backend interface
-        pass
+        return {
+            'messages': tx_data.get('messages', []),
+            'fee': tx_data.get('fee', {}),
+            'memo': f"tx:{tx_data.get('transaction_id')}|hash:{tx_data.get('content_hash')}|role:{role.value}"
+        }
 
     def parse_memo_data(self, memo: str) -> Dict:
         """Parse transaction memo data"""
         try:
-            # First attempt to parse as JSON
-            if memo.startswith('{') and memo.endswith('}'):
-                return json.loads(memo)
-            # Parse as structured string (key-value pairs)
             data = {}
             if '|' in memo:
                 parts = memo.split('|')
@@ -81,7 +81,6 @@ class KeplerGateway:
                         key, value = part.split(':', 1)
                         data[key.strip()] = value.strip()
             return data
-        except (json.JSONDecodeError, Exception) as e:
-            #self.logger.error(f"Error parsing memo: {str(e)}") # Assuming logger is not available in this context.
+        except Exception as e:
             # Return a minimal dict if parsing fails
             return {"raw_memo": memo}
