@@ -1,41 +1,25 @@
 from flask import Blueprint, jsonify, request, current_app
 from src.gateways.multisig_gateway import MultiSigBlockchainGateway, SignatureRole
 from src.gateways.kepler_gateway import KeplerGateway
+from cosmpy.aerial.client import LedgerClient, NetworkConfig
+from cosmpy.aerial.wallet import LocalWallet
+from cosmpy.aerial.tx import Transaction
 import hashlib
 import json
 
 contract_bp = Blueprint('contract', __name__, url_prefix='/api')
 
 # Initialize gateways
-blockchain = MultiSigBlockchainGateway(test_mode=True)  # Start in test mode
+blockchain = MultiSigBlockchainGateway(test_mode=True)
 kepler = KeplerGateway({
     'chain_id': 'odiseo_1234-1',
     'rpc_url': 'https://odiseo.test.rpc.nodeshub.online',
     'api_url': 'https://odiseo.test.api.nodeshub.online'
 })
 
-@contract_bp.route('/network-config', methods=['GET'])
-def get_network_config():
-    """Get Odiseo network configuration for Kepler wallet"""
-    try:
-        return jsonify(kepler.get_network_config())
-    except Exception as e:
-        current_app.logger.error(f"Failed to get network config: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-@contract_bp.route('/contracts', methods=['GET'])
-def get_contracts():
-    """Get all contracts/transactions"""
-    try:
-        contracts = blockchain.get_active_contracts()
-        return jsonify(contracts)
-    except Exception as e:
-        current_app.logger.error(f"Failed to get contracts: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
 @contract_bp.route('/tokenize', methods=['POST'])
 def tokenize_property():
-    """Initialize a new multi-signature transaction"""
+    """Initialize a new tokenization transaction"""
     try:
         data = request.json
         if not data or 'file_path' not in data or 'budget_splits' not in data:
@@ -47,6 +31,32 @@ def tokenize_property():
             'budget_splits': data['budget_splits']
         }
         content_hash = hashlib.sha256(json.dumps(content).encode()).hexdigest()
+
+        # Initialize network configuration
+        network = NetworkConfig(
+            chain_id="odiseo_1234-1",
+            url="grpc+https://odiseo.test.rpc.nodeshub.online",
+            fee_minimum_gas_price=0.025,
+            fee_denomination="uodis",
+            staking_denomination="uodis"
+        )
+
+        client = LedgerClient(network)
+
+        # Create tokenization transaction
+        tx = Transaction()
+        tx.add_message(
+            "/cosmos.bank.v1beta1.MsgSend",  # We'll use bank module for now
+            {
+                "from_address": client.address(),
+                "to_address": content_hash,  # Using content hash as token identifier
+                "amount": [{
+                    "denom": "uodis",
+                    "amount": "1"  # Minimal amount for token creation
+                }],
+                "metadata": json.dumps(content)
+            }
+        )
 
         # Create blockchain transaction
         transaction_id = blockchain.create_transaction(
@@ -76,7 +86,7 @@ def sign_transaction():
             return jsonify({'error': 'Missing required fields'}), 400
 
         role = SignatureRole(data['role'])
-        signature = data.get('signature')  # Kepler signature from frontend
+        signature = data.get('signature')
 
         if not signature:
             return jsonify({'error': 'Missing Kepler signature'}), 400
@@ -107,6 +117,16 @@ def sign_transaction():
         current_app.logger.error(f"Failed to sign transaction: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@contract_bp.route('/contracts', methods=['GET'])
+def get_contracts():
+    """Get all contracts/transactions"""
+    try:
+        contracts = blockchain.get_active_contracts()
+        return jsonify(contracts)
+    except Exception as e:
+        current_app.logger.error(f"Failed to get contracts: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @contract_bp.route('/transaction/<transaction_id>', methods=['GET'])
 def get_transaction_status(transaction_id):
     """Get the current status of a transaction"""
@@ -117,4 +137,13 @@ def get_transaction_status(transaction_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         current_app.logger.error(f"Failed to get transaction status: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@contract_bp.route('/network-config', methods=['GET'])
+def get_network_config():
+    """Get Odiseo network configuration for Kepler wallet"""
+    try:
+        return jsonify(kepler.get_network_config())
+    except Exception as e:
+        current_app.logger.error(f"Failed to get network config: {str(e)}")
         return jsonify({'error': str(e)}), 500
