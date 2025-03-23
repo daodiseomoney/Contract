@@ -107,17 +107,17 @@ function updateDashboardStats() {
 
 // Update recent activity section with proper formatting
 function updateRecentActivity() {
-    const activityList = document.getElementById('recentActivity');
-    if (!activityList) return;
+    const activityTable = document.querySelector('#recentTransactions tbody');
+    if (!activityTable) return;
 
     fetch('/api/contracts')
         .then(response => response.json())
         .then(contracts => {
             if (!contracts || contracts.length === 0) {
-                activityList.innerHTML = `
-                    <div class="list-group-item">
-                        <p class="mb-0 text-muted">No recent transactions</p>
-                    </div>
+                activityTable.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No recent transactions</td>
+                    </tr>
                 `;
                 return;
             }
@@ -126,46 +126,49 @@ function updateRecentActivity() {
             contracts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             // Take most recent 5
-            const activities = contracts.slice(0, 5).map(contract => {
-                const date = new Date(contract.created_at);
-                const formattedDate = date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+            const recentContracts = contracts.slice(0, 5);
 
-                return {
-                    text: `Contract ${contract.transaction_id}`,
-                    time: formattedDate,
-                    href: contract.explorer_url || `/contracts#${contract.transaction_id}`,
-                    status: contract.status
-                };
-            });
-
-            activityList.innerHTML = activities.map(activity => `
-                <a href="${activity.href}" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-${getStatusBadgeColor(activity.status)} me-2">
-                                ${activity.status}
-                            </span>
-                            <p class="mb-0">${activity.text}</p>
-                        </div>
-                        <small class="text-muted">${activity.time}</small>
-                    </div>
-                </a>
+            activityTable.innerHTML = recentContracts.map(contract => `
+                <tr>
+                    <td>${contract.transaction_id}</td>
+                    <td>
+                        <span class="badge bg-${getStatusBadgeColor(contract.status)}">
+                            ${contract.status}
+                        </span>
+                    </td>
+                    <td>${formatValue(contract.metadata?.network?.amount || '0')}</td>
+                    <td>${formatDate(contract.created_at)}</td>
+                </tr>
             `).join('');
         })
         .catch(error => {
             console.error('Error fetching recent activity:', error);
-            activityList.innerHTML = `
-                <div class="list-group-item">
-                    <p class="mb-0 text-danger">Error loading recent transactions</p>
-                </div>
+            activityTable.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-danger">
+                        Error loading recent transactions
+                    </td>
+                </tr>
             `;
         });
+}
+
+// Helper function to format values
+function formatValue(amount) {
+    const value = parseInt(amount) / 1000000; // Convert from uodis to ODIS
+    return `$${value.toFixed(2)}`;
+}
+
+// Helper function to format dates
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 // Update contracts table with proper spacing
