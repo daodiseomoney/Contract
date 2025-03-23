@@ -34,7 +34,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     console.log("Account data:", accountInfo);
 
     // IMPORTANT: Use simple string format without JSON - this is the key fix
-    const memo = `${transactionId}|${contentHash}|${role}`;
+    const memo = `tx:${transactionId}|hash:${contentHash}|role:${role}`;
     console.log("Using simple memo string:", memo);
 
     // Create the sign doc with the correct format

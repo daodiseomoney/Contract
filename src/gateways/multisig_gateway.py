@@ -108,21 +108,37 @@ class MultiSigBlockchainGateway:
                 self.logger.error(f"Chain ID mismatch: {signed.get('chain_id')}")
                 raise ValueError("Invalid chain ID in signature")
 
-            # Parse and verify memo
+            # Parse and verify pipe-delimited memo
             try:
-                memo = json.loads(signed.get('memo', '{}'))
-                if not all(k in memo for k in ['transaction_id', 'content_hash', 'role']):
-                    self.logger.error("Missing required fields in memo")
-                    raise ValueError("Invalid memo format")
-
-                if (memo['transaction_id'] != transaction_id or
-                    memo['content_hash'] != transaction.content_hash or
-                    memo['role'] != role):
+                memo = signed.get('memo', '')
+                # Check for JSON format (not allowed anymore)
+                if memo.startswith('{') or memo.startswith('['):
+                    self.logger.error("Invalid memo format: JSON object not allowed")
+                    raise ValueError("Memo must be a simple pipe-delimited string")
+                
+                # Parse the memo into a dictionary
+                memo_data = {}
+                if '|' in memo:
+                    parts = memo.split('|')
+                    for part in parts:
+                        if ':' in part:
+                            key, value = part.split(':', 1)
+                            memo_data[key.strip()] = value.strip()
+                
+                # Check for required fields
+                if not all(k in memo_data for k in ['tx', 'hash', 'role']):
+                    self.logger.error(f"Missing required fields in memo: {memo}")
+                    raise ValueError("Invalid memo format. Expected tx:ID|hash:HASH|role:ROLE")
+                
+                # Verify the values match
+                if (memo_data['tx'] != transaction_id or
+                    memo_data['hash'] != transaction.content_hash or
+                    memo_data['role'] != role):
                     self.logger.error("Memo data mismatch")
                     raise ValueError("Invalid memo data")
-            except json.JSONDecodeError:
-                self.logger.error("Failed to parse memo JSON")
-                raise ValueError("Invalid memo format")
+            except Exception as e:
+                self.logger.error(f"Failed to parse memo: {str(e)}")
+                raise ValueError(f"Invalid memo format: {str(e)}")
 
             # Create transaction body
             tx_body = TxBody()
