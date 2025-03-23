@@ -1,10 +1,27 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from src.gateways.multisig_gateway import MultiSigBlockchainGateway, SignatureRole
+from src.gateways.kepler_gateway import KeplerGateway
 import hashlib
 import json
 
 contract_bp = Blueprint('contract', __name__, url_prefix='/api')
+
+# Initialize gateways
 blockchain = MultiSigBlockchainGateway(test_mode=True)  # Start in test mode
+kepler = KeplerGateway({
+    'chain_id': 'odiseo_1234-1',
+    'rpc_url': 'https://odiseo.test.rpc.nodeshub.online',
+    'api_url': 'https://odiseo.test.api.nodeshub.online'
+})
+
+@contract_bp.route('/network-config', methods=['GET'])
+def get_network_config():
+    """Get Odiseo network configuration for Kepler wallet"""
+    try:
+        return jsonify(kepler.get_network_config())
+    except Exception as e:
+        current_app.logger.error(f"Failed to get network config: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @contract_bp.route('/contracts', methods=['GET'])
 def get_contracts():
@@ -13,6 +30,7 @@ def get_contracts():
         contracts = blockchain.get_pending_transactions()
         return jsonify(contracts)
     except Exception as e:
+        current_app.logger.error(f"Failed to get contracts: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @contract_bp.route('/tokenize', methods=['POST'])
@@ -36,23 +54,28 @@ def tokenize_property():
             metadata=content
         )
 
+        current_app.logger.info(f"Created transaction: {transaction_id}")
         return jsonify({
             'status': 'pending_signatures',
             'transaction_id': transaction_id
         })
     except Exception as e:
+        current_app.logger.error(f"Failed to tokenize property: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @contract_bp.route('/sign', methods=['POST'])
 def sign_transaction():
-    """Sign a transaction with a specific role"""
+    """Sign a transaction with Kepler wallet"""
     try:
         data = request.json
         if not data or 'transaction_id' not in data or 'role' not in data:
             return jsonify({'error': 'Missing required fields'}), 400
 
         role = SignatureRole(data['role'])
-        signature = data.get('signature', 'test_signature')  # Use test signature in test mode
+        signature = data.get('signature')  # Kepler signature from frontend
+
+        if not signature:
+            return jsonify({'error': 'Missing Kepler signature'}), 400
 
         # Sign the transaction
         success = blockchain.sign_transaction(
@@ -78,8 +101,10 @@ def sign_transaction():
         }), 400
 
     except ValueError as e:
+        current_app.logger.error(f"Invalid input: {str(e)}")
         return jsonify({'error': str(e)}), 400
     except Exception as e:
+        current_app.logger.error(f"Failed to sign transaction: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @contract_bp.route('/transaction/<transaction_id>', methods=['GET'])
@@ -91,4 +116,5 @@ def get_transaction_status(transaction_id):
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
     except Exception as e:
+        current_app.logger.error(f"Failed to get transaction status: {str(e)}")
         return jsonify({'error': str(e)}), 500
