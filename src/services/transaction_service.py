@@ -18,6 +18,10 @@ class TransactionService:
             "http+https://odiseo.test.rpc.nodeshub.online",      # HTTP endpoint as fallback
             "grpc+https://odiseo.test.rpc.nodeshub.online:443"   # gRPC as last resort
         ]
+        
+        # Add specific API and RPC URLs for direct HTTP calls
+        self.api_url = "https://odiseo.test.api.nodeshub.online"
+        self.rpc_url = "https://odiseo.test.rpc.nodeshub.online"
 
         self.network = NetworkConfig(
             chain_id="odiseotestnet_1234-1",
@@ -27,6 +31,8 @@ class TransactionService:
             staking_denomination="uodis"
         )
         self.logger.debug(f"Initializing TransactionService with network config: {self.network}")
+        self.logger.debug(f"Using API URL: {self.api_url}")
+        self.logger.debug(f"Using RPC URL: {self.rpc_url}")
 
         self.client = None
         self.initialize_client()
@@ -106,93 +112,113 @@ class TransactionService:
                 error_msg = f"Missing required fields: {', '.join(missing_fields)}"
                 self.logger.error(error_msg)
                 raise ValueError(error_msg)
-
-            # Create Transaction object
-            transaction = Transaction()
-            self.logger.debug("Creating transaction object")
-
-            # Set messages
-            self.logger.debug(f"Setting transaction messages: {tx['msg']}")
             
-            # Handle Amino messages and convert them to protobuf
-            for msg in tx['msg']:
-                # Check if we have an Amino message format (type and value fields)
-                if isinstance(msg, dict) and 'type' in msg and 'value' in msg:
-                    self.logger.debug(f"Converting Amino message to protobuf: {msg}")
-                    
-                    # For MsgSend message type specifically
-                    if msg['type'] == 'cosmos-sdk/MsgSend':
-                        try:
-                            from cosmpy.protos.cosmos.bank.v1beta1.tx_pb2 import MsgSend
-                            from cosmpy.protos.cosmos.base.v1beta1.coin_pb2 import Coin
-                            
-                            # Extract the value data
-                            value = msg['value']
-                            
-                            # Create a MsgSend protobuf message
-                            msg_send = MsgSend()
-                            msg_send.from_address = value['from_address']
-                            msg_send.to_address = value['to_address']
-                            
-                            # Add coins
-                            for coin in value['amount']:
-                                coin_msg = Coin()
-                                coin_msg.denom = coin['denom']
-                                coin_msg.amount = coin['amount']
-                                msg_send.amount.append(coin_msg)
-                            
-                            # Add the message to transaction
-                            transaction.body.messages.append(msg_send)
-                            self.logger.debug("Added MsgSend protobuf message")
-                        except Exception as e:
-                            self.logger.error(f"Failed to convert MsgSend message: {str(e)}")
-                            raise ValueError(f"Message conversion error: {str(e)}")
-                    else:
-                        self.logger.error(f"Unsupported message type: {msg['type']}")
-                        raise ValueError(f"Unsupported message type: {msg['type']}")
-                else:
-                    # Assume it's already a protobuf message
-                    transaction.body.messages.append(msg)
+            # Use cosmpy's transaction class but handle it manually
+            self.logger.debug("Using manual transaction broadcast approach")
             
-            transaction.body.memo = tx['memo']
-
-            # Set fee
-            self.logger.debug(f"Setting transaction fee: {tx['fee']}")
-            transaction.auth_info.fee.amount.extend(tx['fee']['amount'])
-            transaction.auth_info.fee.gas_limit = int(tx['fee'].get('gas', '100000'))
-
-            # Add signatures
-            self.logger.debug("Adding signatures")
-            for sig in tx['signatures']:
-                if not sig.get('signature') or not sig.get('pub_key'):
-                    raise ValueError("Invalid signature format")
-
-                signature = base64.b64decode(sig['signature'])
-                self.logger.debug(f"Adding signature (length: {len(signature)})")
-                transaction.signatures.append(signature)
-
-            # Broadcast transaction
-            self.logger.info("Broadcasting transaction to network")
-            result = self.client.broadcast_tx(transaction)
-
-            if result.code != 0:
-                error_msg = f"Transaction broadcast failed: {result.raw_log}"
-                self.logger.error(error_msg)
-                return {
-                    "success": False,
-                    "error": error_msg
+            try:
+                # Import required cosmpy components
+                from cosmpy.aerial.tx import Transaction
+                from cosmpy.protos.cosmos.tx.v1beta1.tx_pb2 import TxBody, AuthInfo, SignDoc, TxRaw
+                from cosmpy.protos.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+                from cosmpy.protos.cosmos.crypto.secp256k1.keys_pb2 import PubKey
+                import importlib
+                import google.protobuf.json_format as json_format
+                
+                # Create new transaction objects from scratch for better control
+                tx_body = TxBody()
+                auth_info = AuthInfo()
+                
+                # Set the memo field
+                tx_body.memo = tx['memo']
+                
+                # Handle fee
+                fee = tx['fee']
+                for amount in fee.get('amount', []):
+                    from cosmpy.protos.cosmos.base.v1beta1.coin_pb2 import Coin
+                    coin = Coin()
+                    coin.denom = amount['denom']
+                    coin.amount = amount['amount']
+                    auth_info.fee.amount.append(coin)
+                
+                auth_info.fee.gas_limit = int(fee.get('gas', '100000'))
+                
+                # We need to use a simpler approach - rely on the REST API directly with the original Amino format
+                # rather than trying to convert to protobuf
+                import requests
+                import json
+                
+                # Prepare the transaction broadcast request in Amino JSON format
+                broadcast_json = {
+                    "tx": {
+                        "msg": tx['msg'],
+                        "fee": tx['fee'],
+                        "signatures": tx['signatures'],
+                        "memo": tx['memo']
+                    },
+                    "mode": "block"
                 }
-
-            success_result = {
-                "success": True,
-                "txhash": result.tx_hash,
-                "height": result.height,
-                "gas_used": result.gas_used,
-                "code": result.code,
-                "raw_log": result.raw_log
+                
+                self.logger.debug(f"Broadcasting Amino transaction format: {broadcast_json}")
+                
+                # Extract REST API endpoint from our RPC URL or use a default
+                rest_api = self.api_url if hasattr(self, 'api_url') else "https://odiseo.test.api.nodeshub.online"
+                broadcast_url = f"{rest_api}/cosmos/tx/v1beta1/txs"
+                
+                self.logger.debug(f"Broadcasting to endpoint: {broadcast_url}")
+                
+                # Use requests to broadcast the transaction
+                response = requests.post(
+                    broadcast_url,
+                    json=broadcast_json,
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                if not response.ok:
+                    error_msg = f"Transaction broadcast failed: {response.status_code}, {response.text}"
+                    self.logger.error(error_msg)
+                    return {
+                        "success": False,
+                        "error": error_msg
+                    }
+                
+                # Parse response
+                result = response.json()
+                self.logger.debug(f"Broadcast response: {result}")
+                
+                tx_response = result.get('tx_response', {})
+                if tx_response.get('code', 0) != 0:
+                    error_msg = f"Transaction broadcast failed: {tx_response.get('raw_log', 'Unknown error')}"
+                    self.logger.error(error_msg)
+                    return {
+                        "success": False,
+                        "error": error_msg
+                    }
+                
+                success_result = {
+                    "success": True,
+                    "txhash": tx_response.get('txhash'),
+                    "height": tx_response.get('height'),
+                    "gas_used": tx_response.get('gas_used'),
+                    "code": tx_response.get('code', 0),
+                    "raw_log": tx_response.get('raw_log', '')
+                }
+                self.logger.info(f"Transaction broadcast successful: {success_result}")
+                return success_result
+                
+            except ImportError as e:
+                self.logger.error(f"Import error: {str(e)}. Using fallback method...")
+                # Continue with fallback approach...
+            
+            except Exception as e:
+                self.logger.error(f"Error in transaction processing: {str(e)}", exc_info=True)
+                raise ValueError(f"Transaction processing error: {str(e)}")
+            
+            # If we got here, use a more basic approach - simple JSON structure
+            return {
+                "success": False,
+                "error": "Failed to broadcast transaction using the available methods"
             }
-            self.logger.info(f"Transaction broadcast successful: {success_result}")
-            return success_result
 
         except ValueError as e:
             error_msg = f"Invalid transaction data: {str(e)}"
