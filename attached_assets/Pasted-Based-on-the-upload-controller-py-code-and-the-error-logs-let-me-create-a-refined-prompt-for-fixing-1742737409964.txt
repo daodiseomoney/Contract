@@ -1,0 +1,41 @@
+Based on the upload_controller.py code and the error logs, let me create a refined prompt for fixing the tokenization issue:
+
+# Prompt: Fix Tokenization Error in RE Tokenizer Application
+
+## Issue Description
+Our real estate tokenization platform successfully uploads BIM files but fails during the tokenization process with a 400 error. The logs show:
+- File upload succeeds (200 response)
+- Tokenization fails (400 response)
+- Getting contracts list works (200 response)
+
+## Current Code Analysis
+The `upload_controller.py` handles file uploads and initiates blockchain transactions, but there appears to be a mismatch between this controller and the tokenization endpoint that's being called separately.
+
+## Key Observations
+1. The upload endpoint processes the file and creates a blockchain transaction
+2. However, the system makes a separate call to `/api/tokenize` which is failing
+3. There's no `/api/tokenize` endpoint defined in the provided code
+4. The blockchain transaction creation is using `blockchain.create_transaction` which is an async function but being called synchronously
+
+## Specific Tasks Needed
+1. Create or fix the `/api/tokenize` endpoint to properly process the transaction data
+2. Ensure proper handling of async functions in Flask (which is synchronous)
+3. Validate the budget split data format being sent to the tokenize endpoint
+4. Implement proper error handling and debugging for the tokenize endpoint
+5. Ensure the connection between upload and tokenize processes is correctly established
+
+## Suggested Implementation Approach
+1. Create a proper tokenize endpoint to handle the blockchain transaction creation
+2. Fix async/sync issues with the blockchain gateway
+3. Add detailed logging to track the exact failure point
+4. Validate that budget splits add up to 100% and are properly formatted
+5. Ensure the content hash generation is consistent between endpoints
+
+## Testing Strategy
+1. Add debug logs at each step of the tokenization process
+2. Test with various budget split configurations
+3. Verify file path and content hash generation
+4. Test the Cosmos SDK integration in isolation
+
+## Expected Outcome
+A working tokenization flow where files are uploaded, processed, and successfully tokenized on the blockchain, with proper error handling and user feedback.

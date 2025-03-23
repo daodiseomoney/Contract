@@ -22,14 +22,19 @@ def allowed_file(filename):
 def upload_file():
     """Handle file upload with proper error handling and JSON responses"""
     try:
+        current_app.logger.debug("Received file upload request")
+
         if 'file' not in request.files:
+            current_app.logger.error("No file part in request")
             return jsonify({'error': 'No file part'}), 400
 
         file = request.files['file']
         if file.filename == '':
+            current_app.logger.error("No selected file")
             return jsonify({'error': 'No selected file'}), 400
 
         if not file or not allowed_file(file.filename):
+            current_app.logger.error(f"Invalid file type. Allowed types: {ALLOWED_EXTENSIONS}")
             return jsonify({'error': 'Invalid file type. Allowed types: .ifc, .dwg'}), 400
 
         try:
@@ -44,13 +49,18 @@ def upload_file():
             roles = request.form.getlist('roles[]')
             percentages = request.form.getlist('percentages[]')
 
+            current_app.logger.debug(f"Received roles: {roles}")
+            current_app.logger.debug(f"Received percentages: {percentages}")
+
             if len(roles) != len(percentages):
+                current_app.logger.error("Invalid budget split data: mismatched roles and percentages")
                 return jsonify({'error': 'Invalid budget split data'}), 400
 
             for role, percentage in zip(roles, percentages):
                 try:
                     budget_splits[role] = float(percentage)
                 except ValueError:
+                    current_app.logger.error(f"Invalid percentage value: {percentage}")
                     return jsonify({'error': 'Invalid percentage value'}), 400
 
             # Create content hash from file path and budget splits
@@ -70,6 +80,7 @@ def upload_file():
 
                 # Get full transaction details
                 transaction = blockchain.get_transaction_status(transaction_id)
+                current_app.logger.debug(f"Created transaction: {transaction}")
 
                 return jsonify({
                     'success': True,
@@ -78,7 +89,7 @@ def upload_file():
                 })
 
             except Exception as e:
-                current_app.logger.error(f"Error creating blockchain transaction: {str(e)}")
+                current_app.logger.error(f"Error creating blockchain transaction: {str(e)}", exc_info=True)
                 return jsonify({
                     'success': True,
                     'message': 'File uploaded but blockchain transaction failed',
@@ -87,9 +98,9 @@ def upload_file():
                 })
 
         except Exception as e:
-            current_app.logger.error(f"Error saving file: {str(e)}")
+            current_app.logger.error(f"Error saving file: {str(e)}", exc_info=True)
             return jsonify({'error': f'Error saving file: {str(e)}'}), 500
 
     except Exception as e:
-        current_app.logger.error(f"Upload error: {str(e)}")
+        current_app.logger.error(f"Upload error: {str(e)}", exc_info=True)
         return jsonify({'error': f'Upload error: {str(e)}'}), 500
