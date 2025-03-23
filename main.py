@@ -3,6 +3,7 @@ from flask import Flask, render_template
 from src.controllers.upload_controller import upload_bp
 from src.controllers.contract_controller import contract_bp
 from src.controllers.account_controller import account_bp
+from src.controllers.transaction_controller import transaction_bp
 from src.external_interfaces.config import Config
 
 app = Flask(__name__, 
@@ -15,6 +16,7 @@ app.config.from_object(Config)
 app.register_blueprint(upload_bp)
 app.register_blueprint(contract_bp)
 app.register_blueprint(account_bp)
+app.register_blueprint(transaction_bp)
 
 @app.route('/')
 def index():
