@@ -310,7 +310,7 @@ async function handleUpload(e) {
             `;
         }
 
-        // First upload the file
+        // First upload the file and get tokenization response in one request
         const uploadResponse = await fetch('/api/upload', {
             method: 'POST',
             body: formData
@@ -323,62 +323,31 @@ async function handleUpload(e) {
         const uploadResult = await uploadResponse.json();
         if (uploadResult.error) throw new Error(uploadResult.error);
 
+        // Show success message for upload
         if (statusDiv) {
             statusDiv.innerHTML = `
                 <div class="alert alert-success">
-                    <i class="bi bi-check-circle"></i> File uploaded successfully
+                    <i class="bi bi-check-circle"></i> File uploaded and contract created successfully!
                 </div>
             `;
         }
 
-        // Then create the contract
-        const budgetSplits = {};
-        formData.getAll('roles[]').forEach((role, i) => {
-            const percentage = formData.getAll('percentages[]')[i];
-            if (role && percentage) {
-                budgetSplits[role] = parseFloat(percentage);
-            }
-        });
-
-        const tokenizeResponse = await fetch('/api/tokenize', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                file_path: uploadResult.file_path,
-                budget_splits: budgetSplits
-            })
-        });
-
-        if (!tokenizeResponse.ok) {
-            throw new Error(`Contract creation failed: ${tokenizeResponse.status}`);
-        }
-
-        const tokenizeResult = await tokenizeResponse.json();
-        if (tokenizeResult.error) throw new Error(tokenizeResult.error);
-
-        // Show contract preview
-        if (contractPreview && tokenizeResult.transaction) {
+        // Show contract preview if we have transaction data
+        if (contractPreview && uploadResult.transaction) {
             contractPreview.style.display = 'block';
-            document.getElementById('previewTxId').textContent = tokenizeResult.transaction.transaction_id;
-            document.getElementById('previewStatus').textContent = tokenizeResult.transaction.status;
-            document.getElementById('previewExplorer').innerHTML = tokenizeResult.transaction.explorer_url ?
-                `<a href="${tokenizeResult.transaction.explorer_url}" target="_blank">View on Explorer</a>` :
+            document.getElementById('previewTxId').textContent = uploadResult.transaction.transaction_id;
+            document.getElementById('previewStatus').textContent = uploadResult.transaction.status;
+            document.getElementById('previewExplorer').innerHTML = uploadResult.transaction.explorer_url ?
+                `<a href="${uploadResult.transaction.explorer_url}" target="_blank">View on Explorer</a>` :
                 'Not available';
         }
 
-        if (statusDiv) {
-            statusDiv.innerHTML = `
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle"></i> Contract created successfully! Redirecting...
-                </div>
-            `;
-        }
-
         // Store transaction ID in session storage for contracts page
-        sessionStorage.setItem('last_transaction', JSON.stringify(tokenizeResult.transaction));
-
-        // Redirect to contracts page after successful creation
-        setTimeout(() => window.location.href = '/contracts', 1500);
+        if (uploadResult.transaction) {
+            sessionStorage.setItem('last_transaction', JSON.stringify(uploadResult.transaction));
+            // Redirect to contracts page after successful creation
+            setTimeout(() => window.location.href = '/contracts', 1500);
+        }
 
     } catch (error) {
         console.error('Upload error:', error);
