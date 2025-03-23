@@ -255,7 +255,7 @@ function formatBudgetSplits(splits) {
 }
 
 // Contract interaction functions
-// Update viewContract function with improved UI
+// Update viewContract function with improved cleanup
 async function viewContract(transactionId) {
     try {
         const response = await fetch(`/api/transaction/${transactionId}`);
@@ -268,9 +268,15 @@ async function viewContract(transactionId) {
             throw new Error('No contract data received');
         }
 
+        // Remove any existing modals and backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.querySelectorAll('.modal').forEach(el => el.remove());
+
         // Create modal with improved UI
         const modal = document.createElement('div');
         modal.className = 'modal fade';
+        modal.id = 'contractDetailsModal';
+        modal.setAttribute('data-bs-backdrop', 'static'); // Prevent closing on outside click
         modal.innerHTML = `
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -279,7 +285,7 @@ async function viewContract(transactionId) {
                             <i class="bi bi-file-earmark-text me-2"></i>
                             Contract Details
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <!-- Transaction Status Banner -->
@@ -377,11 +383,18 @@ async function viewContract(transactionId) {
 
         document.body.appendChild(modal);
         const modalInstance = new bootstrap.Modal(modal);
-        modalInstance.show();
+
+        // Setup proper cleanup on modal hidden
         modal.addEventListener('hidden.bs.modal', () => {
             modalInstance.dispose();
             modal.remove();
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
         });
+
+        modalInstance.show();
     } catch (error) {
         console.error('Error viewing contract:', error);
         showError(`Failed to load contract details: ${error.message}`);
