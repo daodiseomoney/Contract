@@ -76,26 +76,18 @@ def tokenize_property():
             current_app.logger.debug(f"Connected to network: {network.chain_id}")
             current_app.logger.debug(f"Using wallet address: {wallet.address()}")
 
-            # Create bank module message for tokenization
-            msg = {
-                "from_address": wallet.address(),  # Use wallet.address() method
-                "to_address": content_hash,  # Using content hash as token identifier
-                "amount": [
-                    {
-                        "denom": "uodis",
-                        "amount": "1000000"  # 1 ODIS = 1,000,000 uodis
-                    }
-                ]
-            }
-            current_app.logger.debug(f"Prepared bank message: {msg}")
-
-            # Create transaction
+            # Prepare the transaction message
             tx = Transaction()
-            tx.add_message(msg)  # Only pass the message, not the type
-
-            # Add metadata as memo
-            tx.add_memo(json.dumps(content))
-            current_app.logger.debug("Transaction prepared with memo")
+            tx.add_message(
+                "/cosmos.bank.v1beta1.MsgSend",
+                {
+                    "from_address": wallet.address(),
+                    "to_address": content_hash,
+                    "amount": [{"denom": "uodis", "amount": "1000000"}],
+                    "memo": json.dumps(content)  # Include metadata in the message
+                }
+            )
+            current_app.logger.debug("Transaction prepared")
 
             # Create blockchain transaction
             transaction_id = blockchain.create_transaction(
