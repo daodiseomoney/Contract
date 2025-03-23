@@ -164,45 +164,68 @@ function formatDate(dateString) {
 // Update contracts table with proper spacing
 function updateContractsTable() {
     const contractsTable = document.querySelector('#contractsTable tbody');
-    const sampleSection = document.getElementById('sampleProjectsSection');
     if (!contractsTable) return;
 
     fetch('/api/contracts')
         .then(response => response.json())
         .then(contracts => {
-            if (sampleSection) {
-                sampleSection.style.display = contracts.length > 0 ? 'none' : 'block';
+            if (!contracts || contracts.length === 0) {
+                contractsTable.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No contracts found</td>
+                    </tr>
+                `;
+                return;
             }
 
-            contractsTable.innerHTML = contracts.map(contract => `
-                <tr>
-                    <td class="align-middle">
-                        ${contract.transaction_id}
-                        ${contract.blockchain_tx_hash ? `
-                            <a href="${contract.explorer_url}" target="_blank" class="ms-2">
-                                <i class="bi bi-box-arrow-up-right"></i>
-                            </a>
-                        ` : ''}
-                    </td>
-                    <td class="align-middle">${contract.metadata?.file_path || 'N/A'}</td>
-                    <td class="align-middle">
-                        <span class="badge bg-${getStatusBadgeColor(contract.status)}">
-                            ${contract.status}
-                        </span>
-                    </td>
-                    <td class="align-middle">${formatBudgetSplits(contract.metadata?.budget_splits)}</td>
-                    <td class="align-middle">${new Date(contract.created_at).toLocaleDateString()}</td>
-                    <td class="align-middle">
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-primary" onclick="viewContract('${contract.transaction_id}')">View</button>
-                            <button class="btn btn-sm btn-success" onclick="signContract('${contract.transaction_id}')" 
-                                ${contract.status === 'completed' ? 'disabled' : ''}>
-                                Sign
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            contractsTable.innerHTML = contracts.map(contract => {
+                const isNew = sessionStorage.getItem('last_transaction') && 
+                    JSON.parse(sessionStorage.getItem('last_transaction')).transaction_id === contract.transaction_id;
+
+                return `
+                    <tr class="${isNew ? 'table-info' : ''}">
+                        <td class="align-middle">
+                            ${contract.transaction_id}
+                            ${contract.blockchain_tx_hash ? `
+                                <a href="${contract.explorer_url}" target="_blank" class="ms-2">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            ` : ''}
+                        </td>
+                        <td class="align-middle">${contract.metadata?.file_path || 'N/A'}</td>
+                        <td class="align-middle">
+                            <span class="badge bg-${getStatusBadgeColor(contract.status)}">
+                                ${contract.status}
+                            </span>
+                        </td>
+                        <td class="align-middle">${formatBudgetSplits(contract.metadata?.budget_splits)}</td>
+                        <td class="align-middle">${formatDate(contract.created_at)}</td>
+                        <td class="align-middle">
+                            <div class="btn-group">
+                                <button class="btn ${isNew ? 'btn-info' : 'btn-primary'}" onclick="viewContract('${contract.transaction_id}')">
+                                    <i class="bi bi-search"></i> View Details
+                                </button>
+                                <button class="btn btn-success" onclick="signContract('${contract.transaction_id}')" 
+                                    ${contract.status === 'completed' ? 'disabled' : ''}>
+                                    <i class="bi bi-pen"></i> Sign
+                                </button>
+                            </div>
+                            ${isNew ? `
+                                <div class="mt-1">
+                                    <small class="text-info">
+                                        <i class="bi bi-info-circle"></i> Click View Details to see blockchain information
+                                    </small>
+                                </div>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Clear the new transaction flag after showing it
+            if (sessionStorage.getItem('last_transaction')) {
+                sessionStorage.removeItem('last_transaction');
+            }
         })
         .catch(error => {
             console.error('Error fetching contracts:', error);
@@ -507,35 +530,6 @@ function showSuccess(message) {
     document.querySelector('.container')?.prepend(alert);
 }
 
-
-// Update the contract display logic
-function updateContractsDisplay() {
-    // Check for newly created transaction
-    const lastTransaction = sessionStorage.getItem('last_transaction');
-    if (lastTransaction) {
-        const transaction = JSON.parse(lastTransaction);
-        // Clear the stored transaction
-        sessionStorage.removeItem('last_transaction');
-        // Highlight the new transaction in the table
-        highlightTransaction(transaction.transaction_id);
-    }
-
-    // Update all contract displays
-    updateDashboardStats();
-    updateRecentActivity();
-    updateContractsTable();
-}
-
-function highlightTransaction(transactionId) {
-    setTimeout(() => {
-        const row = document.querySelector(`tr[data-transaction-id="${transactionId}"]`);
-        if (row) {
-            row.classList.add('highlight');
-            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(() => row.classList.remove('highlight'), 3000);
-        }
-    }, 500);
-}
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
