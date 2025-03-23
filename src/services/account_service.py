@@ -9,7 +9,7 @@ class AccountService:
 
         self.network = NetworkConfig(
             chain_id="odiseotestnet_1234-1",
-            url="grpc+https://odiseo.test.rpc.nodeshub.online",
+            url="grpc+https://odiseo.test.rpc.nodeshub.online:443",
             fee_minimum_gas_price=0.025,
             fee_denomination="uodis",
             staking_denomination="uodis"
@@ -20,7 +20,7 @@ class AccountService:
             self.client = LedgerClient(self.network)
             self.logger.info("LedgerClient initialized successfully")
         except Exception as e:
-            self.logger.error(f"Failed to initialize LedgerClient: {str(e)}")
+            self.logger.error(f"Failed to initialize LedgerClient: {str(e)}", exc_info=True)
             raise
 
     def get_account_data(self, address: str) -> dict:
@@ -50,5 +50,11 @@ class AccountService:
             return result
 
         except Exception as e:
-            self.logger.error(f"Failed to get account data: {str(e)}", exc_info=True)
-            raise ValueError(f"Failed to get account data: {str(e)}")
+            error_msg = str(e)
+            if "403" in error_msg:
+                error_msg = "Access denied to RPC endpoint. Please check network configuration and try again."
+            elif "Connection refused" in error_msg:
+                error_msg = "Could not connect to RPC endpoint. Please verify the network is accessible."
+
+            self.logger.error(f"Failed to get account data: {error_msg}", exc_info=True)
+            raise ValueError(f"Failed to get account data: {error_msg}")
