@@ -4,6 +4,14 @@ class KeplerWallet {
         this.chainId = 'odiseo_1234-1';
         this.connected = false;
         this.address = null;
+
+        // Try to restore previous connection
+        const savedAddress = localStorage.getItem('kepler_address');
+        if (savedAddress) {
+            this.address = savedAddress;
+            this.connected = true;
+            this.updateUI();
+        }
     }
 
     async init() {
@@ -25,16 +33,44 @@ class KeplerWallet {
 
             // Get the offline signer
             const offlineSigner = await window.keplr.getOfflineSigner(this.chainId);
-            
+
             // Get user's address
             const accounts = await offlineSigner.getAccounts();
             this.address = accounts[0].address;
             this.connected = true;
 
+            // Save connection state
+            localStorage.setItem('kepler_address', this.address);
+
+            this.updateUI();
             return this.address;
         } catch (error) {
             console.error('Failed to initialize Keplr:', error);
+            this.disconnect();
             throw error;
+        }
+    }
+
+    disconnect() {
+        this.connected = false;
+        this.address = null;
+        localStorage.removeItem('kepler_address');
+        this.updateUI();
+    }
+
+    updateUI() {
+        const connectButton = document.getElementById('connectWallet');
+        if (connectButton) {
+            if (this.connected && this.address) {
+                connectButton.innerHTML = `Connected: ${this.address.slice(0, 8)}...`;
+                connectButton.classList.replace('btn-primary', 'btn-success');
+                // Add disconnect option
+                connectButton.onclick = () => this.disconnect();
+            } else {
+                connectButton.innerHTML = '<i class="bi bi-wallet2"></i> Connect Wallet';
+                connectButton.classList.replace('btn-success', 'btn-primary');
+                connectButton.onclick = () => this.init();
+            }
         }
     }
 
@@ -57,7 +93,7 @@ class KeplerWallet {
             };
 
             // Sign the transaction
-            const offlineSigner = window.keplr.getOfflineSigner(this.chainId);
+            const offlineSigner = await window.keplr.getOfflineSigner(this.chainId);
             const signature = await offlineSigner.signAmino(
                 this.address,
                 signDoc
@@ -69,6 +105,10 @@ class KeplerWallet {
             throw error;
         }
     }
+
+    isConnected() {
+        return this.connected && this.address;
+    }
 }
 
 // Create global wallet instance
@@ -76,17 +116,21 @@ window.keplerWallet = new KeplerWallet();
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const connectButton = document.getElementById('connectWallet');
-    if (connectButton) {
-        connectButton.addEventListener('click', async () => {
-            try {
-                const address = await window.keplerWallet.init();
-                connectButton.innerHTML = `Connected: ${address.slice(0, 8)}...`;
-                connectButton.classList.replace('btn-primary', 'btn-success');
-            } catch (error) {
-                console.error('Failed to connect wallet:', error);
-                alert(error.message);
+    // Update UI based on saved state
+    window.keplerWallet.updateUI();
+
+    // Add connection status check on forms
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            if (!window.keplerWallet.isConnected()) {
+                e.preventDefault();
+                try {
+                    await window.keplerWallet.init();
+                } catch (error) {
+                    alert('Please connect your Kepler wallet first');
+                }
             }
         });
-    }
+    });
 });
