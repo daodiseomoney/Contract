@@ -84,7 +84,7 @@ class MultiSigBlockchainGateway:
         self.pending_transactions[transaction_id] = transaction
         return transaction_id
 
-    def sign_transaction(self, transaction_id: str, role: str, signature: Dict) -> bool:
+    def sign_transaction(self, transaction_id: str, role: SignatureRole, signature: Dict) -> bool:
         """Sign a transaction with Keplr signature"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
@@ -133,8 +133,8 @@ class MultiSigBlockchainGateway:
                 # Verify the values match
                 if (memo_data['tx'] != transaction_id or
                     memo_data['hash'] != transaction.content_hash or
-                    memo_data['role'] != role):
-                    self.logger.error("Memo data mismatch")
+                    memo_data['role'] != role.value):  # Compare with role.value, not the Enum itself
+                    self.logger.error(f"Memo data mismatch: Expected tx={transaction_id}, hash={transaction.content_hash}, role={role.value}, got {memo_data}")
                     raise ValueError("Invalid memo data")
             except Exception as e:
                 self.logger.error(f"Failed to parse memo: {str(e)}")
@@ -194,7 +194,7 @@ class MultiSigBlockchainGateway:
                 raise ValueError(f"Transaction broadcast failed: {result.raw_log}")
 
             # Update transaction status
-            transaction.signatures[role] = SignatureStatus.SIGNED.value
+            transaction.signatures[role.value] = SignatureStatus.SIGNED.value
             transaction.update_blockchain_details(result.tx_hash)
             self.logger.info(f"Transaction broadcast successful. Hash: {result.tx_hash}")
 
