@@ -60,10 +60,12 @@ class TransactionService:
             self.logger.debug(f"Message data: {msg}")
             self.logger.debug(f"Account data: {account_data}")
 
-            # Create simple memo format
+            # Create simple memo format - use a string-based format instead of JSON
             tx_id = msg.get("transaction_id", "")
             role = msg.get("role", "")
-            memo = f"tx:{tx_id}|role:{role}"
+            content_hash = msg.get("content_hash", "")
+            # Use a simple string format instead of JSON object
+            memo = f"tx:{tx_id}|role:{role}|hash:{content_hash}"
             self.logger.debug(f"Generated memo: {memo}")
 
             # Create sign doc for Keplr

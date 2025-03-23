@@ -13,7 +13,7 @@ class KeplerGateway:
         self.rpc_url = network_config['rpc_url']
         self.api_url = network_config['api_url']
         self.connected_address: Optional[str] = None
-        
+
     def get_network_config(self) -> Dict:
         """Return network configuration for Kepler wallet"""
         return {
@@ -65,3 +65,23 @@ class KeplerGateway:
         # The actual signing happens in JavaScript
         # This is just a placeholder for the backend interface
         pass
+
+    def parse_memo_data(self, memo: str) -> Dict:
+        """Parse transaction memo data"""
+        try:
+            # First attempt to parse as JSON
+            if memo.startswith('{') and memo.endswith('}'):
+                return json.loads(memo)
+            # Parse as structured string (key-value pairs)
+            data = {}
+            if '|' in memo:
+                parts = memo.split('|')
+                for part in parts:
+                    if ':' in part:
+                        key, value = part.split(':', 1)
+                        data[key.strip()] = value.strip()
+            return data
+        except (json.JSONDecodeError, Exception) as e:
+            #self.logger.error(f"Error parsing memo: {str(e)}") # Assuming logger is not available in this context.
+            # Return a minimal dict if parsing fails
+            return {"raw_memo": memo}
