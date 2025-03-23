@@ -33,7 +33,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const accountInfo = await fetchAccountInfo(userAddress);
     console.log("Account data:", accountInfo);
 
-    // Simple string memo format - NEVER use JSON.stringify here
+    // Simple string memo format - NEVER use JSON.stringify
     const memo = `tx:${transactionId}|hash:${contentHash}|role:${role}`;
     console.log("Using memo:", memo);
 
@@ -52,7 +52,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
           value: {
             amount: [{ amount: "1000", denom: "uodis" }],
             from_address: userAddress,
-            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt" // Project wallet
+            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"
           }
         }
       ],
@@ -120,7 +120,7 @@ async function broadcastTransaction(signResponse) {
             signature: signResponse.signature.signature
           }
         ],
-        memo: signResponse.signed.memo // This will be our simple string memo
+        memo: signResponse.signed.memo // Pass through the simple string memo
       },
       mode: "block" // Use "block" to wait for confirmation
     };
