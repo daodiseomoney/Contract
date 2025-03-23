@@ -235,45 +235,93 @@ function formatBudgetSplits(splits) {
 async function viewContract(transactionId) {
     try {
         const response = await fetch(`/api/transaction/${transactionId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch contract: ${response.status}`);
+        }
+
         const contract = await response.json();
+        if (!contract) {
+            throw new Error('No contract data received');
+        }
 
         // Create modal to show contract details
         const modal = document.createElement('div');
         modal.className = 'modal fade';
         modal.innerHTML = `
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Contract Details</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <dl>
-                            <dt>Transaction ID</dt>
-                            <dd>${contract.transaction_id}</dd>
-                            <dt>Content Hash</dt>
-                            <dd>${contract.content_hash}</dd>
-                            <dt>Created</dt>
-                            <dd>${new Date(contract.created_at).toLocaleString()}</dd>
-                            <dt>Signatures</dt>
-                            <dd>
-                                ${Object.entries(contract.signatures).map(([role, status]) =>
-                                    `<div>${role}: <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">${status}</span></div>`
-                                ).join('')}
-                            </dd>
-                            <dt>Explorer URL</dt>
-                            <dd>${contract.explorer_url || 'N/A'}</dd>
+                        <div class="alert alert-info mb-3">
+                            <strong>Transaction Status:</strong>
+                            <span class="badge bg-${getStatusBadgeColor(contract.status)} ms-2">
+                                ${contract.status}
+                            </span>
+                        </div>
 
+                        <dl class="row">
+                            <dt class="col-sm-4">Transaction ID</dt>
+                            <dd class="col-sm-8">${contract.transaction_id}</dd>
+
+                            <dt class="col-sm-4">Content Hash</dt>
+                            <dd class="col-sm-8">
+                                <code class="user-select-all">${contract.content_hash}</code>
+                            </dd>
+
+                            <dt class="col-sm-4">Blockchain Tx Hash</dt>
+                            <dd class="col-sm-8">
+                                ${contract.blockchain_tx_hash ? 
+                                    `<code class="user-select-all">${contract.blockchain_tx_hash}</code>` : 
+                                    '<span class="text-muted">Pending...</span>'}
+                            </dd>
+
+                            <dt class="col-sm-4">Explorer Link</dt>
+                            <dd class="col-sm-8">
+                                ${contract.explorer_url ? 
+                                    `<a href="${contract.explorer_url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> View in Explorer
+                                    </a>` : 
+                                    '<span class="text-muted">Not available yet</span>'}
+                            </dd>
+
+                            <dt class="col-sm-4">Created</dt>
+                            <dd class="col-sm-8">${formatDate(contract.created_at)}</dd>
+
+                            <dt class="col-sm-4">Signatures</dt>
+                            <dd class="col-sm-8">
+                                <div class="d-flex flex-column gap-2">
+                                    ${Object.entries(contract.signatures).map(([role, status]) => `
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2">${role}:</span>
+                                            <span class="badge bg-${status === 'signed' ? 'success' : 'warning'}">
+                                                ${status}
+                                            </span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </dd>
                         </dl>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
         `;
+
         document.body.appendChild(modal);
-        new bootstrap.Modal(modal).show();
-        modal.addEventListener('hidden.bs.modal', () => modal.remove());
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+        modal.addEventListener('hidden.bs.modal', () => {
+            modalInstance.dispose();
+            modal.remove();
+        });
     } catch (error) {
-        showError('Failed to load contract details');
+        console.error('Error viewing contract:', error);
+        showError(`Failed to load contract details: ${error.message}`);
     }
 }
 
