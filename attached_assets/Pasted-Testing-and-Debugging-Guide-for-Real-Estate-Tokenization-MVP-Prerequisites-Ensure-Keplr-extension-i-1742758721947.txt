@@ -1,0 +1,104 @@
+Testing and Debugging Guide for Real Estate Tokenization MVP
+Prerequisites
+
+Ensure Keplr extension is installed and set up with testnet accounts
+Verify your testnet account has sufficient tokens for gas fees
+RPC and REST endpoints are correctly configured in both frontend and backend code
+
+End-to-End Testing Flow
+1. Backend Setup
+
+Verify the Python backend is properly configured:
+bashCopy# Check backend is running
+curl http://localhost:5000/api/health
+
+# Test account data retrieval (replace with a valid address)
+curl http://localhost:5000/api/account?address=odiseo1...
+
+Check API endpoints are accessible:
+
+/api/account - Should return account number and sequence
+/api/sign - Should accept POST requests with address and message
+/api/broadcast - Should accept POST requests with signed transactions
+
+
+
+2. Frontend Testing
+
+Open the application in Chrome
+Open Chrome DevTools (F12) and go to the Network tab
+Enable "Preserve log" to keep all requests visible
+
+3. Test the Complete Flow
+
+Select a file and submit the form
+In Network tab, observe:
+
+First a POST to /api/upload should occur
+Then a GET to /api/account to fetch the account data
+Then a POST to /api/sign to prepare the sign doc
+Keplr popup should appear for signing
+After signing, a POST to /api/broadcast should occur
+
+
+Check console logs for each step in the process:
+
+"Starting Keplr signing process..."
+"Keplr enabled for chain"
+"Got offline signer"
+"Got sign response"
+"Transaction broadcast result: {success: true, ...}"
+
+
+
+4. Common Issues and Solutions
+Keplr Not Connecting
+
+Check chainId matches in both frontend and backend
+Verify Keplr has been properly enabled for the chain
+Make sure experimental chain suggestion is properly formatted
+
+Sign Doc Creation Issues
+
+Verify account number and sequence are being fetched correctly
+Ensure the message format matches the expected format for the chain
+Check fee and gas settings are appropriate
+
+Broadcast Failures
+
+Ensure the signature is properly formatted in the broadcast request
+Verify the transaction body structure matches the expected format
+Check the RPC endpoint is correct and accessible
+
+Sequence Number Issues
+
+If you see errors about sequence mismatch, fetch a fresh account sequence before each sign attempt
+Consider adding retry logic with sequence number increments
+
+Monitoring Transaction Status
+
+After successful broadcast, you should see a transaction hash
+Check the explorer with this hash: https://explorer.odiseotestnet_1234-1.com/tx/{txHash}
+Verify the transaction status is "Success"
+Check that your contract state has been updated as expected
+
+Debugging Methods
+Console Logging
+Add detailed console logging to track the process:
+javascriptCopyconsole.log(`Chain ID: ${this.chainId}`);
+console.log(`Account number: ${accountNumber}, Sequence: ${sequence}`);
+console.log("Sign doc:", JSON.stringify(signDoc, null, 2));
+Network Monitoring
+
+In Chrome DevTools Network tab, examine request/response details
+Look for any 400/500 error responses
+Check response payloads for error messages
+
+Testing with Postman
+Use Postman to test API endpoints directly:
+
+Create a POST request to /api/sign with the proper JSON body
+Examine the response format to ensure it matches what Keplr expects
+Test account data retrieval and verify values are correct
+
+By following this guide, you should be able to diagnose and fix any remaining issues in your Real Estate Tokenization MVP.

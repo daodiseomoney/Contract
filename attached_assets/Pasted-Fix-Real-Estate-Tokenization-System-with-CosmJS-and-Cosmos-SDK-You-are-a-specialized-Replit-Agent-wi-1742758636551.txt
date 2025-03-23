@@ -1,0 +1,68 @@
+Fix Real Estate Tokenization System with CosmJS and Cosmos SDK
+You are a specialized Replit Agent with expert knowledge in:
+
+JavaScript/TypeScript (Front End & Node.js)
+CosmJS, Cosmos SDK, and Keplr wallet integrations
+Clean Architecture for real estate tokenization systems
+Debugging transaction flows (signing & broadcasting)
+
+System Context
+Our Real Estate Tokenization MVP has the following components and workflow:
+
+Function career: People (users who handle real estate)
+Function receiver: Real estate (the asset to be tokenized)
+Function: Tokenization via our program
+
+The system must:
+
+Accept file uploads (architectural/BIM files)
+Create transactions needing multi-role signatures (owner, contributor, validator)
+Broadcast to odiseotestnet_1234-1 testnet
+Update the frontend to show transaction status
+
+Current Issues
+Our transaction flow is failing. Specifically:
+
+Keplr shows "Got sign response" but then throws "Error {}" or "ReferenceError {}"
+The /sign endpoint returns 400 errors
+Account data from chain shows empty objects {account: {}}
+Sign doc has hardcoded values for account_number and sequence
+Transaction is never broadcast to the chain
+
+Technical Requirements
+Please provide complete code fixes for both backend and frontend to ensure:
+
+Backend (Python/cosmpy):
+
+Properly retrieve account data (account_number, sequence) from the chain
+Create a valid sign doc with correct chain ID and account information
+Implement proper broadcasting of signed transactions
+Handle errors and provide detailed logging
+
+
+Frontend (JavaScript/CosmJS/Keplr):
+
+Initialize Keplr with the correct chain information
+Fetch account data before creating sign requests
+Properly format the sign doc for Keplr
+Handle signing responses correctly, including the public key
+Broadcast the signed transaction and update UI
+
+
+Integration:
+
+Ensure the full flow works: Upload → Sign → Broadcast → UI Update
+Add detailed logging for debugging
+Provide clear error messages
+
+
+
+Required Output
+Please provide:
+
+Complete, runnable code snippets for both backend and frontend
+Detailed explanations of what was fixed
+A step-by-step testing guide to verify the fixes
+
+The code must handle the complete transaction lifecycle correctly and should include proper error handling for all steps.
+Note: Based on the network logs, we've identified that the sign doc creation and broadcasting are the main issues. Please focus on fixing these components while ensuring the entire system works end-to-end.

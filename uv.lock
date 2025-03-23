@@ -825,10 +825,10 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "cosmpy", specifier = "==0.9.0" },
-    { name = "email-validator", specifier = ">=2.2.0" },
-    { name = "flask", specifier = ">=3.1.0" },
+    { name = "email-validator", specifier = "==2.2.0" },
+    { name = "flask", specifier = "==3.1.0" },
     { name = "flask-login", specifier = ">=0.6.3" },
-    { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
+    { name = "flask-sqlalchemy", specifier = "==3.1.1" },
     { name = "flask-wtf", specifier = ">=1.2.2" },
     { name = "grpcio", specifier = "==1.51.1" },
     { name = "gunicorn", specifier = ">=23.0.0" },

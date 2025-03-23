@@ -321,7 +321,6 @@ function formatBudgetSplits(splits) {
 // Contract interaction functions
 async function signContract(transactionId) {
     try {
-        // Check if Keplr is installed
         if (!window.keplr) {
             showError('Please install Keplr wallet extension');
             return;
@@ -334,11 +333,11 @@ async function signContract(transactionId) {
         const transaction = await response.json();
         console.log('Transaction details:', transaction);
 
-        try {
-            const chainId = "odiseotestnet_1234-1";
-            console.log('Using chain ID:', chainId);
+        const chainId = "odiseotestnet_1234-1";
+        console.log('Using chain ID:', chainId);
 
-            // Enable Keplr for chain
+        try {
+            // Enable Keplr for the chain
             await window.keplr.enable(chainId);
             console.log('Keplr enabled for chain');
 
@@ -346,15 +345,18 @@ async function signContract(transactionId) {
             const offlineSigner = await window.keplr.getOfflineSigner(chainId);
             console.log('Got offline signer');
 
-            // Get user's Odiseo address
+            // Get user's address
             const accounts = await offlineSigner.getAccounts();
             const userAddress = accounts[0].address;
             console.log('User address:', userAddress);
 
             // Query account info from chain
-            const accountInfo = await fetch(`https://odiseo.test.api.nodeshub.online/cosmos/auth/v1beta1/accounts/${userAddress}`);
-            const accountData = await accountInfo.json();
-            console.log('Account data from chain:', accountData);
+            const accountResponse = await fetch(`/api/account?address=${userAddress}`);
+            if (!accountResponse.ok) {
+                throw new Error('Failed to fetch account data');
+            }
+            const accountData = await accountResponse.json();
+            console.log('Account data:', accountData);
 
             // Get next unsigned role
             const nextRole = Object.entries(transaction.signatures)
@@ -367,11 +369,11 @@ async function signContract(transactionId) {
 
             console.log('Signing as role:', nextRole);
 
-            // Create sign doc with accurate account details
+            // Create sign doc with proper account info
             const signDoc = {
                 chain_id: chainId,
-                account_number: accountData.account?.account_number || "0",
-                sequence: accountData.account?.sequence || "0",
+                account_number: accountData.account_number,
+                sequence: accountData.sequence,
                 fee: {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
@@ -380,7 +382,7 @@ async function signContract(transactionId) {
                     type: "cosmos-sdk/MsgSend",
                     value: {
                         from_address: userAddress,
-                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt", // Contract address
                         amount: [{ denom: "uodis", amount: "1000" }]
                     }
                 }],
@@ -391,18 +393,16 @@ async function signContract(transactionId) {
                 })
             };
 
-            console.log('Prepared sign doc:', signDoc);
-
-            // Sign with Keplr using amino
             console.log('Requesting Keplr signature...');
             const signResponse = await window.keplr.signAmino(
                 chainId,
                 userAddress,
-                signDoc
+                signDoc,
+                { preferNoSetFee: true }
             );
             console.log('Got sign response:', signResponse);
 
-            // Send the signature response directly to backend without modifications
+            // Send the complete signature response to backend without modifications
             const signResult = await fetch('/api/sign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -413,8 +413,10 @@ async function signContract(transactionId) {
                 })
             });
 
-            const result = await signResult.json();
-            if (result.error) throw new Error(result.error);
+            if (!signResult.ok) {
+                const errorData = await signResult.json();
+                throw new Error(errorData.error || 'Failed to process signature');
+            }
 
             showSuccess('Successfully signed transaction');
             updateContractsTable();
@@ -427,7 +429,7 @@ async function signContract(transactionId) {
         }
     } catch (error) {
         console.error('Contract signing error:', error);
-        showError(error.message || 'Failed to sign contract');
+        showError(error.message || 'Failed to process contract signing');
     }
 }
 

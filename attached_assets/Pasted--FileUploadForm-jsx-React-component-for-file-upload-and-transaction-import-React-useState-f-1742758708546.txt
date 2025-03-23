@@ -1,0 +1,116 @@
+// FileUploadForm.jsx - React component for file upload and transaction
+import React, { useState } from 'react';
+import { TransactionHandler } from './transaction';
+
+export default function FileUploadForm() {
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [txStatus, setTxStatus] = useState(null);
+  const [txHash, setTxHash] = useState(null);
+  const [error, setError] = useState(null);
+  
+  const transactionHandler = new TransactionHandler();
+  
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+    setError(null);
+    setTxStatus(null);
+    setTxHash(null);
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!file) {
+      setError("Please select a file to upload");
+      return;
+    }
+    
+    setUploading(true);
+    setError(null);
+    
+    try {
+      // Upload file first
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json();
+        throw new Error(errorData.error || "File upload failed");
+      }
+      
+      const uploadResult = await uploadResponse.json();
+      setTxStatus("File uploaded, proceeding with transaction...");
+      
+      // Process transaction with the message from upload response
+      const role = "contributor"; // This could be dynamic based on user role
+      const txResult = await transactionHandler.processTransaction(uploadResult.msg, role);
+      
+      if (txResult.success) {
+        setTxStatus("Transaction completed successfully!");
+        setTxHash(txResult.tx_hash);
+      } else {
+        throw new Error(txResult.error || "Transaction failed");
+      }
+    } catch (err) {
+      console.error("Error in submit process:", err);
+      setError(err.message || "An unknown error occurred");
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  return (
+    <div className="upload-form-container">
+      <h2>Upload Real Estate Document</h2>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="file-upload">Select a file to tokenize:</label>
+          <input 
+            type="file" 
+            id="file-upload" 
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+        </div>
+        
+        <button 
+          type="submit" 
+          className="submit-button"
+          disabled={!file || uploading}
+        >
+          {uploading ? "Processing..." : "Upload & Tokenize"}
+        </button>
+      </form>
+      
+      {error && (
+        <div className="error-message">
+          <p>Error: {error}</p>
+        </div>
+      )}
+      
+      {txStatus && (
+        <div className="status-message">
+          <p>{txStatus}</p>
+          {txHash && (
+            <p>
+              Transaction Hash: <a 
+                href={`https://explorer.odiseotestnet_1234-1.com/tx/${txHash}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                {txHash.substring(0, 10)}...{txHash.substring(txHash.length - 10)}
+              </a>
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

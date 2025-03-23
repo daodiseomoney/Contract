@@ -1,0 +1,268 @@
+// transaction.js - Transaction handling with Keplr and CosmJS
+
+import { SigningStargateClient } from "@cosmjs/stargate";
+import { makeSignDoc } from "@cosmjs/proto-signing";
+import { toBase64 } from "@cosmjs/encoding";
+
+export class TransactionHandler {
+  constructor() {
+    this.chainId = "odiseotestnet_1234-1";
+    this.rpcUrl = "https://rpc.odiseotestnet_1234-1.com"; // Replace with actual RPC URL
+    this.client = null;
+  }
+
+  // Initialize Keplr and check chain connection
+  async initKeplr() {
+    if (!window.keplr) {
+      alert("Please install Keplr extension");
+      return false;
+    }
+
+    try {
+      // Suggest the testnet chain to Keplr
+      await window.keplr.experimentalSuggestChain({
+        chainId: this.chainId,
+        chainName: "Odiseo Testnet",
+        rpc: this.rpcUrl,
+        rest: "https://rest.odiseotestnet_1234-1.com", // Replace with actual REST URL
+        bip44: {
+          coinType: 118,
+        },
+        bech32Config: {
+          bech32PrefixAccAddr: "odiseo",
+          bech32PrefixAccPub: "odiseopub",
+          bech32PrefixValAddr: "odiseovaloper",
+          bech32PrefixValPub: "odiseovaloperpub",
+          bech32PrefixConsAddr: "odiseovalcons",
+          bech32PrefixConsPub: "odiseovalconspub",
+        },
+        currencies: [
+          {
+            coinDenom: "ODC",
+            coinMinimalDenom: "uodc",
+            coinDecimals: 6,
+          },
+        ],
+        feeCurrencies: [
+          {
+            coinDenom: "ODC",
+            coinMinimalDenom: "uodc",
+            coinDecimals: 6,
+            gasPriceStep: {
+              low: 0.01,
+              average: 0.025,
+              high: 0.04,
+            },
+          },
+        ],
+        stakeCurrency: {
+          coinDenom: "ODC",
+          coinMinimalDenom: "uodc",
+          coinDecimals: 6,
+        },
+      });
+
+      // Enable the chain in Keplr
+      await window.keplr.enable(this.chainId);
+      console.log("Keplr enabled for chain:", this.chainId);
+      return true;
+    } catch (error) {
+      console.error("Failed to initialize Keplr:", error);
+      return false;
+    }
+  }
+
+  // Get the current account address from Keplr
+  async getAddress() {
+    if (!window.keplr) {
+      throw new Error("Keplr extension not installed");
+    }
+
+    const offlineSigner = window.keplr.getOfflineSigner(this.chainId);
+    const accounts = await offlineSigner.getAccounts();
+    
+    if (accounts.length === 0) {
+      throw new Error("No accounts found in Keplr");
+    }
+    
+    return accounts[0].address;
+  }
+
+  // Get account data (account_number, sequence) from backend
+  async getAccountData(address) {
+    try {
+      const response = await fetch(`/api/account?address=${address}`);
+      if (!response.ok) {
+        throw new Error(`Failed to get account data: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching account data:", error);
+      throw error;
+    }
+  }
+
+  // Create a sign request and get sign doc from backend
+  async createSignRequest(address, msg) {
+    try {
+      console.log("Creating sign request for address:", address);
+      console.log("Message:", msg);
+      
+      const response = await fetch("/api/sign", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: address,
+          msg: msg,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Sign request failed: ${errorData.error || response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error creating sign request:", error);
+      throw error;
+    }
+  }
+
+  // Sign a transaction with Keplr
+  async signTransaction(signDocData, address, role) {
+    try {
+      console.log("Starting Keplr signing process...");
+      console.log("Transaction details:");
+      console.log(`Address: ${address}, role: ${role}`);
+      
+      if (!window.keplr) {
+        throw new Error("Keplr extension not installed");
+      }
+
+      // Ensure chain is enabled in Keplr
+      console.log(`Using chain ID: ${this.chainId}`);
+      await window.keplr.enable(this.chainId);
+      console.log("Keplr enabled for chain");
+      
+      const offlineSigner = window.keplr.getOfflineSigner(this.chainId);
+      console.log("Got offline signer");
+
+      // Account data from the sign doc
+      const accountNumber = parseInt(signDocData.account_number);
+      const sequence = parseInt(signDocData.sequence);
+      console.log(`Account data from chain: ${JSON.stringify({account: accountNumber})}`);
+      
+      // Create a proper sign doc
+      const signDoc = {
+        chain_id: this.chainId,
+        account_number: accountNumber.toString(),
+        sequence: sequence.toString(),
+        fee: signDocData.sign_doc.fee,
+        msgs: signDocData.sign_doc.msgs,
+        memo: "",
+      };
+      
+      console.log(`Preparing sign doc:`);
+      console.log(`chain_id: "${this.chainId}", account_number: "${accountNumber}", sequence: "${sequence}", fee: {...}, msgs: Array(${signDoc.msgs.length}), ...`);
+      
+      console.log("Requesting Keplr signature...");
+      const { signed, signature } = await window.keplr.signAmino(
+        this.chainId,
+        address,
+        signDoc,
+        { preferNoSetFee: false, preferNoSetMemo: true }
+      );
+      
+      console.log("Got sign response:", { signed, signature });
+      
+      // Return the signed transaction for broadcasting
+      return {
+        body: signed.msgs,
+        auth_info: {
+          signer_infos: [
+            {
+              public_key: {
+                '@type': '/cosmos.crypto.secp256k1.PubKey',
+                key: toBase64(signature.pub_key.value),
+              },
+              mode_info: {
+                single: {
+                  mode: 'SIGN_MODE_LEGACY_AMINO_JSON',
+                },
+              },
+              sequence: signed.sequence,
+            },
+          ],
+          fee: signed.fee,
+        },
+        signatures: [toBase64(signature.signature)],
+      };
+    } catch (error) {
+      console.error("Keplr signing error:", error);
+      throw error;
+    }
+  }
+
+  // Broadcast the signed transaction
+  async broadcastTransaction(signedTx) {
+    try {
+      console.log("Broadcasting transaction:", signedTx);
+      
+      const response = await fetch("/api/broadcast", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(signedTx),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Broadcast failed: ${errorData.error || response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("Broadcast result:", result);
+      return result;
+    } catch (error) {
+      console.error("Error broadcasting transaction:", error);
+      throw error;
+    }
+  }
+
+  // Complete transaction flow: create, sign, and broadcast
+  async processTransaction(msg, role) {
+    try {
+      // Check and initialize Keplr
+      const keplrInitialized = await this.initKeplr();
+      if (!keplrInitialized) {
+        throw new Error("Failed to initialize Keplr");
+      }
+      
+      // Get address from Keplr
+      const address = await this.getAddress();
+      console.log("Using address:", address);
+      
+      // Create sign request and get sign doc
+      const signDocData = await this.createSignRequest(address, msg);
+      console.log("Sign doc created:", signDocData);
+      
+      // Sign transaction with Keplr
+      console.log(`Signing as role: ${role}`);
+      const signedTx = await this.signTransaction(signDocData, address, role);
+      console.log("Transaction signed successfully");
+      
+      // Broadcast signed transaction
+      const broadcastResult = await this.broadcastTransaction(signedTx);
+      console.log("Transaction broadcast result:", broadcastResult);
+      
+      return broadcastResult;
+    } catch (error) {
+      console.error("Transaction processing error:", error);
+      throw error;
+    }
+  }
+}
