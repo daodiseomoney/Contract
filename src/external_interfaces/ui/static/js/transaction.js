@@ -2,42 +2,42 @@
 async function createAndSignTransaction(fileData, userAddress, role) {
   try {
     console.log("Starting Keplr signing process...");
-    
+
     // Create transaction metadata
     const transactionId = fileData.transaction_id || "tx_1";
     const contentHash = fileData.content_hash;
-    
+
     // Get chain information
     const chainId = "odiseotestnet_1234-1";
     console.log("Using chain ID:", chainId);
-    
+
     // Enable Keplr for your chain
     await window.keplr.enable(chainId);
     console.log("Keplr enabled for chain");
-    
+
     // Get the offline signer from Keplr
     const offlineSigner = window.keplr.getOfflineSigner(chainId);
     console.log("Got offline signer");
-    
+
     // Get user's account info from the chain
     const accounts = await offlineSigner.getAccounts();
     const userAccount = accounts.find(acc => acc.address === userAddress);
-    
+
     if (!userAccount) {
       throw new Error("User account not found in Keplr");
     }
-    
+
     console.log("User address:", userAddress);
-    
+
     // Get the latest account details from the chain
     const accountInfo = await fetchAccountInfo(userAddress);
     console.log("Account data:", accountInfo);
-    
+
     // Create a simple memo string instead of a JSON object
     const simpleMemo = `tx:${transactionId}|role:${role}`;
-    
+
     console.log("Signing as role:", role);
-    
+
     // Create the sign doc with the correct format
     const signDoc = {
       account_number: accountInfo.account_number,
@@ -59,25 +59,25 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       ],
       sequence: accountInfo.sequence
     };
-    
+
     // Sign the transaction
     console.log("Requesting Keplr signature...");
     const signResponse = await offlineSigner.signAmino(userAddress, signDoc);
     console.log("Got sign response:", signResponse);
-    
+
     if (!signResponse || !signResponse.signature) {
       throw new Error("Failed to get signature from Keplr");
     }
-    
+
     // Broadcast the signed transaction
     const broadcastResult = await broadcastTransaction(signResponse);
     console.log("Broadcast result:", broadcastResult);
-    
+
     return {
       success: true,
       transaction_id: transactionId,
-      blockchain_tx_hash: broadcastResult.tx_hash,
-      explorer_url: `https://explorer.odiseotestnet.com/tx/${broadcastResult.tx_hash}`
+      blockchain_tx_hash: broadcastResult.txhash,
+      explorer_url: `https://explorer.odiseotestnet.com/tx/${broadcastResult.txhash}`
     };
   } catch (error) {
     console.error("Keplr signing error:", error);
@@ -89,12 +89,12 @@ async function createAndSignTransaction(fileData, userAddress, role) {
 async function fetchAccountInfo(address) {
   try {
     const response = await fetch(`/api/account?address=${address}`);
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Failed to fetch account data");
     }
-    
+
     const accountData = await response.json();
     return {
       account_number: String(accountData.account_number || "0"),
@@ -110,20 +110,36 @@ async function fetchAccountInfo(address) {
 // Helper function to broadcast the signed transaction
 async function broadcastTransaction(signResponse) {
   try {
-    // Send to your backend endpoint that will broadcast to the blockchain
-    const response = await fetch("/api/sign", {
+    // Prepare the transaction for broadcasting
+    const broadcastBody = {
+      tx: {
+        msg: signResponse.signed.msgs,
+        fee: signResponse.signed.fee,
+        signatures: [
+          {
+            pub_key: signResponse.signature.pub_key,
+            signature: signResponse.signature.signature
+          }
+        ],
+        memo: signResponse.signed.memo
+      },
+      mode: "block" // Use "block" to wait for confirmation
+    };
+
+    // Send to your backend API endpoint that will broadcast to the blockchain
+    const response = await fetch("/api/broadcast", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(signResponse)
+      body: JSON.stringify(broadcastBody)
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || "Failed to broadcast transaction");
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error("Error broadcasting transaction:", error);
