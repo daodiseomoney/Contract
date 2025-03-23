@@ -438,7 +438,12 @@ async function signContract(transactionId) {
             );
             console.log('Got sign response:', signResponse);
 
-            // Do not modify the sign response, send it directly to backend
+            // Ensure we have a complete signature response
+            if (!signResponse || !signResponse.signed || !signResponse.signature) {
+                throw new Error('Invalid signature response from Keplr');
+            }
+
+            // Send the complete signature to backend
             const signResult = await fetch('/api/sign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -459,7 +464,7 @@ async function signContract(transactionId) {
 
         } catch (error) {
             console.error('Keplr signing error:', error);
-            showError(`Failed to sign with Keplr: ${error.message}`);
+            showError(error.message || 'Failed to sign transaction');
         }
     } catch (error) {
         console.error('Contract signing error:', error);
