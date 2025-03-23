@@ -76,18 +76,18 @@ def tokenize_property():
             current_app.logger.debug(f"Connected to network: {network.chain_id}")
             current_app.logger.debug(f"Using wallet address: {wallet.address()}")
 
-            # Create transaction
-            tx = Transaction()
-            tx_msg = {
+            # Create bank message for token transfer
+            bank_msg = {
                 "@type": "/cosmos.bank.v1beta1.MsgSend",
                 "from_address": wallet.address(),
                 "to_address": content_hash,
                 "amount": [{"denom": "uodis", "amount": "1000000"}]
             }
+            current_app.logger.debug(f"Prepared bank message: {bank_msg}")
 
-            # Add the message to transaction with metadata
-            tx.messages.append(tx_msg)
-            tx.metadata = json.dumps(content)
+            # Create transaction with message
+            tx = Transaction()
+            tx.add_message(bank_msg)  # Use add_message() instead of direct attribute manipulation
 
             # Create blockchain transaction
             transaction_id = blockchain.create_transaction(

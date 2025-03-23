@@ -1,0 +1,67 @@
+**Devi Pythonista 🏗️ – Analysis & Resolution**
+
+The error:
+
+```
+'Transaction' object has no attribute 'messages'
+```
+
+indicates that our code is trying to directly access or manipulate a non-existent `messages` attribute on the `Transaction` object. In the cosmpy (or Cosmos SDK-based) workflow, transactions are usually built using specific methods provided by the SDK rather than directly manipulating attributes.
+
+---
+
+### **Steps to Resolve:**
+
+1. **Use the Correct API for Adding Messages:**
+   - Instead of doing:
+     ```python
+     tx.messages.append(tx_msg)
+     ```
+     use the provided method:
+     ```python
+     tx.add_message(tx_msg)
+     ```
+   - This is the proper way to add a message to a transaction object, as it encapsulates any necessary logic.
+
+2. **Review the SDK Documentation:**
+   - Confirm the correct usage of the `Transaction` class and its methods. Often, the SDK documentation will provide clear examples of how to build and sign transactions.
+   - **Cosmpy Documentation:**  
+     [Cosmpy GitHub Repository](https://github.com/cosmos/cosmpy)
+   - **Cosmos SDK Documentation:**  
+     [Cosmos SDK - Building Modules](https://docs.cosmos.network/main/build/building-modules/module-manager)
+
+3. **Adjust Your Transaction Building Code:**
+   - Replace any direct attribute manipulation with the provided API calls.
+   - For example, change:
+     ```python
+     tx.messages.append(tx_msg)
+     ```
+     to:
+     ```python
+     tx.add_message(tx_msg)
+     ```
+   - This method call correctly integrates the message into the transaction, ensuring it is included during signing and broadcasting.
+
+4. **Test the Transaction Creation:**
+   - After making the change, run your tests (preferably using your pytest suite) to confirm that the transaction is constructed without errors.
+   - Verify that the blockchain transaction appears as expected in the testnet explorer widget:
+     [Testnet Explorer Widget](https://testnet.explorer.chaintools.tech/odiseo/widget)
+
+---
+
+### **Useful Links for Further Reference:**
+
+- **Cosmpy SDK Repository:**  
+  [https://github.com/cosmos/cosmpy](https://github.com/cosmos/cosmpy)
+
+- **Cosmos SDK Documentation:**  
+  [Cosmos SDK - Module Manager](https://docs.cosmos.network/main/build/building-modules/module-manager)
+
+- **Cosmos Transactions & Signing Documentation:**  
+  (Often available within the cosmpy docs or related Cosmos SDK examples)
+
+---
+
+By using `tx.add_message(tx_msg)` instead of directly appending to a non-existent `messages` attribute, you’ll align with the correct API usage provided by the SDK. This change should resolve the error and allow your tokenization transactions to be created and broadcast successfully.
+
+Happy coding with **Devi Pythonista 🏗️**!
