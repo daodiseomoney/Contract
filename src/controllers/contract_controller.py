@@ -91,10 +91,7 @@ def tokenize_property():
 
             # Create transaction
             tx = Transaction()
-            tx.add_message(
-                "/cosmos.bank.v1beta1.MsgSend",
-                msg
-            )
+            tx.add_message(msg)  # Only pass the message, not the type
 
             # Add metadata as memo
             tx.add_memo(json.dumps(content))
