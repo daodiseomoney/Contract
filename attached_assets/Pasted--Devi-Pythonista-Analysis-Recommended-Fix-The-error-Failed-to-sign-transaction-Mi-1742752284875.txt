@@ -1,0 +1,64 @@
+**Devi Pythonista 🏗️ – Analysis & Recommended Fix**
+
+The error:
+
+```
+Failed to sign transaction: Missing public key
+```
+
+indicates that the Keplr signature response is not including the public key. This is a known issue with some Keplr configurations or signing flows. Often, the public key is not returned in the sign response from `signAmino`, even though it’s required for further processing.
+
+### **Recommended Fix:**
+
+1. **Retrieve the Public Key from the Offline Signer:**
+
+   - When you call:
+     ```javascript
+     const accounts = await offlineSigner.getAccounts();
+     ```
+     each account object typically includes a `pubkey` property. You can extract this public key and attach it to your signature payload if it is missing.
+
+2. **Modify Your Signing Code:**
+
+   - After receiving the sign response, check whether `signResponse.pub_key` is present. If not, assign it from the first account in the `accounts` array.
+   
+   For example:
+   ```javascript
+   const accounts = await offlineSigner.getAccounts();
+   const userAddress = accounts[0].address;
+   // ...
+   const signResponse = await window.keplr.signAmino(
+       chainId,
+       userAddress,
+       signDoc
+   );
+   // If the public key is missing, add it from the offline signer
+   if (!signResponse.pub_key && accounts[0].pubkey) {
+       // Convert accounts[0].pubkey (Uint8Array) to a base64 string if required
+       signResponse.pub_key = {
+           type: "tendermint/PubKeySecp256k1",
+           value: Buffer.from(accounts[0].pubkey).toString('base64')
+       };
+   }
+   if (!signResponse.signed || !signResponse.signature || !signResponse.pub_key) {
+       throw new Error('Invalid Keplr signature response structure');
+   }
+   ```
+   This ensures that even if Keplr does not return the public key, your code will supply it from the offline signer’s accounts.
+
+3. **Test the Fix:**
+
+   - Run your signing flow again and verify that the signature object now includes the `pub_key` field. The transaction should then proceed without the "Missing public key" error.
+
+### **Useful References:**
+
+- **Keplr Docs – Use with CosmJS:**  
+  [https://docs.keplr.app/api/use-with/cosmjs](https://docs.keplr.app/api/use-with/cosmjs) citeturn0search2
+
+- **Suggest Chain Feature:**  
+  [https://docs.keplr.app/api/guide/suggest-chain](https://docs.keplr.app/api/guide/suggest-chain) citeturn0search3
+
+- **Keplr Advanced Troubleshooting Guidelines:**  
+  [https://help.keplr.app/articles/advanced-troubleshooting-guidelines](https://help.keplr.app/articles/advanced-troubleshooting-guidelines) citeturn0search7
+
+By incorporating the public key from the offline signer into your signature response, you can resolve the "Missing public key" error and allow the signing process to complete successfully. Happy coding with **Devi Pythonista 🏗️**!
