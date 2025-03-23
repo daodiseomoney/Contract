@@ -56,25 +56,21 @@ class TransactionService:
     def create_sign_doc(self, sender_address: str, msg: Dict, account_data: Optional[Dict] = None) -> Dict:
         """Create a sign doc for Keplr to sign"""
         try:
-            # Get account data if not provided
-            if account_data is None:
-                account = self.client.query_account(Address(sender_address))
-                account_number = str(account.account_number)
-                sequence = str(account.sequence)
-            else:
-                account_number = account_data.get("account_number", "0")
-                sequence = account_data.get("sequence", "0")
+            self.logger.debug(f"Creating sign doc for address: {sender_address}")
+            self.logger.debug(f"Message data: {msg}")
+            self.logger.debug(f"Account data: {account_data}")
 
             # Create simple memo format
             tx_id = msg.get("transaction_id", "")
             role = msg.get("role", "")
             memo = f"tx:{tx_id}|role:{role}"
+            self.logger.debug(f"Generated memo: {memo}")
 
             # Create sign doc for Keplr
             sign_doc = {
                 "chain_id": self.network.chain_id,
-                "account_number": account_number,
-                "sequence": sequence,
+                "account_number": account_data.get("account_number", "0"),
+                "sequence": account_data.get("sequence", "0"),
                 "fee": {
                     "amount": [{"denom": "uodis", "amount": "2500"}],
                     "gas": "100000"
@@ -87,7 +83,7 @@ class TransactionService:
             return sign_doc
 
         except Exception as e:
-            self.logger.error(f"Failed to create sign doc: {str(e)}")
+            self.logger.error(f"Failed to create sign doc: {str(e)}", exc_info=True)
             raise ValueError(f"Failed to create sign doc: {str(e)}")
 
     def broadcast_transaction(self, tx_data: Dict) -> Dict:
@@ -101,19 +97,25 @@ class TransactionService:
                 raise ValueError("Missing transaction data")
 
             tx = tx_data['tx']
-            if not all(k in tx for k in ['msg', 'fee', 'signatures', 'memo']):
-                raise ValueError("Invalid transaction format: missing required fields")
+            required_fields = ['msg', 'fee', 'signatures', 'memo']
+            missing_fields = [field for field in required_fields if field not in tx]
+
+            if missing_fields:
+                error_msg = f"Missing required fields: {', '.join(missing_fields)}"
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
 
             # Create Transaction object
             transaction = Transaction()
+            self.logger.debug("Creating transaction object")
 
             # Set messages
-            self.logger.debug("Setting transaction messages")
+            self.logger.debug(f"Setting transaction messages: {tx['msg']}")
             transaction.body.messages.extend(tx['msg'])
             transaction.body.memo = tx['memo']
 
             # Set fee
-            self.logger.debug("Setting transaction fee")
+            self.logger.debug(f"Setting transaction fee: {tx['fee']}")
             transaction.auth_info.fee.amount.extend(tx['fee']['amount'])
             transaction.auth_info.fee.gas_limit = int(tx['fee'].get('gas', '100000'))
 
@@ -124,6 +126,7 @@ class TransactionService:
                     raise ValueError("Invalid signature format")
 
                 signature = base64.b64decode(sig['signature'])
+                self.logger.debug(f"Adding signature (length: {len(signature)})")
                 transaction.signatures.append(signature)
 
             # Broadcast transaction
@@ -131,10 +134,11 @@ class TransactionService:
             result = self.client.broadcast_tx(transaction)
 
             if result.code != 0:
-                self.logger.error(f"Transaction broadcast failed: {result.raw_log}")
+                error_msg = f"Transaction broadcast failed: {result.raw_log}"
+                self.logger.error(error_msg)
                 return {
                     "success": False,
-                    "error": f"Transaction broadcast failed: {result.raw_log}"
+                    "error": error_msg
                 }
 
             success_result = {
