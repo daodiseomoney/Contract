@@ -1,0 +1,88 @@
+// components/TransactionStatus.js or similar file
+
+import React, { useState, useEffect } from 'react';
+
+const TransactionStatus = ({ transactionId }) => {
+  const [status, setStatus] = useState('loading');
+  const [txDetails, setTxDetails] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!transactionId) return;
+    
+    const fetchTransactionStatus = async () => {
+      try {
+        setStatus('loading');
+        const response = await fetch(`/api/transaction?id=${transactionId}`);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch transaction status');
+        }
+        
+        const data = await response.json();
+        setTxDetails(data);
+        setStatus(data.blockchain_tx_hash ? 'confirmed' : 'pending');
+      } catch (error) {
+        console.error('Error fetching transaction status:', error);
+        setError(error.message);
+        setStatus('error');
+      }
+    };
+    
+    fetchTransactionStatus();
+    
+    // Poll for updates every 10 seconds if the transaction is pending
+    const intervalId = setInterval(() => {
+      if (status === 'pending' || status === 'loading') {
+        fetchTransactionStatus();
+      }
+    }, 10000);
+    
+    return () => clearInterval(intervalId);
+  }, [transactionId, status]);
+  
+  if (status === 'loading') {
+    return <div className="transaction-status loading">Loading transaction status...</div>;
+  }
+  
+  if (status === 'error') {
+    return <div className="transaction-status error">Error: {error}</div>;
+  }
+  
+  if (status === 'pending') {
+    return (
+      <div className="transaction-status pending">
+        <h3>Transaction Pending</h3>
+        <p>Transaction ID: {transactionId}</p>
+        <p>The transaction has been signed but is waiting for confirmation on the blockchain.</p>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="transaction-status confirmed">
+      <h3>Transaction Confirmed</h3>
+      <p>Transaction ID: {transactionId}</p>
+      {txDetails && (
+        <>
+          <p>Blockchain TX Hash: {txDetails.blockchain_tx_hash}</p>
+          <p>Created At: {new Date(txDetails.created_at).toLocaleString()}</p>
+          <p>Role: {txDetails.metadata?.role || 'N/A'}</p>
+          {txDetails.explorer_url && (
+            <a 
+              href={txDetails.explorer_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="explorer-link"
+            >
+              View on Explorer
+            </a>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default TransactionStatus;
