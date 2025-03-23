@@ -338,47 +338,6 @@ async function signContract(transactionId) {
             const chainId = "odiseotestnet_1234-1";
             console.log('Using chain ID:', chainId);
 
-            // First add the Odiseo testnet chain to Keplr
-            await window.keplr.experimentalSuggestChain({
-                chainId: chainId,
-                chainName: "Odiseo Testnet",
-                rpc: "https://odiseo.test.rpc.nodeshub.online",
-                rest: "https://odiseo.test.api.nodeshub.online",
-                bip44: {
-                    coinType: 118
-                },
-                bech32Config: {
-                    bech32PrefixAccAddr: "odiseo",
-                    bech32PrefixAccPub: "odiseopub",
-                    bech32PrefixValAddr: "odiseoval",
-                    bech32PrefixValPub: "odiseovalpub",
-                    bech32PrefixConsAddr: "odiseovalcons",
-                    bech32PrefixConsPub: "odiseovalconspub"
-                },
-                currencies: [{
-                    coinDenom: "ODIS",
-                    coinMinimalDenom: "uodis",
-                    coinDecimals: 6
-                }],
-                feeCurrencies: [{
-                    coinDenom: "ODIS",
-                    coinMinimalDenom: "uodis",
-                    coinDecimals: 6,
-                    gasPriceStep: {
-                        low: 0.01,
-                        average: 0.025,
-                        high: 0.04
-                    }
-                }],
-                stakeCurrency: {
-                    coinDenom: "ODIS",
-                    coinMinimalDenom: "uodis",
-                    coinDecimals: 6
-                },
-                beta: true
-            });
-            console.log('Chain suggested to Keplr');
-
             // Enable Keplr for chain
             await window.keplr.enable(chainId);
             console.log('Keplr enabled for chain');
@@ -392,6 +351,11 @@ async function signContract(transactionId) {
             const userAddress = accounts[0].address;
             console.log('User address:', userAddress);
 
+            // Query account info from chain
+            const accountInfo = await fetch(`https://odiseo.test.api.nodeshub.online/cosmos/auth/v1beta1/accounts/${userAddress}`);
+            const accountData = await accountInfo.json();
+            console.log('Account data from chain:', accountData);
+
             // Get next unsigned role
             const nextRole = Object.entries(transaction.signatures)
                 .find(([_, status]) => status !== 'signed')?.[0];
@@ -403,11 +367,11 @@ async function signContract(transactionId) {
 
             console.log('Signing as role:', nextRole);
 
-            // Create sign doc with minimal fees for testnet
+            // Create sign doc with accurate account details
             const signDoc = {
                 chain_id: chainId,
-                account_number: "0",
-                sequence: "0",
+                account_number: accountData.account?.account_number || "0",
+                sequence: accountData.account?.sequence || "0",
                 fee: {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
@@ -438,12 +402,7 @@ async function signContract(transactionId) {
             );
             console.log('Got sign response:', signResponse);
 
-            // Ensure we have a complete signature response
-            if (!signResponse || !signResponse.signed || !signResponse.signature) {
-                throw new Error('Invalid signature response from Keplr');
-            }
-
-            // Send the complete signature to backend
+            // Send the signature response directly to backend without modifications
             const signResult = await fetch('/api/sign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

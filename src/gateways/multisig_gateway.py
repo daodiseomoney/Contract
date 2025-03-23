@@ -1,3 +1,4 @@
+"""MultiSig Gateway for handling blockchain transactions"""
 from typing import List, Dict
 from enum import Enum
 from datetime import datetime
@@ -122,15 +123,6 @@ class MultiSigBlockchainGateway:
             except json.JSONDecodeError:
                 self.logger.error("Failed to parse memo JSON")
                 raise ValueError("Invalid memo format")
-
-            # Verify signature components
-            if not signature.get('signature'):
-                self.logger.error("Missing signature value")
-                raise ValueError("Missing signature value")
-
-            if not signature.get('pub_key'):
-                self.logger.error("Missing public key")
-                raise ValueError("Missing public key")
 
             # Create transaction body
             tx_body = TxBody()
