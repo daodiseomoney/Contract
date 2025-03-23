@@ -13,6 +13,7 @@ dependencies = [
     "flask-wtf>=1.2.2",
     "cosmpy==0.9.0",
     "twilio>=9.5.1",
+    "grpcio==1.51.1",
 ]
 
 [[tool.uv.index]]
