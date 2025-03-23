@@ -12,6 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "flask-wtf>=1.2.2",
     "cosmpy>=0.9.2",
+    "twilio>=9.5.1",
 ]
 
 [[tool.uv.index]]

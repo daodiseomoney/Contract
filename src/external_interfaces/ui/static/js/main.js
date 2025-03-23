@@ -332,6 +332,7 @@ async function signContract(transactionId) {
         // Get transaction details
         const response = await fetch(`/api/transaction/${transactionId}`);
         const transaction = await response.json();
+        console.log('Transaction details:', transaction);
 
         try {
             const chainId = "odiseotestnet_1234-1";
@@ -409,15 +410,15 @@ async function signContract(transactionId) {
                 account_number: "0",
                 sequence: "0",
                 fee: {
-                    amount: [{ denom: "uodis", amount: "50" }], // Absolute minimum fee
-                    gas: "50000" // Reduced gas
+                    amount: [{ denom: "uodis", amount: "5000" }], // 0.005 ODIS
+                    gas: "100000"
                 },
                 msgs: [{
                     type: "cosmos-sdk/MsgSend",
                     value: {
                         from_address: userAddress,
                         to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                        amount: [{ denom: "uodis", amount: "1" }] // Minimal amount for testing
+                        amount: [{ denom: "uodis", amount: "1000" }] // 0.001 ODIS
                     }
                 }],
                 memo: JSON.stringify({
@@ -470,7 +471,6 @@ async function signContract(transactionId) {
         showError(error.message || 'Failed to sign contract');
     }
 }
-
 
 
 // File upload handling
