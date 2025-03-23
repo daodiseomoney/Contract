@@ -30,6 +30,15 @@ def sign_transaction():
             logger.error("Missing 'signature' field in request data")
             return jsonify({"error": "Missing 'signature' field in transaction data"}), 400
 
+        # Verify memo format
+        signed_data = data.get("signed", {})
+        memo = signed_data.get("memo", "")
+
+        # Check if memo is a simple string (not JSON)
+        if memo.startswith("{") or memo.startswith("["):
+            logger.error("Invalid memo format: JSON object not allowed")
+            return jsonify({"error": "Memo must be a simple text string"}), 400
+
         # Broadcast the signed transaction
         result = transaction_service.broadcast_signed_tx(data)
 

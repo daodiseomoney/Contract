@@ -11,7 +11,7 @@ class TransactionService:
     def __init__(self):
         self.network = NetworkConfig(
             chain_id="odiseotestnet_1234-1",
-            url="grpc+https://odiseo.test.rpc.nodeshub.online",
+            url="grpc+https://odiseo.test.rpc.nodeshub.online:443",
             fee_minimum_gas_price=0.025,
             fee_denomination="uodis",
             staking_denomination="uodis"
@@ -31,6 +31,11 @@ class TransactionService:
                 account_number = account_data.get("account_number", "0")
                 sequence = account_data.get("sequence", "0")
 
+            # Create simple memo format
+            tx_id = msg.get("transaction_id", "")
+            role = msg.get("role", "")
+            memo = f"tx:{tx_id}|role:{role}"
+
             # Create sign doc for Keplr
             sign_doc = {
                 "chain_id": self.network.chain_id,
@@ -41,7 +46,7 @@ class TransactionService:
                     "gas": "100000"
                 },
                 "msgs": [msg],
-                "memo": ""
+                "memo": memo
             }
 
             self.logger.debug(f"Created sign doc: {sign_doc}")
