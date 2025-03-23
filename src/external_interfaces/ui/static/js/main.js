@@ -332,6 +332,45 @@ async function signContract(transactionId) {
         const transaction = await response.json();
 
         try {
+            // First add the Odiseo testnet chain to Keplr if not already added
+            await window.keplr.experimentalSuggestChain({
+                chainId: "odiseo_1234-1",
+                chainName: "Odiseo Testnet",
+                rpc: "https://odiseo.test.rpc.nodeshub.online",
+                rest: "https://odiseo.test.api.nodeshub.online",
+                bip44: {
+                    coinType: 118,
+                },
+                bech32Config: {
+                    bech32PrefixAccAddr: "odiseo",
+                    bech32PrefixAccPub: "odiseopub",
+                    bech32PrefixValAddr: "odiseoval",
+                    bech32PrefixValPub: "odiseovalpub",
+                    bech32PrefixConsAddr: "odiseovalcons",
+                    bech32PrefixConsPub: "odiseovalconspub"
+                },
+                currencies: [{
+                    coinDenom: "ODIS",
+                    coinMinimalDenom: "uodis",
+                    coinDecimals: 6,
+                }],
+                feeCurrencies: [{
+                    coinDenom: "ODIS",
+                    coinMinimalDenom: "uodis",
+                    coinDecimals: 6,
+                }],
+                stakeCurrency: {
+                    coinDenom: "ODIS",
+                    coinMinimalDenom: "uodis",
+                    coinDecimals: 6,
+                },
+                gasPriceStep: {
+                    low: 0.01,
+                    average: 0.025,
+                    high: 0.04
+                }
+            });
+
             // Enable Keplr for Odiseo testnet
             await window.keplr.enable("odiseo_1234-1");
 
@@ -341,16 +380,6 @@ async function signContract(transactionId) {
             // Get user's Odiseo address
             const accounts = await offlineSigner.getAccounts();
             const userAddress = accounts[0].address;
-
-            // Create transaction payload
-            const msg = {
-                typeUrl: "/cosmos.bank.v1beta1.MsgSend",
-                value: {
-                    fromAddress: userAddress,
-                    toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                    amount: [{ denom: "uodis", amount: "1000000" }]
-                }
-            };
 
             // Get next unsigned role
             const nextRole = Object.entries(transaction.signatures)
@@ -362,17 +391,24 @@ async function signContract(transactionId) {
             }
 
             // Create signing payload
-            const memo = JSON.stringify({
-                transaction_id: transaction.transaction_id,
-                content_hash: transaction.content_hash,
-                role: nextRole
-            });
+            const msg = {
+                typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+                value: {
+                    fromAddress: userAddress,
+                    toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                    amount: [{ denom: "uodis", amount: "1000000" }]
+                }
+            };
 
-            // Sign with Keplr
+            // Create signing doc with proper formatting
             const signDoc = {
                 bodyBytes: new TextEncoder().encode(JSON.stringify({
                     messages: [msg],
-                    memo: memo,
+                    memo: JSON.stringify({
+                        transaction_id: transaction.transaction_id,
+                        content_hash: transaction.content_hash,
+                        role: nextRole
+                    }),
                     timeout_height: "0",
                     extension_options: [],
                     non_critical_extension_options: []
@@ -391,6 +427,7 @@ async function signContract(transactionId) {
                 sequence: "0"
             };
 
+            // Sign with Keplr
             const signResponse = await window.keplr.signDirect(
                 "odiseo_1234-1",
                 userAddress,

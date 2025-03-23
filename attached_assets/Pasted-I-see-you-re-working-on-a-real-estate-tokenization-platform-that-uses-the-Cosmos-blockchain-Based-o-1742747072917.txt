@@ -1,0 +1,92 @@
+I see you're working on a real estate tokenization platform that uses the Cosmos blockchain. Based on the code snippets and screenshots you've shared, I can see several issues that might be related to your original error.
+
+Looking at your contract_controller.py and the new KeplerGateway class, I can see that you're using two different approaches for blockchain interaction:
+
+1. The LedgerClient approach in your contract_controller.py
+2. A KeplerGateway approach that seems to be designed to interact with the Keplr wallet browser extension
+
+The error you're getting with `'LedgerClient' object has no attribute 'set_wallet'` suggests that you need to update your LedgerClient implementation. However, from the screenshots, I can see that your application also has "Failed to sign with Keplr: Request rejected" errors, which indicates issues with the Keplr wallet integration.
+
+Here's what I recommend:
+
+## 1. Fix the LedgerClient issue:
+
+Based on common Cosmos SDK client patterns, try one of these approaches:
+
+```python
+# Option 1: Pass wallet during initialization
+wallet = LocalWallet.generate()
+client = LedgerClient(network, wallet=wallet)
+
+# Option 2: If LedgerClient follows a builder pattern
+wallet = LocalWallet.generate()
+client = LedgerClient(network).with_wallet(wallet)
+```
+
+## 2. Consider switching fully to Keplr:
+
+Since you already have a KeplerGateway class, you might want to standardize on this approach instead of mixing LedgerClient and Keplr. Your interface shows you're connected to "ODISEO1N..." which suggests you're already using Keplr in some parts of your application.
+
+Here's how you could modify your tokenize_property function to use the Keplr approach:
+
+```python
+# Create Kepler gateway
+network_config = {
+    'chain_id': "odiseo_1234-1",
+    'rpc_url': "https://odiseo.test.rpc.nodeshub.online",
+    'api_url': "https://odiseo.test.api.nodeshub.online"
+}
+gateway = KeplerGateway(network_config)
+
+# Use connected wallet from Keplr instead of generating a new one
+# This address should be obtained from your frontend through Keplr
+wallet_address = data.get('wallet_address')  
+if not wallet_address:
+    return jsonify({'error': 'Wallet address required'}), 400
+
+# Create transaction for signing with Keplr
+msg = {
+    "from_address": wallet_address,
+    "to_address": content_hash,
+    "amount": [{"denom": "uodis", "amount": "1000000"}]
+}
+
+# Prepare transaction for Keplr signing
+# This would be passed to your frontend for signing with Keplr
+tx_data = {
+    'messages': [{
+        'type': "/cosmos.bank.v1beta1.MsgSend",
+        'value': msg
+    }],
+    'memo': json.dumps(content),
+    'fee': {
+        'amount': [{'denom': 'uodis', 'amount': '5000'}],
+        'gas': '200000'
+    }
+}
+
+# Return the transaction data to be signed by frontend
+return jsonify({
+    'status': 'pending_signature',
+    'tx_data': tx_data,
+    'content_hash': content_hash
+})
+```
+
+Then in your frontend, you would:
+1. Call this endpoint to get the transaction data
+2. Use Keplr to sign the transaction
+3. Send the signed transaction back to another endpoint that broadcasts it
+
+## 3. Additional recommendations:
+
+1. Check your error handling in the frontend - I see "Failed to sign with Keplr: Request rejected" errors which suggests users might be rejecting the signature requests
+
+2. Reset your cache as suggested in the error screen - there might be stale connection data causing issues
+
+3. Consider implementing proper wallet connection management:
+   - Check if wallet is connected before attempting transactions
+   - Handle reconnection logic
+   - Provide clear feedback to users when wallet operations fail
+
+Would you like me to help you implement any of these specific solutions? Or would you prefer more guidance on a particular aspect of the integration?
