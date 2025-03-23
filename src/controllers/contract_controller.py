@@ -54,7 +54,7 @@ def tokenize_property():
             'file_path': data['file_path'],
             'budget_splits': data['budget_splits']
         }
-        content_hash = hashlib.sha256(json.dumps(content).encode()).hexdigest()
+        content_hash = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
         current_app.logger.debug(f"Generated content hash: {content_hash}")
 
         try:
@@ -71,27 +71,35 @@ def tokenize_property():
             client = LedgerClient(network)
             current_app.logger.debug(f"Connected to network: {network.chain_id}")
 
-            # Create tokenization transaction
-            current_app.logger.debug("Creating blockchain transaction")
+            # Create bank module message for tokenization
+            msg = {
+                "from_address": client.address(),
+                "to_address": content_hash,  # Using content hash as token identifier
+                "amount": [
+                    {
+                        "denom": "uodis",
+                        "amount": "1000000"  # 1 ODIS = 1,000,000 uodis
+                    }
+                ]
+            }
+            current_app.logger.debug(f"Prepared bank message: {msg}")
+
+            # Create transaction
             tx = Transaction()
             tx.add_message(
                 "/cosmos.bank.v1beta1.MsgSend",
-                {
-                    "from_address": client.address(),
-                    "to_address": content_hash,
-                    "amount": [{
-                        "denom": "uodis",
-                        "amount": "1"
-                    }],
-                    "metadata": json.dumps(content)
-                }
+                msg
             )
-            current_app.logger.debug("Transaction message added")
+
+            # Add metadata as memo
+            tx.add_memo(json.dumps(content))
+            current_app.logger.debug("Transaction prepared with memo")
 
             # Create blockchain transaction
             transaction_id = blockchain.create_transaction(
                 content_hash=content_hash,
-                metadata=content
+                metadata=content,
+                tx=tx
             )
             current_app.logger.info(f"Created transaction with ID: {transaction_id}")
 

@@ -4,10 +4,9 @@ import os
 import logging
 import hashlib
 import json
-from src.gateways.multisig_gateway import MultiSigBlockchainGateway
+import requests
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/api')
-blockchain = MultiSigBlockchainGateway(test_mode=True)
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'ifc', 'dwg'}
@@ -35,7 +34,7 @@ def upload_file():
 
         if not file or not allowed_file(file.filename):
             current_app.logger.error(f"Invalid file type. Allowed types: {ALLOWED_EXTENSIONS}")
-            return jsonify({'error': 'Invalid file type. Allowed types: .ifc, .dwg'}), 400
+            return jsonify({'error': f'Invalid file type. Allowed types: {", ".join(ALLOWED_EXTENSIONS)}'}), 400
 
         try:
             filename = secure_filename(file.filename)
@@ -56,51 +55,61 @@ def upload_file():
                 current_app.logger.error("Invalid budget split data: mismatched roles and percentages")
                 return jsonify({'error': 'Invalid budget split data'}), 400
 
-            for role, percentage in zip(roles, percentages):
-                try:
+            try:
+                for role, percentage in zip(roles, percentages):
                     budget_splits[role] = float(percentage)
-                except ValueError:
-                    current_app.logger.error(f"Invalid percentage value: {percentage}")
-                    return jsonify({'error': 'Invalid percentage value'}), 400
 
-            # Create content hash from file path and budget splits
-            content = {
+                total = sum(budget_splits.values())
+                if abs(total - 100) > 0.01:  # Allow for small floating point differences
+                    current_app.logger.error(f"Budget splits total {total}% instead of 100%")
+                    return jsonify({'error': 'Budget splits must total 100%'}), 400
+
+            except ValueError as e:
+                current_app.logger.error(f"Invalid percentage value: {str(e)}")
+                return jsonify({'error': 'Invalid percentage values'}), 400
+
+            # Prepare data for tokenization
+            tokenize_data = {
                 'file_path': file_path,
                 'budget_splits': budget_splits
             }
-            content_hash = hashlib.sha256(json.dumps(content).encode()).hexdigest()
 
+            current_app.logger.debug(f"Sending tokenization request: {tokenize_data}")
+
+            # Call tokenize endpoint
             try:
-                # Initialize blockchain transaction
-                current_app.logger.info("Creating blockchain transaction...")
-                transaction_id = blockchain.create_transaction(
-                    content_hash=content_hash,
-                    metadata=content
+                response = requests.post(
+                    'http://localhost:5000/api/tokenize',
+                    json=tokenize_data,
+                    headers={'Content-Type': 'application/json'}
                 )
 
-                # Get full transaction details
-                transaction = blockchain.get_transaction_status(transaction_id)
-                current_app.logger.debug(f"Created transaction: {transaction}")
+                if response.status_code == 200:
+                    current_app.logger.info("Tokenization successful")
+                    return jsonify(response.json())
+                else:
+                    error_msg = response.json().get('error', 'Unknown error during tokenization')
+                    current_app.logger.error(f"Tokenization failed: {error_msg}")
+                    return jsonify({
+                        'success': True,
+                        'message': 'File uploaded but tokenization failed',
+                        'file_path': file_path,
+                        'error': error_msg
+                    }), response.status_code
 
+            except requests.exceptions.RequestException as e:
+                current_app.logger.error(f"Error calling tokenize endpoint: {str(e)}", exc_info=True)
                 return jsonify({
                     'success': True,
-                    'message': 'File uploaded and contract created successfully',
-                    'transaction': transaction
-                })
-
-            except Exception as e:
-                current_app.logger.error(f"Error creating blockchain transaction: {str(e)}", exc_info=True)
-                return jsonify({
-                    'success': True,
-                    'message': 'File uploaded but blockchain transaction failed',
+                    'message': 'File uploaded but tokenization failed',
                     'file_path': file_path,
-                    'warning': str(e)
-                })
+                    'error': str(e)
+                }), 500
 
         except Exception as e:
-            current_app.logger.error(f"Error saving file: {str(e)}", exc_info=True)
-            return jsonify({'error': f'Error saving file: {str(e)}'}), 500
+            current_app.logger.error(f"Error processing upload: {str(e)}", exc_info=True)
+            return jsonify({'error': f'Error processing upload: {str(e)}'}), 500
 
     except Exception as e:
         current_app.logger.error(f"Upload error: {str(e)}", exc_info=True)
-        return jsonify({'error': f'Upload error: {str(e)}'}), 500
+        return jsonify({'error': str(e)}), 500
