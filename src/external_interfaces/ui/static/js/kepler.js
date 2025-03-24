@@ -82,20 +82,19 @@ class KeplerWallet {
         try {
             // Ensure transaction is properly formatted for Keplr
             // Must use Amino format (type/value structure) for signAmino
-            let msgForKeplr = transaction;
-            
-            // Create message in direct format with @type field
-            // Following https://docs.keplr.app/api/guide/sign-a-message
-            // Extract fields or use defaults
             const fromAddress = transaction.from_address || transaction.fromAddress || this.address;
             const toAddress = transaction.to_address || transaction.toAddress || "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt";
             const amount = transaction.amount || [{ denom: "uodis", amount: "1000" }];
             
-            msgForKeplr = {
-                "@type": "/cosmos.bank.v1beta1.MsgSend",
-                from_address: fromAddress,
-                to_address: toAddress,
-                amount: amount
+            // Create message in proper Amino format with type/value structure
+            // Following https://docs.keplr.app/api/guide/sign-a-message
+            const msgForKeplr = {
+                type: "cosmos-sdk/MsgSend",
+                value: {
+                    from_address: fromAddress,
+                    to_address: toAddress,
+                    amount: amount
+                }
             };
             
             // Create the sign doc with proper structure

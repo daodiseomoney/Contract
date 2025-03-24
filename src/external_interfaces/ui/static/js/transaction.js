@@ -231,10 +231,49 @@ function uint8ArrayToBase64(uint8Array) {
 function convertAminoToProto(msg) {
   console.log("Converting message to Proto format:", msg);
   
-  // Handle direct object format without type/value structure
-  // This is the key format required by Keplr
+  // In all cases, we expect to handle Amino format for signAmino
+  // For broadcast, we need to convert from Amino to Proto format
+  
+  // Handle standard Amino format with type/value structure
+  // This is the format we now consistently use throughout the app
+  if (msg.type && msg.value) {
+    // Map Amino types to Proto typeUrls
+    const typeUrlMapping = {
+      'cosmos-sdk/MsgSend': '/cosmos.bank.v1beta1.MsgSend',
+      // Add other message types as needed
+    };
+    
+    // Get corresponding typeUrl from mapping
+    const typeUrl = typeUrlMapping[msg.type];
+    if (!typeUrl) {
+      console.error('Unknown message type:', msg.type);
+      throw new Error(`Unknown message type: ${msg.type}`);
+    }
+    
+    console.log(`Converting Amino type '${msg.type}' to Proto typeUrl '${typeUrl}'`);
+    
+    // For MsgSend, convert snake_case to camelCase
+    if (msg.type === 'cosmos-sdk/MsgSend') {
+      return {
+        typeUrl: typeUrl,
+        value: {
+          fromAddress: msg.value.from_address,
+          toAddress: msg.value.to_address,
+          amount: msg.value.amount
+        }
+      };
+    }
+    
+    // For other message types, pass value as-is
+    return {
+      typeUrl: typeUrl,
+      value: msg.value
+    };
+  }
+  
+  // For backward compatibility, handle direct object format without type/value structure
   if (msg.from_address && msg.to_address && msg.amount) {
-    console.log("Processing direct format message (Keplr's preferred format):", msg);
+    console.log("Processing direct format message (converting to Proto):", msg);
     
     // Add the typeUrl for Proto format
     return {
@@ -271,42 +310,6 @@ function convertAminoToProto(msg) {
     return {
       typeUrl: typeUrl,
       value: value
-    };
-  }
-  
-  // Handle standard Amino format with type/value structure (backward compatibility)
-  if (msg.type && msg.value) {
-    // Map Amino types to Proto typeUrls
-    const typeUrlMapping = {
-      'cosmos-sdk/MsgSend': '/cosmos.bank.v1beta1.MsgSend',
-      // Add other message types as needed
-    };
-    
-    // Get corresponding typeUrl from mapping
-    const typeUrl = typeUrlMapping[msg.type];
-    if (!typeUrl) {
-      console.error('Unknown message type:', msg.type);
-      throw new Error(`Unknown message type: ${msg.type}`);
-    }
-    
-    console.log(`Converting Amino type '${msg.type}' to Proto typeUrl '${typeUrl}'`);
-    
-    // For MsgSend, convert snake_case to camelCase
-    if (msg.type === 'cosmos-sdk/MsgSend') {
-      return {
-        typeUrl: typeUrl,
-        value: {
-          fromAddress: msg.value.from_address,
-          toAddress: msg.value.to_address,
-          amount: msg.value.amount
-        }
-      };
-    }
-    
-    // For other message types, pass value as-is
-    return {
-      typeUrl: typeUrl,
-      value: msg.value
     };
   }
   
