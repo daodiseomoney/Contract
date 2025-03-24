@@ -2,6 +2,9 @@
 async function createAndSignTransaction(fileData, userAddress, role) {
   try {
     console.log("Starting Keplr signing process...");
+    console.log("File data:", fileData);
+    console.log("User address:", userAddress);
+    console.log("Role:", role);
 
     // Create transaction metadata
     const transactionId = fileData.transaction_id || "tx_1";
@@ -11,37 +14,61 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const chainId = "odiseotestnet_1234-1";
     console.log("Using chain ID:", chainId);
 
-    // Enable Keplr for your chain
-    await window.keplr.enable(chainId);
-    console.log("Keplr enabled for chain");
+    // Enable Keplr for the chain
+    try {
+      await window.keplr.enable(chainId);
+      console.log("Keplr enabled for chain");
+    } catch (keplrError) {
+      console.error("Error enabling Keplr:", keplrError);
+      throw new Error(`Failed to enable Keplr for chain ${chainId}: ${keplrError.message}`);
+    }
 
     // Get the offline signer from Keplr
     const offlineSigner = window.keplr.getOfflineSigner(chainId);
     console.log("Got offline signer");
 
-    // Get user's account info from the chain
-    const accounts = await offlineSigner.getAccounts();
-    const userAccount = accounts.find(acc => acc.address === userAddress);
+    // Get user's account info from Keplr
+    let accounts;
+    try {
+      accounts = await offlineSigner.getAccounts();
+      console.log("Keplr accounts:", accounts);
+    } catch (accountsError) {
+      console.error("Error getting accounts from Keplr:", accountsError);
+      throw new Error(`Failed to get accounts from Keplr: ${accountsError.message}`);
+    }
 
+    const userAccount = accounts.find(acc => acc.address === userAddress);
     if (!userAccount) {
+      console.error("User account not found in Keplr. Available accounts:", accounts);
       throw new Error("User account not found in Keplr");
     }
 
-    console.log("User address:", userAddress);
-
     // Get the latest account details from the chain
-    const accountInfo = await fetchAccountInfo(userAddress);
-    console.log("Account data:", accountInfo);
+    let accountInfo;
+    try {
+      accountInfo = await fetchAccountInfo(userAddress);
+      console.log("Account data from chain:", accountInfo);
+    } catch (accountError) {
+      console.error("Error fetching account info:", accountError);
+      throw new Error(`Failed to fetch account info: ${accountError.message}`);
+    }
+
+    // Ensure account data is valid
+    if (!accountInfo || !accountInfo.account_number || !accountInfo.sequence) {
+      console.error("Invalid account data:", accountInfo);
+      throw new Error("Invalid account data received from the chain");
+    }
 
     // IMPORTANT: Use simple string format without JSON - this is the key fix
     const memo = `tx:${transactionId}|hash:${contentHash}|role:${role}`;
     console.log("Using simple memo string:", memo);
 
     // Create the sign doc with the correct format
+    // Ensure all numeric values are strings for consistency
     const signDoc = {
       chain_id: chainId,
-      account_number: accountInfo.account_number,
-      sequence: accountInfo.sequence,
+      account_number: String(accountInfo.account_number),
+      sequence: String(accountInfo.sequence),
       fee: {
         amount: [{ amount: "2500", denom: "uodis" }],
         gas: "100000"
@@ -59,19 +86,42 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       memo: memo // Simple string memo without any JSON
     };
 
-    // Sign the transaction
+    // Log the complete sign doc for debugging
+    console.log("Sign doc for Keplr:", JSON.stringify(signDoc, null, 2));
+
+    // Sign the transaction with Keplr
     console.log("Requesting Keplr signature...");
-    const signResponse = await offlineSigner.signAmino(userAddress, signDoc);
-    console.log("Got sign response:", signResponse);
+    let signResponse;
+    try {
+      // Use window.keplr.signAmino which works better with Keplr's interface
+      signResponse = await window.keplr.signAmino(chainId, userAddress, signDoc);
+      console.log("Got sign response from Keplr:", signResponse);
+    } catch (signingError) {
+      console.error("Error during Keplr signing:", signingError);
+      // Check if user rejected the request
+      if (signingError.message.includes("Request rejected") || 
+          signingError.message.includes("User denied")) {
+        throw new Error("Transaction was rejected by the user");
+      }
+      throw new Error(`Failed to sign transaction with Keplr: ${signingError.message}`);
+    }
 
     if (!signResponse || !signResponse.signature) {
-      throw new Error("Failed to get signature from Keplr");
+      throw new Error("Failed to get signature from Keplr (empty response)");
     }
 
     // Broadcast the signed transaction
-    const broadcastResult = await broadcastTransaction(signResponse);
-    console.log("Broadcast result:", broadcastResult);
+    console.log("Broadcasting signed transaction...");
+    let broadcastResult;
+    try {
+      broadcastResult = await broadcastTransaction(signResponse);
+      console.log("Broadcast result:", broadcastResult);
+    } catch (broadcastError) {
+      console.error("Error broadcasting transaction:", broadcastError);
+      throw new Error(`Failed to broadcast transaction: ${broadcastError.message}`);
+    }
 
+    // Create success response with transaction details
     return {
       success: true,
       transaction_id: transactionId,
@@ -86,30 +136,32 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       fullError: error,
       chainId: chainId,
       userAddress: userAddress,
-      transactionId: transactionId,
+      transactionId: fileData?.transaction_id,
+      contentHash: fileData?.content_hash,
       timestamp: new Date().toISOString()
     };
     
-    console.error("Keplr signing error:", errorContext);
+    console.error("Keplr transaction error:", errorContext);
     
     // Try to get specific Keplr error information
     let keplrErrorDetails = "Unknown Keplr error";
-    if (error.message.includes("User rejected")) {
+    if (error.message.includes("User rejected") || error.message.includes("denied")) {
       keplrErrorDetails = "User rejected the transaction signing request";
     } else if (error.message.includes("Request rejected")) {
       keplrErrorDetails = "Keplr rejected the signing request";
     } else if (error.message.includes("not found")) {
       keplrErrorDetails = "Keplr wallet or account not found";
+    } else if (error.message.includes("account") && error.message.includes("sequence")) {
+      keplrErrorDetails = "Account sequence mismatch. Try refreshing the page and try again.";
     }
     
     // Create a more informative error for handling
-    const enhancedError = new Error(`Transaction signing failed: ${error.message}`);
+    const enhancedError = new Error(`Transaction failed: ${error.message}`);
     enhancedError.details = {
       keplrErrorDetails,
       userAddress,
-      chainId,
-      transactionId,
-      memo: memo,
+      chainId: chainId || "odiseotestnet_1234-1", 
+      transactionId: fileData?.transaction_id,
       timestamp: new Date().toISOString()
     };
     enhancedError.originalError = error;
@@ -160,24 +212,80 @@ async function fetchAccountInfo(address) {
   }
 }
 
+// Convert Uint8Array to base64 string
+function uint8ArrayToBase64(uint8Array) {
+  // Use browser-friendly approach
+  let binary = '';
+  const bytes = new Uint8Array(uint8Array);
+  const len = bytes.byteLength;
+  
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  
+  return window.btoa(binary);
+}
+
 // Helper function to broadcast the signed transaction
 async function broadcastTransaction(signResponse) {
   try {
-    // Prepare the transaction for broadcasting
+    console.log("Preparing to broadcast transaction...");
+    console.log("Sign response:", signResponse);
+    
+    // Ensure public key is properly formatted for blockchain
+    let pubKey = signResponse.signature.pub_key;
+    
+    // Format signature for network compatibility
+    // Check if we have the public key in the correct format
+    if (pubKey && !pubKey.type) {
+      // Keplr sometimes returns pub_key as array or base64 string directly
+      if (pubKey.key) {
+        // Already has a key field (Keplr format)
+        console.log("Found pub_key with key field:", pubKey);
+      } else if (Array.isArray(pubKey) || pubKey instanceof Uint8Array) {
+        // Need to convert Uint8Array to base64
+        const keyBase64 = uint8ArrayToBase64(pubKey);
+        console.log("Converted pub_key from array to base64:", keyBase64);
+        pubKey = {
+          type: "tendermint/PubKeySecp256k1",
+          value: keyBase64
+        };
+      } else if (typeof pubKey === 'string') {
+        // Already a string (might be base64)
+        console.log("Using string pub_key:", pubKey);
+        pubKey = {
+          type: "tendermint/PubKeySecp256k1",
+          value: pubKey
+        };
+      } else {
+        console.log("Using pubkey as-is:", pubKey);
+      }
+    }
+    
+    // Make sure signature is a string
+    let signature = signResponse.signature.signature;
+    if (signature instanceof Uint8Array) {
+      signature = uint8ArrayToBase64(signature);
+      console.log("Converted signature to base64:", signature);
+    }
+    
+    // Prepare the transaction for broadcasting with properly formatted pub_key
     const broadcastBody = {
       tx: {
         msg: signResponse.signed.msgs,
         fee: signResponse.signed.fee,
         signatures: [
           {
-            pub_key: signResponse.signature.pub_key,
-            signature: signResponse.signature.signature
+            pub_key: pubKey,
+            signature: signature
           }
         ],
-        memo: signResponse.signed.memo // Use the simple string memo from signResponse
+        memo: signResponse.signed.memo // Use the simple string memo
       },
       mode: "block" // Use "block" to wait for confirmation
     };
+    
+    console.log("Broadcasting transaction:", JSON.stringify(broadcastBody, null, 2));
 
     // Send to your backend API endpoint that will broadcast to the blockchain
     const response = await fetch("/api/broadcast", {
@@ -187,52 +295,40 @@ async function broadcastTransaction(signResponse) {
       },
       body: JSON.stringify(broadcastBody)
     });
-
+    
+    console.log("Broadcast response status:", response.status);
+    
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to broadcast transaction");
+      const errorText = await response.text();
+      console.error("Error response text:", errorText);
+      
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { error: "Failed to parse error response" };
+      }
+      
+      throw new Error(errorData.error || `Failed to broadcast transaction: ${response.status}`);
     }
-
-    return await response.json();
+    
+    const result = await response.json();
+    console.log("Broadcast result:", result);
+    return result;
   } catch (error) {
-    // Enhanced error logging with response body if available
+    // Enhanced error logging with as much detail as possible
     console.error("Error broadcasting transaction:", {
       message: error.message,
       stack: error.stack,
-      fullError: error,
-      responseType: typeof response,
-      responseStatus: response?.status
+      fullError: error
     });
     
     // Try to extract more detailed error information
     let errorDetails = {
       message: error.message,
-      type: error.name || 'Error'
+      type: error.name || 'Error',
+      timestamp: new Date().toISOString()
     };
-    
-    // If there's a response object, try to get more details from it
-    if (response) {
-      try {
-        // Clone the response to read it twice
-        response.clone().text().then(text => {
-          console.error("Error response body:", text);
-          try {
-            const jsonResponse = JSON.parse(text);
-            console.error("Parsed error response:", jsonResponse);
-            if (jsonResponse.error_details) {
-              errorDetails.serverDetails = jsonResponse.error_details;
-            }
-          } catch (e) {
-            console.error("Error parsing response JSON:", e);
-          }
-        }).catch(e => console.error("Error reading response body:", e));
-      } catch (e) {
-        console.error("Error accessing response body:", e);
-      }
-    }
-    
-    // Add timestamp for debugging
-    errorDetails.timestamp = new Date().toISOString();
     
     // Enhanced error with more context
     const enhancedError = new Error(`Transaction broadcast failed: ${error.message}`);

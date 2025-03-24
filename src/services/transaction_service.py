@@ -66,7 +66,46 @@ class TransactionService:
             self.logger.debug(f"Message data: {msg}")
             self.logger.debug(f"Account data: {account_data}")
 
-            # Create simple memo format - use a string-based format instead of JSON
+            # If account_data is not provided, fetch it from the chain
+            if not account_data:
+                try:
+                    from cosmpy.crypto.address import Address
+                    addr = Address(sender_address)
+                    self.logger.debug(f"Fetching account data for address: {sender_address}")
+                    account = self.client.query_account(addr)
+                    
+                    # Extract account data
+                    if hasattr(account, 'sequence'):
+                        account_data = {
+                            'account_number': str(getattr(account, 'account_number', '0')),
+                            'sequence': str(account.sequence),
+                            'address': sender_address
+                        }
+                    elif hasattr(account, 'base_vesting_account'):
+                        base_account = account.base_vesting_account.base_account
+                        account_data = {
+                            'account_number': str(getattr(base_account, 'account_number', '0')),
+                            'sequence': str(getattr(base_account, 'sequence', '0')),
+                            'address': sender_address
+                        }
+                    else:
+                        # Default values if structure is unknown
+                        account_data = {
+                            'account_number': '0',
+                            'sequence': '0',
+                            'address': sender_address
+                        }
+                    self.logger.debug(f"Fetched account data: {account_data}")
+                except Exception as account_error:
+                    self.logger.error(f"Error fetching account data: {str(account_error)}")
+                    # Fallback to provided data or defaults
+                    account_data = account_data or {
+                        'account_number': '0',
+                        'sequence': '0',
+                        'address': sender_address
+                    }
+
+            # Create simple memo format using a string-based format instead of JSON
             tx_id = msg.get("transaction_id", "")
             role = msg.get("role", "")
             content_hash = msg.get("content_hash", "")
@@ -74,11 +113,11 @@ class TransactionService:
             memo = f"tx:{tx_id}|hash:{content_hash}|role:{role}"
             self.logger.debug(f"Generated memo: {memo}")
 
-            # Create sign doc for Keplr
+            # Create sign doc for Keplr with explicit type conversions to strings
             sign_doc = {
                 "chain_id": self.network.chain_id,
-                "account_number": account_data.get("account_number", "0"),
-                "sequence": account_data.get("sequence", "0"),
+                "account_number": str(account_data.get("account_number", "0")),
+                "sequence": str(account_data.get("sequence", "0")),
                 "fee": {
                     "amount": [{"denom": "uodis", "amount": "2500"}],
                     "gas": "100000"
@@ -113,55 +152,60 @@ class TransactionService:
                 self.logger.error(error_msg)
                 raise ValueError(error_msg)
             
-            # Use cosmpy's transaction class but handle it manually
-            self.logger.debug("Using manual transaction broadcast approach")
+            # Validate signatures
+            if not tx['signatures'] or not isinstance(tx['signatures'], list):
+                raise ValueError("Missing or invalid signatures format")
+            
+            for signature in tx['signatures']:
+                if 'pub_key' not in signature or 'signature' not in signature:
+                    raise ValueError("Missing public key or signature in signatures")
+                
+                # Ensure pub_key has the correct format
+                pub_key = signature['pub_key']
+                if 'type' not in pub_key or 'value' not in pub_key:
+                    # Try to fix common encoding issues
+                    if isinstance(pub_key, dict) and 'key' in pub_key:
+                        # Format it according to the Amino spec
+                        signature['pub_key'] = {
+                            "type": "tendermint/PubKeySecp256k1",
+                            "value": pub_key['key']
+                        }
+                        self.logger.debug(f"Fixed public key format: {signature['pub_key']}")
+            
+            # Use direct REST API approach for transaction broadcast
+            self.logger.debug("Using direct REST API transaction broadcast approach")
             
             try:
-                # Import required cosmpy components
-                from cosmpy.aerial.tx import Transaction
-                from cosmpy.protos.cosmos.tx.v1beta1.tx_pb2 import TxBody, AuthInfo, SignDoc, TxRaw
-                from cosmpy.protos.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
-                from cosmpy.protos.cosmos.crypto.secp256k1.keys_pb2 import PubKey
-                import importlib
-                import google.protobuf.json_format as json_format
-                
-                # Create new transaction objects from scratch for better control
-                tx_body = TxBody()
-                auth_info = AuthInfo()
-                
-                # Set the memo field
-                tx_body.memo = tx['memo']
-                
-                # Handle fee
-                fee = tx['fee']
-                for amount in fee.get('amount', []):
-                    from cosmpy.protos.cosmos.base.v1beta1.coin_pb2 import Coin
-                    coin = Coin()
-                    coin.denom = amount['denom']
-                    coin.amount = amount['amount']
-                    auth_info.fee.amount.append(coin)
-                
-                auth_info.fee.gas_limit = int(fee.get('gas', '100000'))
-                
-                # We need to use a simpler approach - rely on the REST API directly with the original Amino format
-                # rather than trying to convert to protobuf
                 import requests
                 import json
                 
+                # Ensure consistent data types for all fields
+                # Convert all numeric values to strings
+                for msg in tx['msg']:
+                    if 'value' in msg and 'amount' in msg['value']:
+                        for amount_item in msg['value']['amount']:
+                            if 'amount' in amount_item:
+                                amount_item['amount'] = str(amount_item['amount'])
+                
+                # Ensure fee amount is string
+                if 'fee' in tx and 'amount' in tx['fee']:
+                    for amount_item in tx['fee']['amount']:
+                        if 'amount' in amount_item:
+                            amount_item['amount'] = str(amount_item['amount'])
+                
+                # Ensure gas is string
+                if 'fee' in tx and 'gas' in tx['fee']:
+                    tx['fee']['gas'] = str(tx['fee']['gas'])
+                
                 # Prepare the transaction broadcast request in Amino JSON format
                 broadcast_json = {
-                    "tx": {
-                        "msg": tx['msg'],
-                        "fee": tx['fee'],
-                        "signatures": tx['signatures'],
-                        "memo": tx['memo']
-                    },
-                    "mode": "block"
+                    "tx": tx,
+                    "mode": "block"  # Use "block" to wait for confirmation
                 }
                 
-                self.logger.debug(f"Broadcasting Amino transaction format: {broadcast_json}")
+                self.logger.debug(f"Broadcasting transaction: {json.dumps(broadcast_json, indent=2)}")
                 
-                # Extract REST API endpoint from our RPC URL or use a default
+                # Get the proper REST API endpoint
                 rest_api = self.api_url if hasattr(self, 'api_url') else "https://odiseo.test.api.nodeshub.online"
                 broadcast_url = f"{rest_api}/cosmos/tx/v1beta1/txs"
                 
@@ -174,8 +218,18 @@ class TransactionService:
                     headers={"Content-Type": "application/json"}
                 )
                 
+                # Log complete response for debugging
+                self.logger.debug(f"Response status: {response.status_code}")
+                self.logger.debug(f"Response headers: {response.headers}")
+                
+                try:
+                    response_text = response.text
+                    self.logger.debug(f"Response body: {response_text}")
+                except Exception as e:
+                    self.logger.error(f"Error reading response text: {str(e)}")
+                
                 if not response.ok:
-                    error_msg = f"Transaction broadcast failed: {response.status_code}, {response.text}"
+                    error_msg = f"Transaction broadcast failed: {response.status_code}"
                     self.logger.error(error_msg)
                     
                     # Try to parse the error response if possible
@@ -184,6 +238,8 @@ class TransactionService:
                         error_json = response.json()
                         if isinstance(error_json, dict):
                             error_details = error_json
+                            # Log the detailed error structure
+                            self.logger.error(f"Error details: {json.dumps(error_json, indent=2)}")
                     except Exception as parse_error:
                         self.logger.error(f"Error parsing response: {str(parse_error)}")
                         error_details = response.text
@@ -197,7 +253,7 @@ class TransactionService:
                 
                 # Parse response
                 result = response.json()
-                self.logger.debug(f"Broadcast response: {result}")
+                self.logger.debug(f"Broadcast response: {json.dumps(result, indent=2)}")
                 
                 tx_response = result.get('tx_response', {})
                 if tx_response.get('code', 0) != 0:
@@ -226,20 +282,10 @@ class TransactionService:
                 self.logger.info(f"Transaction broadcast successful: {success_result}")
                 return success_result
                 
-            except ImportError as e:
-                self.logger.error(f"Import error: {str(e)}. Using fallback method...")
-                # Continue with fallback approach...
-            
             except Exception as e:
                 self.logger.error(f"Error in transaction processing: {str(e)}", exc_info=True)
                 raise ValueError(f"Transaction processing error: {str(e)}")
             
-            # If we got here, use a more basic approach - simple JSON structure
-            return {
-                "success": False,
-                "error": "Failed to broadcast transaction using the available methods"
-            }
-
         except ValueError as e:
             error_msg = f"Invalid transaction data: {str(e)}"
             self.logger.error(error_msg)
