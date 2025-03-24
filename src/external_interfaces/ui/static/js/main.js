@@ -793,7 +793,18 @@ function uint8ToBase64(u8Arr) {
 }
 
 // Initialize everything when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // First thing: Register the chain with Keplr if available
+    if (window.keplr) {
+        try {
+            console.log("Registering Odiseo testnet chain with Keplr on page load");
+            await suggestOdiseoChain("odiseotestnet_1234-1");
+            console.log("Successfully registered Odiseo chain on page load");
+        } catch (error) {
+            console.warn("Error pre-registering chain, will try again when needed:", error);
+        }
+    }
+
     // Handle file upload form
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {

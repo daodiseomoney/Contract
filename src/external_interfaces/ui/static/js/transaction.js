@@ -13,6 +13,22 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     // Get chain information
     const chainId = "odiseotestnet_1234-1";
     console.log("Using chain ID:", chainId);
+    
+    // First step - ALWAYS suggest chain to Keplr before doing anything else
+    // This is critical for the Keplr wallet to work with custom chains
+    if (window.keplr) {
+      try {
+        console.log("Pre-registering Odiseo chain before transaction");
+        await suggestOdiseoChain(chainId);
+        console.log("Chain registration succeeded");
+      } catch (regError) {
+        console.error("Error registering chain:", regError);
+        throw new Error(`Failed to register chain with Keplr: ${regError.message}`);
+      }
+    } else {
+      console.error("Keplr wallet not available");
+      throw new Error("Keplr wallet extension not detected. Please install Keplr and refresh the page.");
+    }
 
     // Create sign doc using Amino format structure first
     // We'll convert this to Direct format in signWithKeplr
