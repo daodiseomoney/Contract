@@ -63,8 +63,9 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const memo = `${transactionId}:${contentHash}:${role}`;
     console.log("Using very simple memo string:", memo);
 
-    // Create the sign doc using direct format as recommended in
+    // Create sign doc according to official Keplr docs
     // https://docs.keplr.app/api/guide/sign-a-message
+    // Use Amino format with type/value structure
     const signDoc = {
       chain_id: chainId,
       account_number: String(accountInfo.account_number),
@@ -75,11 +76,13 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       },
       msgs: [
         {
-          // Direct format with @type field
-          "@type": "/cosmos.bank.v1beta1.MsgSend",
-          from_address: userAddress,
-          to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-          amount: [{ denom: "uodis", amount: "1000" }]
+          // Standard Amino format with type/value structure
+          type: "cosmos-sdk/MsgSend",
+          value: {
+            from_address: userAddress,
+            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+            amount: [{ denom: "uodis", amount: "1000" }]
+          }
         }
       ],
       memo: memo // Standard memo string

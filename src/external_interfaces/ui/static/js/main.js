@@ -404,13 +404,77 @@ async function signContract(transactionId) {
             // Add a try-catch specifically around the Keplr signing call
             let signResponse;
             try {
-                // Use signAmino since we're providing an Amino-formatted document
-                console.log('Using signAmino with Keplr (recommended method)');
+                // Make sure Keplr is available and the network is enabled
+                if (!window.keplr) {
+                    throw new Error("Keplr wallet not found. Please install Keplr extension and refresh the page.");
+                }
+                
+                try {
+                    // Explicitly enable chain
+                    await window.keplr.enable(chainId);
+                    console.log("Keplr enabled for chain");
+                    
+                    // Verify we can get an offline signer
+                    const offlineSigner = await window.keplr.getOfflineSigner(chainId);
+                    console.log("Got offline signer");
+                    
+                    // Verify accounts are accessible
+                    const accounts = await offlineSigner.getAccounts();
+                    if (!accounts || accounts.length === 0) {
+                        throw new Error("No accounts found in Keplr wallet for this chain");
+                    }
+                    console.log("Accounts verified:", accounts.length);
+                } catch (networkError) {
+                    console.error("Keplr network check failed:", networkError);
+                    throw new Error(`Network connection error: ${networkError.message}. Please check your Keplr wallet connection.`);
+                }
+                
+                // Validate transaction structure before sending to Keplr
+                const requiredFields = ["chain_id", "account_number", "sequence", "fee", "msgs", "memo"];
+                for (const field of requiredFields) {
+                    if (!aminoDoc[field]) {
+                        throw new Error(`Invalid transaction structure: Missing ${field}`);
+                    }
+                }
+                
+                console.log('Using signAmino with Keplr (properly formatted)');
+                const signOptions = { 
+                    preferNoSetFee: true,
+                    disableBalanceCheck: false
+                };
+                
+                // Use the officially documented format from Keplr docs
+                // Following https://docs.keplr.app/api/guide/sign-a-message
+                const cleanedSignDoc = {
+                    account_number: aminoDoc.account_number,
+                    chain_id: aminoDoc.chain_id,
+                    fee: aminoDoc.fee,
+                    memo: aminoDoc.memo,
+                    msgs: aminoDoc.msgs.map(msg => {
+                        if (msg["@type"] === "/cosmos.bank.v1beta1.MsgSend") {
+                            // Convert to proper Amino format
+                            return {
+                                type: "cosmos-sdk/MsgSend",
+                                value: {
+                                    from_address: msg.from_address,
+                                    to_address: msg.to_address,
+                                    amount: msg.amount
+                                }
+                            };
+                        }
+                        return msg;
+                    }),
+                    sequence: aminoDoc.sequence
+                };
+                
+                // Log the exact document we're sending to Keplr
+                console.log('Clean sign doc for Keplr:', JSON.stringify(cleanedSignDoc, null, 2));
+                
                 signResponse = await window.keplr.signAmino(
                     chainId,
                     userAddress,
-                    aminoDoc,
-                    { preferNoSetFee: true }
+                    cleanedSignDoc,
+                    signOptions
                 );
                 console.log('Got sign response from Keplr:', signResponse);
             } catch (signError) {
