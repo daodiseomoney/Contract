@@ -422,18 +422,46 @@ async function signContract(transactionId) {
                 options: { preferNoSetFee: true }
             });
             
-            // Add a try-catch specifically around the signAmino call
+            // Add a try-catch specifically around the Keplr signing call
             let signResponse;
             try {
-                signResponse = await window.keplr.signAmino(
-                    chainId,
-                    userAddress,
-                    signDoc,
-                    { preferNoSetFee: true }
-                );
+                // For Proto-formatted messages, use signDirect method
+                if (signDoc.msgs[0]?.typeUrl) {
+                    // Create DirectSignDoc format for signDirect
+                    const directSignDoc = {
+                        bodyBytes: new TextEncoder().encode(JSON.stringify({
+                            messages: signDoc.msgs,
+                            memo: signDoc.memo,
+                            chainId: signDoc.chain_id,
+                            accountNumber: signDoc.account_number,
+                            sequence: signDoc.sequence
+                        })),
+                        authInfoBytes: new TextEncoder().encode(JSON.stringify({
+                            fee: signDoc.fee
+                        })),
+                        chainId: signDoc.chain_id,
+                        accountNumber: signDoc.account_number
+                    };
+                    
+                    console.log('Using signDirect with Proto format');
+                    signResponse = await window.keplr.signDirect(
+                        chainId,
+                        userAddress,
+                        directSignDoc
+                    );
+                } else {
+                    // For backward compatibility, use original Amino format for signing
+                    console.log('Using signAmino with original Amino format');
+                    signResponse = await window.keplr.signAmino(
+                        chainId,
+                        userAddress,
+                        aminoDoc, // Use the original Amino doc instead of signDoc
+                        { preferNoSetFee: true }
+                    );
+                }
                 console.log('Got sign response:', signResponse);
             } catch (signError) {
-                console.error('signAmino specific error:', {
+                console.error('Keplr signing error:', {
                     message: signError.message,
                     stack: signError.stack,
                     fullError: signError,
