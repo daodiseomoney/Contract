@@ -66,7 +66,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       success: true,
       transaction_id: transactionId,
       blockchain_tx_hash: broadcastResult.txhash,
-      explorer_url: `https://explorer.odiseotestnet.com/tx/${broadcastResult.txhash}`
+      explorer_url: `https://testnet.explorer.nodeshub.online/odiseo/tx/${broadcastResult.txhash}`
     };
   } catch (error) {
     // Enhanced error logging with detailed context
