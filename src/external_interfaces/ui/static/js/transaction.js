@@ -63,7 +63,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const memo = `${transactionId}:${contentHash}:${role}`;
     console.log("Using very simple memo string:", memo);
 
-    // Create the sign doc using Proto format (Keplr compatible)
+    // Create the sign doc using Amino format (Keplr compatible)
     // Ensure all numeric values are strings for consistency
     const signDoc = {
       chain_id: chainId,
@@ -75,10 +75,10 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       },
       msgs: [
         {
-          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          type: "cosmos-sdk/MsgSend", // Use Amino type format
           value: {
-            fromAddress: userAddress,
-            toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+            from_address: userAddress, // Use snake_case for Amino format
+            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
             amount: [{ amount: "1000", denom: "uodis" }]
           }
         }
@@ -87,13 +87,13 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     };
 
     // Log the complete sign doc for debugging
-    console.log("Sign doc for Keplr:", JSON.stringify(signDoc, null, 2));
+    console.log("Amino sign doc for Keplr:", JSON.stringify(signDoc, null, 2));
 
     // Sign the transaction with Keplr
-    console.log("Requesting Keplr signature...");
+    console.log("Requesting Keplr signature with Amino format...");
     let signResponse;
     try {
-      // Use window.keplr.signAmino which works better with Keplr's interface
+      // Use window.keplr.signAmino with properly formatted Amino doc
       signResponse = await window.keplr.signAmino(chainId, userAddress, signDoc);
       console.log("Got sign response from Keplr:", signResponse);
     } catch (signingError) {
