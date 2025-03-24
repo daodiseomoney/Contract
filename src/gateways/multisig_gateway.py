@@ -108,17 +108,29 @@ class MultiSigBlockchainGateway:
                 self.logger.error(f"Chain ID mismatch: {signed.get('chain_id')}")
                 raise ValueError("Invalid chain ID in signature")
 
-            # Parse and verify pipe-delimited memo
+            # Parse and verify memo (supports both new colon-separated and legacy pipe-delimited formats)
             try:
                 memo = signed.get('memo', '')
-                # Check for JSON format (not allowed anymore)
+                # Check for JSON format (not allowed)
                 if memo.startswith('{') or memo.startswith('['):
                     self.logger.error("Invalid memo format: JSON object not allowed")
-                    raise ValueError("Memo must be a simple pipe-delimited string")
+                    raise ValueError("Memo must be a simple string format")
                 
                 # Parse the memo into a dictionary
                 memo_data = {}
-                if '|' in memo:
+                
+                # Check for new format first: "transactionId:contentHash:role"
+                if memo.count(':') == 2 and '|' not in memo:
+                    self.logger.debug(f"Parsing simplified colon-separated memo format: {memo}")
+                    parts = memo.split(':')
+                    if len(parts) == 3:
+                        memo_data['tx'] = parts[0]
+                        memo_data['hash'] = parts[1]
+                        memo_data['role'] = parts[2]
+                
+                # Legacy format: "tx:ID|hash:HASH|role:ROLE"
+                elif '|' in memo:
+                    self.logger.debug(f"Parsing legacy pipe-delimited memo format: {memo}")
                     parts = memo.split('|')
                     for part in parts:
                         if ':' in part:
@@ -128,7 +140,7 @@ class MultiSigBlockchainGateway:
                 # Check for required fields
                 if not all(k in memo_data for k in ['tx', 'hash', 'role']):
                     self.logger.error(f"Missing required fields in memo: {memo}")
-                    raise ValueError("Invalid memo format. Expected tx:ID|hash:HASH|role:ROLE")
+                    raise ValueError("Invalid memo format. Expected either 'txId:contentHash:role' or 'tx:ID|hash:HASH|role:ROLE'")
                 
                 # Verify the values match
                 if (memo_data['tx'] != transaction_id or
