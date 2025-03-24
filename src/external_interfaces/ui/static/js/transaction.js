@@ -63,33 +63,27 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const memo = `${transactionId}:${contentHash}:${role}`;
     console.log("Using very simple memo string:", memo);
 
-    // Extract message data
-    const msgSendData = {
-      // Direct message fields without nesting
-      from_address: userAddress,
-      to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-      amount: [{ amount: "1000", denom: "uodis" }]
-    };
-    
-    // Create the sign doc using proper Keplr-compatible format
-    // Ensure all numeric values are strings for consistency
+    // Create the sign doc using proper Amino format for Keplr 
+    // Following https://docs.keplr.app/api/guide/sign-a-message
     const signDoc = {
       chain_id: chainId,
       account_number: String(accountInfo.account_number),
       sequence: String(accountInfo.sequence),
       fee: {
-        amount: [{ amount: "2500", denom: "uodis" }],
+        amount: [{ denom: "uodis", amount: "2500" }],
         gas: "100000"
       },
       msgs: [
         {
-          // Use @type field instead of type for Keplr compatibility
-          "@type": "/cosmos.bank.v1beta1.MsgSend",
-          // Include message fields directly at this level instead of nesting in value
-          ...msgSendData
+          type: "cosmos-sdk/MsgSend",
+          value: {
+            from_address: userAddress,
+            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+            amount: [{ denom: "uodis", amount: "1000" }]
+          }
         }
       ],
-      memo: memo // Ultra-simple memo string
+      memo: memo // Standard memo string
     };
 
     // Log the complete sign doc for debugging
@@ -232,39 +226,12 @@ function uint8ArrayToBase64(uint8Array) {
   return window.btoa(binary);
 }
 
-// Helper function to convert Keplr-compatible message to Proto format
-function convertAminoToProto(keplerMsg) {
-  console.log("Converting message to Proto format:", keplerMsg);
+// Helper function to convert Amino message to Proto format
+function convertAminoToProto(aminoMsg) {
+  console.log("Converting Amino message to Proto format:", aminoMsg);
   
-  // Handle the new flattened Keplr message format with @type field
-  if (keplerMsg["@type"]) {
-    // Extract the typeUrl (e.g. "/cosmos.bank.v1beta1.MsgSend")
-    const typeUrl = keplerMsg["@type"];
-    
-    // For MsgSend, convert snake_case to camelCase
-    if (typeUrl === "/cosmos.bank.v1beta1.MsgSend") {
-      return {
-        typeUrl: typeUrl,
-        value: {
-          fromAddress: keplerMsg.from_address,
-          toAddress: keplerMsg.to_address,
-          amount: keplerMsg.amount
-        }
-      };
-    }
-    
-    // For other message types, create a default conversion
-    const value = { ...keplerMsg };
-    delete value["@type"]; // Remove the @type field from the value
-    
-    return {
-      typeUrl: typeUrl,
-      value: value
-    };
-  }
-  
-  // Handle legacy Amino format (backward compatibility)
-  if (keplerMsg.type && keplerMsg.value) {
+  // Handle standard Amino format with type/value structure
+  if (aminoMsg.type && aminoMsg.value) {
     // Map Amino types to Proto typeUrls
     const typeUrlMapping = {
       'cosmos-sdk/MsgSend': '/cosmos.bank.v1beta1.MsgSend',
@@ -272,34 +239,36 @@ function convertAminoToProto(keplerMsg) {
     };
     
     // Get corresponding typeUrl from mapping
-    const typeUrl = typeUrlMapping[keplerMsg.type];
+    const typeUrl = typeUrlMapping[aminoMsg.type];
     if (!typeUrl) {
-      console.error('Unknown message type:', keplerMsg.type);
-      throw new Error(`Unknown message type: ${keplerMsg.type}`);
+      console.error('Unknown message type:', aminoMsg.type);
+      throw new Error(`Unknown message type: ${aminoMsg.type}`);
     }
     
-    // Create Proto format message with proper field naming conversion
-    if (keplerMsg.type === 'cosmos-sdk/MsgSend') {
+    console.log(`Converting Amino type '${aminoMsg.type}' to Proto typeUrl '${typeUrl}'`);
+    
+    // For MsgSend, convert snake_case to camelCase
+    if (aminoMsg.type === 'cosmos-sdk/MsgSend') {
       return {
         typeUrl: typeUrl,
         value: {
-          fromAddress: keplerMsg.value.from_address,
-          toAddress: keplerMsg.value.to_address,
-          amount: keplerMsg.value.amount
+          fromAddress: aminoMsg.value.from_address,
+          toAddress: aminoMsg.value.to_address,
+          amount: aminoMsg.value.amount
         }
       };
     }
     
-    // For other message types
+    // For other message types, pass value as-is
     return {
       typeUrl: typeUrl,
-      value: keplerMsg.value
+      value: aminoMsg.value
     };
   }
   
-  // If unable to convert, log an error
-  console.error("Unknown message format:", keplerMsg);
-  throw new Error("Unable to convert message to Proto format");
+  // If message is already in a different format, log an error
+  console.error("Unexpected message format:", aminoMsg);
+  throw new Error("Message must be in Amino format with type and value fields");
 }
 
 // Helper function to broadcast the signed transaction

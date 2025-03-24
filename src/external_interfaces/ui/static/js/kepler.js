@@ -80,18 +80,27 @@ class KeplerWallet {
         }
 
         try {
-            // Ensure transaction is in the format Keplr expects
-            // If transaction has type/value structure, transform it
+            // Ensure transaction is properly formatted for Keplr
+            // Must use Amino format (type/value structure) for signAmino
             let msgForKeplr = transaction;
             
-            if (transaction.type && transaction.value) {
-                // Extract the message type
-                const msgType = transaction.type.split('/')[1] || transaction.type;
+            // If not already in Amino format, convert it
+            if (!transaction.type || !transaction.value) {
+                // Create standard Amino format
+                const msgType = "cosmos-sdk/MsgSend";
                 
-                // Create a flattened message with @type field
+                // Extract fields or use defaults
+                const fromAddress = transaction.from_address || transaction.fromAddress || this.address;
+                const toAddress = transaction.to_address || transaction.toAddress || "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt";
+                const amount = transaction.amount || [{ denom: "uodis", amount: "1000" }];
+                
                 msgForKeplr = {
-                    "@type": `/cosmos.bank.v1beta1.${msgType}`,
-                    ...transaction.value  // Spread the value fields directly
+                    type: msgType,
+                    value: {
+                        from_address: fromAddress,
+                        to_address: toAddress,
+                        amount: amount
+                    }
                 };
             }
             
@@ -101,16 +110,16 @@ class KeplerWallet {
                 account_number: '0',
                 sequence: '0',
                 fee: {
-                    amount: [{ amount: '2000', denom: 'uodis' }],
+                    amount: [{ denom: 'uodis', amount: '2000' }],
                     gas: '200000',
                 },
-                msgs: [msgForKeplr],  // Use the properly formatted message
+                msgs: [msgForKeplr],
                 memo: ''
             };
             
-            console.log("Signing with Keplr:", signDoc);
+            console.log("Signing with Keplr using Amino format:", JSON.stringify(signDoc, null, 2));
 
-            // Sign the transaction directly with Keplr (not offlineSigner)
+            // Sign directly with Keplr (not offlineSigner)
             const signature = await window.keplr.signAmino(
                 this.chainId,
                 this.address,
