@@ -15,7 +15,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     console.log("Using chain ID:", chainId);
 
     // Create sign doc according to official Keplr docs
-    // https://docs.keplr.app/api/guide/sign-a-message
+    // https://docs.keplr.app/api/sign.html#cosmjssignamino
     const signDoc = {
       chain_id: chainId,
       account_number: String(await getAccountNumber(userAddress)),
@@ -25,12 +25,15 @@ async function createAndSignTransaction(fileData, userAddress, role) {
         gas: "100000"
       },
       msgs: [
-        // IMPORTANT: Direct object format without type/value nesting
-        // This is what Keplr expects when using MsgSend
+        // IMPORTANT: Amino format WITH type/value structure
+        // This is what Keplr expects when using signAmino
         {
-          from_address: userAddress,
-          to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-          amount: [{ denom: "uodis", amount: "1000" }]
+          type: "cosmos-sdk/MsgSend",
+          value: {
+            from_address: userAddress,
+            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+            amount: [{ denom: "uodis", amount: "1000" }]
+          }
         }
       ],
       memo: `tx:${transactionId}|hash:${contentHash}|role:${role}`
@@ -238,11 +241,11 @@ function uint8ArrayToBase64(uint8Array) {
 function convertAminoToProto(msg) {
   console.log("Converting message to Proto format:", msg);
 
-  // We now use direct object format without type/value structure for signAmino
-  // For broadcast, we need to convert from direct format to Proto format
+  // We now use Amino format WITH type/value structure for signAmino
+  // For broadcast, we need to convert from Amino format to Proto format
 
-  // Handle direct object format, which is what we're now using
-  // This is the format that works with Keplr's signAmino
+  // Handle direct object format for backward compatibility
+  // Note: This format does NOT work with Keplr's signAmino and will cause errors
   if (msg.from_address && msg.to_address && msg.amount) {
     console.log("Processing direct format message (converting to Proto):", msg);
 
