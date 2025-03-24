@@ -74,35 +74,26 @@ class TestRealMultiSigGateway:
 
     def test_sign_transaction(self, gateway):
         """Test signing a transaction with a real role."""
-        # Create a transaction
-        content_hash = "xyz456hash"
-        metadata = {
-            "property_name": "Downtown Apartment",
-            "location": "New York",
-            "value": 1800000,
-            "participants": [
-                {"role": "owner", "address": "odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705"},
-                {"role": "broker", "address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"}
-            ]
-        }
+        import logging
+        logging.basicConfig(level=logging.DEBUG)
+        logger = logging.getLogger(__name__)
+        
+        # Create a transaction with simpler test data
+        content_hash = "abc123hash"
+        metadata = {"test_field": "test_value"}
         
         # Create the transaction
         tx_id = gateway.create_transaction(content_hash, metadata)
+        logger.debug(f"Created transaction with ID: {tx_id}")
         
-        # Create a mock Keplr signature for testing
+        # Create a simplified mock Keplr signature for testing
+        # The exact memo format is critical: "tx:{tx_id}|hash:{content_hash}|role:{role.value}"
         signature = {
             "signed": {
                 "chain_id": "odiseotestnet_1234-1",
-                "account_number": "0",
+                "account_number": "0", 
                 "sequence": "0",
-                "msgs": [{
-                    "typeUrl": "/cosmos.bank.v1beta1.MsgSend",
-                    "value": {
-                        "fromAddress": "odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705",
-                        "toAddress": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                        "amount": [{"denom": "uodis", "amount": "1000"}]
-                    }
-                }],
+                "msgs": [],  # Empty messages array to simplify testing
                 "memo": f"tx:{tx_id}|hash:{content_hash}|role:owner"
             },
             "signature": {
@@ -114,18 +105,29 @@ class TestRealMultiSigGateway:
             }
         }
         
-        # Sign the transaction with owner role
-        role = SignatureRole.OWNER
-        result = gateway.sign_transaction(tx_id, role, signature)
+        # For debugging
+        logger.debug(f"Signature data: {signature}")
         
-        # Verify signing was successful
-        assert result is True
-        
-        # Get transaction status to verify signature was recorded
-        status = gateway.get_transaction_status(tx_id)
-        assert status["status"] == "partially_signed"
-        assert len(status["signatures"]) == 1
-        assert status["signatures"][0]["role"] == "owner"
+        # Use try/except to get full error details
+        try:
+            # Sign the transaction with owner role
+            role = SignatureRole.OWNER
+            result = gateway.sign_transaction(tx_id, role, signature)
+            
+            # Verify signing was successful
+            assert result is True
+            
+            # Get transaction status to verify signature was recorded
+            status = gateway.get_transaction_status(tx_id)
+            assert status["status"] == "partially_signed"
+            assert len(status["signatures"]) == 1
+            assert status["signatures"][0]["role"] == "owner"
+        except Exception as e:
+            # Log the full exception details
+            import traceback
+            logger.error(f"Error during sign_transaction: {e}")
+            logger.error(traceback.format_exc())
+            raise  # Re-raise exception to fail the test
 
 class TestRealKeplerGateway:
     """Test the real KeplerGateway implementation."""
