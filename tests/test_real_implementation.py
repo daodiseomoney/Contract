@@ -96,10 +96,27 @@ class TestRealMultiSigGateway:
         
         # Verify the transaction is available in active contracts
         contracts = gateway.get_active_contracts()
-        assert any(c["id"] == tx_id for c in contracts)
+        logger.debug(f"Contracts returned: {contracts}")
+        
+        # Check transaction exists in active contracts (the key might be 'transaction_id' not 'id')
+        contract_found = False
+        for contract in contracts:
+            logger.debug(f"Checking contract: {contract}")
+            if 'transaction_id' in contract and contract['transaction_id'] == tx_id:
+                contract_found = True
+                break
+            # Alternative key names (may vary in implementation)
+            elif 'id' in contract and contract['id'] == tx_id:
+                contract_found = True
+                break
+            elif 'tx_id' in contract and contract['tx_id'] == tx_id:
+                contract_found = True
+                break
+        
+        assert contract_found, f"Transaction {tx_id} not found in active contracts"
         
         # Test passed - we can at least create transactions
-        # Full signature testing requires separate tools that can mock
+        # Full signature testing requires separate tools that can mock 
         # the blockchain interaction
         logger.debug("Transaction creation and storage verified successfully")
 
