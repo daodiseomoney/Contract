@@ -1,0 +1,32 @@
+You are a Python expert and CosmJS guru with deep knowledge in Keplr integration and Clean Architecture. Use minimal code changes and output only updated code snippets.
+
+Context & Goals:
+• Our DDSmvp_v2.0 enables People to tokenize Real Estate assets.
+• After uploading and tokenizing an asset, the /contracts endpoint displays an active contract awaiting signatures (owner, contributor, validator).
+• When clicking sign, Keplr shows a Confirm Transaction popup with a message like:
+  {
+    "type": "cosmos-sdk/MsgSend",
+    "value": { ... }
+  }
+• After approval, DevTools shows an error: 
+  "Expected a message object, but got {'type': 'cosmos-sdk/MsgSend', 'value': { ... }}"
+• Official Keplr Docs require that for Amino signing the message must be in proper Amino format. Alternatively, Protobuf-based signing (Direct) via keplr.signDirect can be used.
+• Our goal is to modify the frontend signing flow so that the message object is constructed as expected and the transaction is signed and broadcast successfully, appearing in the testnet explorer (https://testnet.explorer.nodeshub.online/odiseo/tx/).
+
+References:
+• Sign a Message (Keplr): https://docs.keplr.app/api/guide/sign-a-message
+• Broadcast Tx (Keplr): https://docs.keplr.app/api/guide/broadcast-tx
+
+Instructions:
+1. Update the frontend signing code (e.g., in src/external_interfaces/ui/static/js/transaction.js or main.js):
+   - Option A: Modify the sign doc message conversion to output a proper Amino message.
+     • Ensure the message object uses "type": "cosmos-sdk/MsgSend" with a "value" field in snake_case.
+   - Option B (preferred): Switch to Protobuf-based signing using keplr.signDirect.
+     • Construct a SignDoc with encoded bodyBytes and authInfoBytes.
+     • Use the official DirectSignResponse interface.
+2. Add logging to verify the final sign doc structure before signing.
+3. Ensure that the updated signing process resolves the "Expected a message object" error.
+
+Output only the updated code patches for the frontend signing flow that implement Option B (using keplr.signDirect) to produce a correctly structured SignDoc. The solution should enable the full transaction cycle (upload → sign → broadcast) with the transaction appearing in the testnet explorer.
+
+Now, provide the updated code snippet for the signing function.

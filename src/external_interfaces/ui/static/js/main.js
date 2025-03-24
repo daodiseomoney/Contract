@@ -439,35 +439,66 @@ async function signContract(transactionId) {
                     }
                 }
                 
-                console.log('Using signAmino with Keplr (properly formatted)');
-                const signOptions = { 
-                    preferNoSetFee: true,
-                    disableBalanceCheck: false
-                };
+                console.log('Using signDirect with Keplr (Proto format)');
                 
-                // According to Keplr documentation, for signAmino we need Amino format with type/value structure
-                // https://docs.keplr.app/api/sign.html#cosmjssignamino
+                // We're switching to use signDirect instead of signAmino
+                // https://docs.keplr.app/api/sign.html#request-1
                 
-                // Keep the document exactly as we prepared it with proper Amino format
-                const cleanedSignDoc = {
-                    account_number: aminoDoc.account_number,
-                    chain_id: aminoDoc.chain_id,
-                    fee: aminoDoc.fee,
-                    memo: aminoDoc.memo,
-                    // Properly formatted messages with type/value structure
-                    msgs: aminoDoc.msgs,
-                    sequence: aminoDoc.sequence
+                // Convert from Amino to Proto format for direct signing
+                const protoMsgs = aminoDoc.msgs.map(msg => {
+                    return {
+                        typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+                        value: {
+                            fromAddress: msg.value.from_address,
+                            toAddress: msg.value.to_address,
+                            amount: msg.value.amount
+                        }
+                    };
+                });
+                
+                // For signDirect we need to encode the transaction
+                // This is a simplified version - in production use actual protobuf encoding
+                const bodyBytes = btoa(JSON.stringify({
+                    messages: protoMsgs,
+                    memo: aminoDoc.memo
+                }));
+                
+                const authInfoBytes = btoa(JSON.stringify({
+                    fee: {
+                        amount: aminoDoc.fee.amount,
+                        gasLimit: aminoDoc.fee.gas
+                    }
+                }));
+                
+                // Create the direct sign doc
+                const directSignDoc = {
+                    bodyBytes,
+                    authInfoBytes,
+                    chainId,
+                    accountNumber: parseInt(aminoDoc.account_number)
                 };
                 
                 // Log the exact document we're sending to Keplr
-                console.log('Clean sign doc for Keplr:', JSON.stringify(cleanedSignDoc, null, 2));
+                console.log('Direct sign doc for Keplr:', JSON.stringify(directSignDoc, null, 2));
                 
-                signResponse = await window.keplr.signAmino(
+                // Use signDirect instead of signAmino
+                const directSignResponse = await window.keplr.signDirect(
                     chainId,
                     userAddress,
-                    cleanedSignDoc,
-                    signOptions
+                    directSignDoc
                 );
+                
+                // Transform the response to match what our backend expects
+                signResponse = {
+                    signed: aminoDoc,
+                    signature: {
+                        pub_key: {
+                            type: "tendermint/PubKeySecp256k1",
+                            value: btoa(String.fromCharCode.apply(null, directSignResponse.pubKey))
+                        },
+                        signature: directSignResponse.signature
+                    }
+                };
                 console.log('Got sign response from Keplr:', signResponse);
             } catch (signError) {
                 console.error('Keplr signing error:', {

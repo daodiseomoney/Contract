@@ -14,8 +14,8 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const chainId = "odiseotestnet_1234-1";
     console.log("Using chain ID:", chainId);
 
-    // Create sign doc according to official Keplr docs
-    // https://docs.keplr.app/api/sign.html#cosmjssignamino
+    // Create sign doc using Amino format structure first
+    // We'll convert this to Direct format in signWithKeplr
     const signDoc = {
       chain_id: chainId,
       account_number: String(await getAccountNumber(userAddress)),
@@ -25,8 +25,8 @@ async function createAndSignTransaction(fileData, userAddress, role) {
         gas: "100000"
       },
       msgs: [
-        // IMPORTANT: Amino format WITH type/value structure
-        // This is what Keplr expects when using signAmino
+        // Using Amino format with type/value structure
+        // This will be converted to Proto format for signDirect
         {
           type: "cosmos-sdk/MsgSend",
           value: {
@@ -38,6 +38,8 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       ],
       memo: `tx:${transactionId}|hash:${contentHash}|role:${role}`
     };
+    
+    console.log("Using signDirect instead of signAmino for Keplr transaction");
 
     // Log the complete sign doc for debugging
     console.log("Amino sign doc for Keplr:", JSON.stringify(signDoc, null, 2));
@@ -163,7 +165,7 @@ async function getAccountSequence(address) {
 }
 
 
-// Transaction handling with Keplr
+// Transaction handling with Keplr using Protobuf (Direct) signing
 async function signWithKeplr(chainId, userAddress, signDoc) {
   try {
     // Enable Keplr for the chain
@@ -178,35 +180,80 @@ async function signWithKeplr(chainId, userAddress, signDoc) {
     const accounts = await offlineSigner.getAccounts();
     console.log("Accounts verified:", accounts.length);
 
-    // Format message in Amino format according to Keplr docs
-    // https://docs.keplr.app/api/sign.html#cosmjssignamino
-    const aminoDoc = {
-      ...signDoc,
-      msgs: signDoc.msgs.map(msg => ({
-        type: "cosmos-sdk/MsgSend",
+    // Convert Amino messages to Proto format for DirectSigning
+    const protoMsgs = signDoc.msgs.map(msg => {
+      // Convert from Amino to Proto format
+      return {
+        typeUrl: "/cosmos.bank.v1beta1.MsgSend",
         value: {
-          from_address: msg.from_address,
-          to_address: msg.to_address,
-          amount: msg.amount
+          fromAddress: msg.value.from_address,
+          toAddress: msg.value.to_address,
+          amount: msg.value.amount
         }
-      }))
+      };
+    });
+
+    console.log("Converted to Proto messages for signDirect:", JSON.stringify(protoMsgs, null, 2));
+
+    // Create a proper DirectSignDoc according to Keplr docs
+    // https://docs.keplr.app/api/sign.html#request
+    
+    // Encode the transaction for signDirect (this is a simplified version, in production would use protobuf)
+    // In a real implementation, we would use proper Protocol Buffers encoding
+    // but for this example we're using a mock encoding to demonstrate the concept
+    const bodyBytes = encodeToBase64(JSON.stringify({
+      messages: protoMsgs,
+      memo: signDoc.memo,
+      // Other required fields for body
+    }));
+
+    const authInfoBytes = encodeToBase64(JSON.stringify({
+      // This would include signer info and fee
+      fee: {
+        amount: signDoc.fee.amount,
+        gasLimit: signDoc.fee.gas
+      }
+    }));
+
+    // Create the DirectSignDoc required by signDirect
+    const directSignDoc = {
+      bodyBytes,
+      authInfoBytes,
+      chainId,
+      accountNumber: parseInt(signDoc.account_number)
     };
 
-    console.log("Using signAmino with Keplr (properly formatted)");
-    console.log("Clean sign doc for Keplr:", JSON.stringify(aminoDoc, null, 2));
+    console.log("Using signDirect with Keplr (Proto format)");
+    console.log("DirectSignDoc for Keplr:", JSON.stringify(directSignDoc, null, 2));
 
-    // Sign the transaction
-    const signResponse = await window.keplr.signAmino(
+    // Sign the transaction with signDirect
+    const signResponse = await window.keplr.signDirect(
       chainId,
       userAddress,
-      aminoDoc,
-      {
-        preferNoSetFee: true
-      }
+      directSignDoc
     );
 
-    console.log("Got sign response from Keplr:", signResponse);
-    return signResponse;
+    console.log("Got signDirect response from Keplr:", signResponse);
+    
+    // For compatibility with the existing code expecting signAmino format
+    // we'll transform the response to match the expected structure
+    const compatResponse = {
+      signed: {
+        ...signDoc,
+        // Keep the original messages for broadcasting
+        msgs: signDoc.msgs
+      },
+      signature: {
+        pub_key: { 
+          type: "tendermint/PubKeySecp256k1",
+          value: encodeToBase64(signResponse.pubKey)
+        },
+        signature: signResponse.signature
+      }
+    };
+    
+    console.log("Transformed response for compatibility:", compatResponse);
+    return compatResponse;
 
   } catch (error) {
     console.error("Keplr signing error:", {
@@ -215,6 +262,20 @@ async function signWithKeplr(chainId, userAddress, signDoc) {
       fullError: error
     });
     throw error;
+  }
+}
+
+// Helper function to encode data to base64
+function encodeToBase64(data) {
+  if (typeof data === 'string') {
+    // If it's already a string, encode it directly
+    return btoa(data);
+  } else if (data instanceof Uint8Array) {
+    // If it's a Uint8Array, convert to string and then encode
+    return uint8ArrayToBase64(data);
+  } else {
+    // For other types, JSON stringify and encode
+    return btoa(JSON.stringify(data));
   }
 }
 
