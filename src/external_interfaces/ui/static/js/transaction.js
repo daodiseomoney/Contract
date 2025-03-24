@@ -79,12 +79,42 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       explorer_url: `https://explorer.odiseotestnet.com/tx/${broadcastResult.txhash}`
     };
   } catch (error) {
-    console.error("Keplr signing error:", {
+    // Enhanced error logging with detailed context
+    const errorContext = {
       message: error.message,
       stack: error.stack,
-      fullError: error
-    });
-    throw error;
+      fullError: error,
+      chainId: chainId,
+      userAddress: userAddress,
+      transactionId: transactionId,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.error("Keplr signing error:", errorContext);
+    
+    // Try to get specific Keplr error information
+    let keplrErrorDetails = "Unknown Keplr error";
+    if (error.message.includes("User rejected")) {
+      keplrErrorDetails = "User rejected the transaction signing request";
+    } else if (error.message.includes("Request rejected")) {
+      keplrErrorDetails = "Keplr rejected the signing request";
+    } else if (error.message.includes("not found")) {
+      keplrErrorDetails = "Keplr wallet or account not found";
+    }
+    
+    // Create a more informative error for handling
+    const enhancedError = new Error(`Transaction signing failed: ${error.message}`);
+    enhancedError.details = {
+      keplrErrorDetails,
+      userAddress,
+      chainId,
+      transactionId,
+      memo: memo,
+      timestamp: new Date().toISOString()
+    };
+    enhancedError.originalError = error;
+    
+    throw enhancedError;
   }
 }
 
@@ -105,8 +135,28 @@ async function fetchAccountInfo(address) {
       sequence: String(accountData.sequence || "0")
     };
   } catch (error) {
-    console.error("Error fetching account info:", error);
-    throw error;
+    // Enhanced error logging for account fetching
+    const errorContext = {
+      message: error.message,
+      stack: error.stack,
+      fullError: error,
+      address: address,
+      endpoint: `/api/account?address=${address}`,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.error("Error fetching account info:", errorContext);
+    
+    // Create more informative error
+    const enhancedError = new Error(`Account info fetch failed: ${error.message}`);
+    enhancedError.details = {
+      address: address,
+      timestamp: new Date().toISOString(),
+      originalMessage: error.message
+    };
+    enhancedError.originalError = error;
+    
+    throw enhancedError;
   }
 }
 
@@ -145,6 +195,7 @@ async function broadcastTransaction(signResponse) {
 
     return await response.json();
   } catch (error) {
+    // Enhanced error logging with response body if available
     console.error("Error broadcasting transaction:", {
       message: error.message,
       stack: error.stack,
@@ -152,7 +203,43 @@ async function broadcastTransaction(signResponse) {
       responseType: typeof response,
       responseStatus: response?.status
     });
-    throw error;
+    
+    // Try to extract more detailed error information
+    let errorDetails = {
+      message: error.message,
+      type: error.name || 'Error'
+    };
+    
+    // If there's a response object, try to get more details from it
+    if (response) {
+      try {
+        // Clone the response to read it twice
+        response.clone().text().then(text => {
+          console.error("Error response body:", text);
+          try {
+            const jsonResponse = JSON.parse(text);
+            console.error("Parsed error response:", jsonResponse);
+            if (jsonResponse.error_details) {
+              errorDetails.serverDetails = jsonResponse.error_details;
+            }
+          } catch (e) {
+            console.error("Error parsing response JSON:", e);
+          }
+        }).catch(e => console.error("Error reading response body:", e));
+      } catch (e) {
+        console.error("Error accessing response body:", e);
+      }
+    }
+    
+    // Add timestamp for debugging
+    errorDetails.timestamp = new Date().toISOString();
+    
+    // Enhanced error with more context
+    const enhancedError = new Error(`Transaction broadcast failed: ${error.message}`);
+    enhancedError.details = errorDetails;
+    enhancedError.originalError = error;
+    
+    throw enhancedError;
   }
 }
 

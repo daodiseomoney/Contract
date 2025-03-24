@@ -447,12 +447,31 @@ async function signContract(transactionId) {
             showError(error.message || 'Failed to sign transaction');
         }
     } catch (error) {
-        console.error('Contract signing error:', {
+        // Enhanced error logging for contract signing
+        const errorContext = {
             message: error.message,
             stack: error.stack,
-            fullError: error
-        });
-        showError(error.message || 'Failed to process contract signing');
+            fullError: error,
+            transactionId: transactionId,
+            userRole: role,
+            timestamp: new Date().toISOString()
+        };
+        
+        console.error('Contract signing error:', errorContext);
+        
+        // Try to extract specific Keplr error types
+        let userFriendlyMessage = 'Failed to process contract signing';
+        if (error.message.includes('User rejected')) {
+            userFriendlyMessage = 'You declined the transaction request in Keplr';
+        } else if (error.message.includes('wallet not found')) {
+            userFriendlyMessage = 'Keplr wallet extension not detected. Please install Keplr and refresh the page.';
+        } else if (error.message.includes('Invalid memo')) {
+            userFriendlyMessage = 'Transaction failed: Invalid memo format';
+        } else if (error.details && error.details.keplrErrorDetails) {
+            userFriendlyMessage = error.details.keplrErrorDetails;
+        }
+        
+        showError(userFriendlyMessage);
     }
 }
 
@@ -495,17 +514,53 @@ async function handleUpload(e) {
         handleUploadSuccess(uploadResult);
 
     } catch (error) {
-        console.error('Upload error:', {
+        // Enhanced error logging for uploads
+        const errorContext = {
             message: error.message,
             stack: error.stack,
             fullError: error,
             responseStatus: uploadResponse?.status,
-            responseStatusText: uploadResponse?.statusText
-        });
+            responseStatusText: uploadResponse?.statusText,
+            timestamp: new Date().toISOString(),
+            formDataKeys: [...formData.keys()],
+            hasFile: formData.has('file'),
+            fileName: formData.get('file')?.name
+        };
+        
+        console.error('Upload error:', errorContext);
+        
+        // Try to get more information from the response
+        let errorMessage = error.message || 'An error occurred during upload';
+        let additionalDetails = '';
+        
+        if (uploadResponse && !uploadResponse.ok) {
+            // Clone and read the response if possible
+            try {
+                // This is async, but we'll log it for debugging
+                uploadResponse.clone().text().then(text => {
+                    console.error('Error response body:', text);
+                    try {
+                        const jsonResponse = JSON.parse(text);
+                        console.error('Parsed error response:', jsonResponse);
+                        
+                        // Extract more specific error information if available
+                        if (jsonResponse.error) {
+                            additionalDetails = `Details: ${jsonResponse.error}`;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response JSON:', e);
+                    }
+                }).catch(e => console.error('Error reading response body:', e));
+            } catch (e) {
+                console.error('Error accessing response body:', e);
+            }
+        }
+        
         if (statusDiv) {
             statusDiv.innerHTML = `
                 <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle"></i> ${error.message || 'An error occurred during upload'}
+                    <i class="bi bi-exclamation-triangle"></i> ${errorMessage}
+                    ${additionalDetails ? `<div class="mt-2 small">${additionalDetails}</div>` : ''}
                 </div>
             `;
         }
