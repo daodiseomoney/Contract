@@ -370,8 +370,8 @@ async function signContract(transactionId) {
             console.log('Signing as role:', nextRole);
 
             // Create sign doc with proper account info for Proto (Keplr compatible)
-            // Create initial signDoc structure
-            let signDoc = {
+            // Create initial Amino format signDoc structure
+            const aminoDoc = {
                 chain_id: chainId,
                 account_number: accountData.account_number,
                 sequence: accountData.sequence,
@@ -379,7 +379,7 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
-                // Correct format for compatibility with Keplr
+                // Using Amino format initially
                 msgs: [{
                     type: "cosmos-sdk/MsgSend",
                     value: {
@@ -392,7 +392,28 @@ async function signContract(transactionId) {
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
             
-            console.log("Original signDoc:", JSON.stringify(signDoc, null, 2));
+            console.log("Original Amino signDoc:", JSON.stringify(aminoDoc, null, 2));
+            
+            // Convert Amino messages to Proto format before signing
+            const signDoc = {
+                ...aminoDoc,
+                msgs: aminoDoc.msgs.map(msg => {
+                    // Convert each Amino message to Proto format
+                    if (msg.type === "cosmos-sdk/MsgSend") {
+                        return {
+                            typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+                            value: {
+                                fromAddress: msg.value.from_address,
+                                toAddress: msg.value.to_address,
+                                amount: msg.value.amount
+                            }
+                        };
+                    }
+                    return msg;
+                })
+            };
+            
+            console.log("Converted Proto signDoc:", JSON.stringify(signDoc, null, 2));
 
             console.log('Requesting Keplr signature with params:', {
                 chainId,

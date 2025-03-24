@@ -248,7 +248,19 @@ function convertAminoToProto(aminoMsg) {
 
   console.log(`Converting Amino message type '${aminoMsg.type}' to Proto typeUrl '${typeUrl}'`);
   
-  // Create Proto format message
+  // Create Proto format message with proper field naming conversion
+  if (aminoMsg.type === 'cosmos-sdk/MsgSend') {
+    return {
+      typeUrl: typeUrl,
+      value: {
+        fromAddress: aminoMsg.value.from_address,
+        toAddress: aminoMsg.value.to_address,
+        amount: aminoMsg.value.amount
+      }
+    };
+  }
+  
+  // For other message types or as fallback
   return {
     typeUrl: typeUrl,
     value: aminoMsg.value
