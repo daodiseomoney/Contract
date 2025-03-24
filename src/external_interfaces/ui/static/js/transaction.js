@@ -175,7 +175,8 @@ async function signWithKeplr(chainId, userAddress, signDoc) {
     const accounts = await offlineSigner.getAccounts();
     console.log("Accounts verified:", accounts.length);
 
-    // Format message in Amino format
+    // Format message in Amino format according to Keplr docs
+    // https://docs.keplr.app/api/sign.html#cosmjssignamino
     const aminoDoc = {
       ...signDoc,
       msgs: signDoc.msgs.map(msg => ({

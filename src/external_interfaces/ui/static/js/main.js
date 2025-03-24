@@ -382,11 +382,14 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
-                // Using direct object format WITHOUT type/value structure
+                // Using correct Amino format WITH type/value structure for Keplr
                 msgs: [{
-                    from_address: userAddress,
-                    to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                    amount: [{ denom: "uodis", amount: "1000" }]
+                    type: "cosmos-sdk/MsgSend",
+                    value: {
+                        from_address: userAddress,
+                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                        amount: [{ denom: "uodis", amount: "1000" }]
+                    }
                 }],
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
@@ -442,16 +445,16 @@ async function signContract(transactionId) {
                     disableBalanceCheck: false
                 };
                 
-                // Despite what Keplr docs say, our testing shows it wants the direct object format
-                // without type/value structure for the message (opposite of documentation)
+                // According to Keplr documentation, for signAmino we need Amino format with type/value structure
+                // https://docs.keplr.app/api/sign.html#cosmjssignamino
                 
-                // Keep the document mostly as-is since we're now using direct object format
+                // Keep the document exactly as we prepared it with proper Amino format
                 const cleanedSignDoc = {
                     account_number: aminoDoc.account_number,
                     chain_id: aminoDoc.chain_id,
                     fee: aminoDoc.fee,
                     memo: aminoDoc.memo,
-                    // Direct object format (no type/value structure)
+                    // Properly formatted messages with type/value structure
                     msgs: aminoDoc.msgs,
                     sequence: aminoDoc.sequence
                 };

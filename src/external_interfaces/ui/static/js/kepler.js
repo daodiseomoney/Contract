@@ -86,12 +86,15 @@ class KeplerWallet {
             const toAddress = transaction.to_address || transaction.toAddress || "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt";
             const amount = transaction.amount || [{ denom: "uodis", amount: "1000" }];
             
-            // Despite what the Keplr docs say, our tests show we need direct object format
-            // NOT the Amino format with type/value structure
+            // According to Keplr documentation, for signAmino we need Amino format with type/value structure
+            // https://docs.keplr.app/api/sign.html#cosmjssignamino
             const msgForKeplr = {
-                from_address: fromAddress,
-                to_address: toAddress, 
-                amount: amount
+                type: "cosmos-sdk/MsgSend",
+                value: {
+                    from_address: fromAddress,
+                    to_address: toAddress, 
+                    amount: amount
+                }
             };
             
             // Create the sign doc with proper structure
