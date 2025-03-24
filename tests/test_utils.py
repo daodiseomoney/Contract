@@ -5,72 +5,95 @@ These tests should run quickly and independently.
 import pytest
 import json
 import base64
+import logging
 
-# Test the utility functions without needing a Flask app
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 def test_base64_conversion():
     """Test base64 encoding and decoding."""
-    # Original data
-    original = b"Test data for base64 conversion"
+    # Test data
+    original_data = b"Test data for base64 conversion"
     
-    # Encode to base64
-    encoded = base64.b64encode(original)
+    # Encode
+    encoded = base64.b64encode(original_data).decode('utf-8')
+    logger.debug(f"Encoded data: {encoded}")
     
-    # Decode back
+    # Decode
     decoded = base64.b64decode(encoded)
+    logger.debug(f"Decoded data: {decoded}")
     
-    # Verify round trip
-    assert decoded == original
+    # Verify
+    assert decoded == original_data
+    
+    # Test with string
+    string_data = "String data for base64 conversion"
+    encoded_str = base64.b64encode(string_data.encode('utf-8')).decode('utf-8')
+    decoded_str = base64.b64decode(encoded_str).decode('utf-8')
+    assert decoded_str == string_data
 
 def test_json_serialization():
     """Test JSON serialization and deserialization."""
-    # Original data
-    original = {
-        "transaction_id": "abc123",
-        "content_hash": "def456",
-        "memo": "tx_abc123:def456:owner",
-        "status": "pending",
-        "signatures": {
-            "owner": {
-                "signed": True,
-                "timestamp": "2025-03-24T15:00:00Z"
-            }
-        }
+    # Test data
+    original_data = {
+        "string": "test string",
+        "number": 42,
+        "float": 3.14159,
+        "boolean": True,
+        "array": [1, 2, 3, 4, 5],
+        "object": {
+            "nested": "value",
+            "nested_array": [6, 7, 8]
+        },
+        "null": None
     }
     
-    # Serialize to JSON
-    serialized = json.dumps(original)
+    # Serialize
+    serialized = json.dumps(original_data)
+    logger.debug(f"Serialized data: {serialized}")
     
-    # Deserialize from JSON
+    # Deserialize
     deserialized = json.loads(serialized)
+    logger.debug(f"Deserialized data: {deserialized}")
     
-    # Verify round trip
-    assert deserialized == original
-    
-    # Verify nested access
-    assert deserialized["signatures"]["owner"]["signed"] is True
+    # Verify
+    assert deserialized == original_data
+    assert deserialized["string"] == original_data["string"]
+    assert deserialized["number"] == original_data["number"]
+    assert deserialized["float"] == original_data["float"]
+    assert deserialized["boolean"] == original_data["boolean"]
+    assert deserialized["array"] == original_data["array"]
+    assert deserialized["object"]["nested"] == original_data["object"]["nested"]
+    assert deserialized["object"]["nested_array"] == original_data["object"]["nested_array"]
+    assert deserialized["null"] == original_data["null"]
 
 def test_memo_parsing_simple():
     """Test simple parsing of memo string."""
-    # Simplified memo format
-    memo = "tx_abc123:def456:owner"
+    # New format memo
+    memo = "tx_123456:hash_abcdef:owner"
     
-    # Parse by splitting on colon
+    # Parse
     parts = memo.split(":")
     
-    # Verify parsing
+    # Verify
     assert len(parts) == 3
-    assert parts[0] == "tx_abc123"
-    assert parts[1] == "def456"
+    assert parts[0] == "tx_123456"
+    assert parts[1] == "hash_abcdef"
     assert parts[2] == "owner"
     
-    # Create dict
-    parsed = {
-        "tx": parts[0],
-        "hash": parts[1],
-        "role": parts[2]
-    }
+    # Legacy format
+    legacy_memo = "tx:tx_123456|hash:hash_abcdef|role:owner"
     
-    # Verify dict
-    assert parsed["tx"] == "tx_abc123"
-    assert parsed["hash"] == "def456"
-    assert parsed["role"] == "owner"
+    # Parse legacy format
+    result = {}
+    pairs = legacy_memo.split("|")
+    for pair in pairs:
+        if ":" in pair:
+            key, value = pair.split(":", 1)
+            result[key] = value
+    
+    # Verify
+    assert result["tx"] == "tx_123456"
+    assert result["hash"] == "hash_abcdef"
+    assert result["role"] == "owner"
