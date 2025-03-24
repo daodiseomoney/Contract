@@ -371,8 +371,9 @@ async function signContract(transactionId) {
 
             // Create proper message format according to Keplr docs
             // https://docs.keplr.app/api/guide/sign-a-message
-            // Must use standard Amino format for signAmino (type/value structure)
-
+            // For signAmino, we need to use the Amino compatible format
+            // According to the Keplr docs, this should be a type/value structure
+            
             const aminoDoc = {
                 chain_id: chainId,
                 account_number: accountData.account_number,
@@ -381,13 +382,14 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
-                // Using direct message format without nesting
+                // Using proper Amino format with type/value structure
                 msgs: [{
-                    // Direct format as required by Keplr
-                    "@type": "/cosmos.bank.v1beta1.MsgSend",
-                    from_address: userAddress,
-                    to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                    amount: [{ denom: "uodis", amount: "1000" }]
+                    type: "cosmos-sdk/MsgSend",
+                    value: {
+                        from_address: userAddress,
+                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                        amount: [{ denom: "uodis", amount: "1000" }]
+                    }
                 }],
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
@@ -445,33 +447,18 @@ async function signContract(transactionId) {
                 
                 // Use the officially documented format from Keplr docs
                 // Following https://docs.keplr.app/api/guide/sign-a-message
-                // Create a cleaned sign doc following Keplr documentation requirements
-                // According to the Keplr docs and our error message, messages should be direct objects
-                // NOT nested in type/value structure as traditionally expected with Amino
+                // After further testing, we've determined Keplr requires the Amino format
+                // with proper type/value structure for signAmino method
+                
+                // Unlike what our previous error suggested, we need to keep the
+                // type/value structure for proper Amino signing
                 const cleanedSignDoc = {
                     account_number: aminoDoc.account_number,
                     chain_id: aminoDoc.chain_id,
                     fee: aminoDoc.fee,
                     memo: aminoDoc.memo,
-                    msgs: aminoDoc.msgs.map(msg => {
-                        if (msg["@type"] === "/cosmos.bank.v1beta1.MsgSend") {
-                            // Use direct object format (not type/value structure)
-                            // This is what Keplr expects for MsgSend
-                            return {
-                                from_address: msg.from_address,
-                                to_address: msg.to_address,
-                                amount: msg.amount
-                            };
-                        } else if (msg.type === "cosmos-sdk/MsgSend" && msg.value) {
-                            // Convert Amino type/value to direct object format
-                            return {
-                                from_address: msg.value.from_address,
-                                to_address: msg.value.to_address,
-                                amount: msg.value.amount
-                            };
-                        }
-                        return msg;
-                    }),
+                    // Keep the msgs as-is with type/value structure
+                    msgs: aminoDoc.msgs,
                     sequence: aminoDoc.sequence
                 };
                 
