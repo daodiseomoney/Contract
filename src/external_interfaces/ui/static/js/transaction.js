@@ -79,7 +79,11 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       explorer_url: `https://explorer.odiseotestnet.com/tx/${broadcastResult.txhash}`
     };
   } catch (error) {
-    console.error("Keplr signing error:", error);
+    console.error("Keplr signing error:", {
+      message: error.message,
+      stack: error.stack,
+      fullError: error
+    });
     throw error;
   }
 }
@@ -141,7 +145,13 @@ async function broadcastTransaction(signResponse) {
 
     return await response.json();
   } catch (error) {
-    console.error("Error broadcasting transaction:", error);
+    console.error("Error broadcasting transaction:", {
+      message: error.message,
+      stack: error.stack,
+      fullError: error,
+      responseType: typeof response,
+      responseStatus: response?.status
+    });
     throw error;
   }
 }
