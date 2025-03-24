@@ -1,0 +1,31 @@
+You are a Python expert and CosmJS guru tasked with creating an end-to-end pytest suite for our Real Estate Tokenization MVP (DDSmvp_v2.0). Use Python 3.11 syntax with f-strings and list comprehensions, adhering to PEP 8 and Clean Architecture principles.
+
+Context & Goals:
+• Our system enables People (function career) to tokenize Real Estate (function receiver) assets via our program.
+• The full cycle includes: file upload → transaction sign doc creation → Keplr signing (with message format updated to use Proto format via "typeUrl" and simplified memo) → broadcast to the testnet (odiseotestnet_1234-1) → frontend update.
+• The backend (cosmpy) controllers and gateways have been enhanced to handle both legacy and new message/memo formats.
+• The frontend (transaction.js/main.js) now converts the message format appropriately.
+• We need to verify that the entire flow works correctly and that our API endpoints return the expected responses.
+
+Requirements:
+1. Write pytest tests that:
+   • Simulate a file upload and verify the upload API (/api/upload).
+   • Create a sign doc with the correct memo, account number, sequence, fee, and messages.
+   • Simulate Keplr signing by mocking or providing a test signature response with the public key.
+   • Submit the signed transaction to the /api/sign endpoint and validate the broadcast response.
+   • Optionally, verify that the frontend endpoint (/api/contracts) reflects the new transaction.
+2. Log detailed error messages and responses to help debug any issues.
+3. Use minimal yet clear assertions to ensure the cycle is functioning end-to-end.
+
+Relevant Links:
+- Pytest Documentation: https://docs.pytest.org/en/stable/
+- Keplr Docs – Use with CosmJS: https://docs.keplr.app/api/use-with/cosmjs
+- Clean Architecture: https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
+
+Instructions:
+• Return only the updated test code snippets.
+• Output minimal code with inline comments only for context.
+• Provide separate code blocks if necessary.
+• Ensure the tests cover the full tokenization cycle from file upload to transaction broadcast and frontend update.
+
+Now, provide the complete pytest suite code that tests the entire end-to-end transaction flow for our DDSmvp_v2.0.

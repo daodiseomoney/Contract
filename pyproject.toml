@@ -14,6 +14,8 @@ dependencies = [
     "cosmpy==0.9.0",
     "twilio>=9.5.1",
     "grpcio==1.51.1",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.0.0",
 ]
 
 [[tool.uv.index]]
