@@ -445,6 +445,9 @@ async function signContract(transactionId) {
                 
                 // Use the officially documented format from Keplr docs
                 // Following https://docs.keplr.app/api/guide/sign-a-message
+                // Create a cleaned sign doc following Keplr documentation requirements
+                // According to the Keplr docs and our error message, messages should be direct objects
+                // NOT nested in type/value structure as traditionally expected with Amino
                 const cleanedSignDoc = {
                     account_number: aminoDoc.account_number,
                     chain_id: aminoDoc.chain_id,
@@ -452,14 +455,19 @@ async function signContract(transactionId) {
                     memo: aminoDoc.memo,
                     msgs: aminoDoc.msgs.map(msg => {
                         if (msg["@type"] === "/cosmos.bank.v1beta1.MsgSend") {
-                            // Convert to proper Amino format
+                            // Use direct object format (not type/value structure)
+                            // This is what Keplr expects for MsgSend
                             return {
-                                type: "cosmos-sdk/MsgSend",
-                                value: {
-                                    from_address: msg.from_address,
-                                    to_address: msg.to_address,
-                                    amount: msg.amount
-                                }
+                                from_address: msg.from_address,
+                                to_address: msg.to_address,
+                                amount: msg.amount
+                            };
+                        } else if (msg.type === "cosmos-sdk/MsgSend" && msg.value) {
+                            // Convert Amino type/value to direct object format
+                            return {
+                                from_address: msg.value.from_address,
+                                to_address: msg.value.to_address,
+                                amount: msg.value.amount
                             };
                         }
                         return msg;

@@ -59,13 +59,14 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       throw new Error("Invalid account data received from the chain");
     }
 
-    // Use simple string memo without any complex formatting
-    const memo = `${transactionId}:${contentHash}:${role}`;
-    console.log("Using very simple memo string:", memo);
+    // Use structured memo format that backend expects
+    const memo = `tx:${transactionId}|hash:${contentHash}|role:${role}`;
+    console.log("Using structured memo format:", memo);
 
     // Create sign doc according to official Keplr docs
     // https://docs.keplr.app/api/guide/sign-a-message
-    // Use Amino format with type/value structure
+    // THIS IS THE KEY FIX: Messages should NOT use type/value structure!
+    // They should be direct objects as shown in the Keplr error message
     const signDoc = {
       chain_id: chainId,
       account_number: String(accountInfo.account_number),
@@ -75,17 +76,15 @@ async function createAndSignTransaction(fileData, userAddress, role) {
         gas: "100000"
       },
       msgs: [
+        // IMPORTANT: Direct object format without type/value nesting
+        // This is what Keplr expects when using MsgSend
         {
-          // Standard Amino format with type/value structure
-          type: "cosmos-sdk/MsgSend",
-          value: {
-            from_address: userAddress,
-            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-            amount: [{ denom: "uodis", amount: "1000" }]
-          }
+          from_address: userAddress,
+          to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+          amount: [{ denom: "uodis", amount: "1000" }]
         }
       ],
-      memo: memo // Standard memo string
+      memo: memo
     };
 
     // Log the complete sign doc for debugging
@@ -232,7 +231,23 @@ function uint8ArrayToBase64(uint8Array) {
 function convertAminoToProto(msg) {
   console.log("Converting message to Proto format:", msg);
   
-  // Handle direct format with @type field (new Keplr format)
+  // Handle direct object format without type/value structure
+  // This is the key format required by Keplr
+  if (msg.from_address && msg.to_address && msg.amount) {
+    console.log("Processing direct format message (Keplr's preferred format):", msg);
+    
+    // Add the typeUrl for Proto format
+    return {
+      typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+      value: {
+        fromAddress: msg.from_address,
+        toAddress: msg.to_address,
+        amount: msg.amount
+      }
+    };
+  }
+  
+  // Handle direct format with @type field (Proto format)
   if (msg["@type"]) {
     const typeUrl = msg["@type"];
     
