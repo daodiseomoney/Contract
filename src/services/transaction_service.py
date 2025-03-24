@@ -181,6 +181,11 @@ class TransactionService:
                 # Log detailed message structure for debugging
                 self.logger.debug(f"Processing message: {msg}")
                 
+                if not isinstance(msg, dict):
+                    error_msg = f"Message must be a dictionary object, got {type(msg)}: {msg}"
+                    self.logger.error(error_msg)
+                    raise ValueError(error_msg)
+                
                 # Handle Proto format (typeUrl)
                 if 'typeUrl' in msg:
                     self.logger.debug(f"Found Proto format message with typeUrl: {msg['typeUrl']}")
@@ -208,10 +213,54 @@ class TransactionService:
                     self.logger.debug(f"Found Amino format message with type: {msg['type']}")
                     adapted_msgs.append(msg)
                 
+                # Handle MsgSend format coming from Keplr wallet
+                elif msg.get('type') == 'cosmos-sdk/MsgSend':
+                    # If it has a type but the value is missing or not a dictionary
+                    # we need to reconstruct the message
+                    self.logger.debug(f"Found MsgSend message without proper value structure")
+                    
+                    # Try to extract the necessary fields for a MsgSend message
+                    value = {}
+                    if 'from_address' in msg:
+                        value['from_address'] = msg['from_address']
+                    if 'to_address' in msg:
+                        value['to_address'] = msg['to_address']
+                    if 'amount' in msg:
+                        value['amount'] = msg['amount']
+                    
+                    if 'from_address' in value and 'to_address' in value and 'amount' in value:
+                        adapted_msg = {
+                            'type': 'cosmos-sdk/MsgSend',
+                            'value': value
+                        }
+                        self.logger.debug(f"Reconstructed message: {adapted_msg}")
+                        adapted_msgs.append(adapted_msg)
+                    else:
+                        error_msg = f"Missing required fields for MsgSend message: {msg}"
+                        self.logger.error(error_msg)
+                        raise ValueError(error_msg)
+                
                 else:
-                    error_msg = f"Unsupported message format: {msg}"
-                    self.logger.error(error_msg)
-                    raise ValueError(error_msg)
+                    # Try to infer the structure based on known fields
+                    self.logger.debug(f"Attempting to infer message structure from: {msg}")
+                    
+                    # Check if it has fields common to a send transaction
+                    if 'from_address' in msg and 'to_address' in msg and 'amount' in msg:
+                        # Looks like a MsgSend message
+                        adapted_msg = {
+                            'type': 'cosmos-sdk/MsgSend',
+                            'value': {
+                                'from_address': msg['from_address'],
+                                'to_address': msg['to_address'],
+                                'amount': msg['amount']
+                            }
+                        }
+                        self.logger.debug(f"Inferred MsgSend message: {adapted_msg}")
+                        adapted_msgs.append(adapted_msg)
+                    else:
+                        error_msg = f"Unsupported message format: {msg}"
+                        self.logger.error(error_msg)
+                        raise ValueError(error_msg)
             
             # Update messages in the transaction
             tx['msg'] = adapted_msgs

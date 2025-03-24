@@ -52,9 +52,45 @@ def sign_transaction():
 
         # Format the data for transaction service
         # We need to convert from Keplr's signAmino response format to the expected format for broadcast
+        
+        # Process the messages from signed_data to ensure they are in correct format
+        msgs = signed_data.get('msgs', [])
+        processed_msgs = []
+        
+        logger.debug(f"Processing messages from Keplr: {msgs}")
+        
+        for msg in msgs:
+            # Check if this is a message object that needs to be transformed
+            if isinstance(msg, dict):
+                # Make sure the message is in the format expected by the transaction service
+                if 'type' in msg and 'value' in msg:
+                    # Already in correct amino format
+                    processed_msgs.append(msg)
+                    logger.debug(f"Message already in correct format: {msg}")
+                else:
+                    # Try to convert to correct format
+                    logger.debug(f"Converting message to proper format: {msg}")
+                    
+                    # Handle case where the Cosmos SDK message might be a single message object
+                    # rather than an array of message objects
+                    if msg.get('type') == 'cosmos-sdk/MsgSend' and 'value' not in msg:
+                        # Reconstruct the message in correct format
+                        processed_msg = {
+                            'type': 'cosmos-sdk/MsgSend',
+                            'value': {
+                                'from_address': msg.get('from_address', ''),
+                                'to_address': msg.get('to_address', ''),
+                                'amount': msg.get('amount', [])
+                            }
+                        }
+                        processed_msgs.append(processed_msg)
+                        logger.debug(f"Converted message: {processed_msg}")
+            else:
+                logger.error(f"Unexpected message format: {msg}")
+        
         tx_data = {
             'tx': {
-                'msg': signed_data.get('msgs', []),  # Get messages from signed data
+                'msg': processed_msgs,  # Use processed messages
                 'fee': signed_data.get('fee', {'amount': [], 'gas': '100000'}),
                 'memo': memo,
                 'signatures': [{
