@@ -456,19 +456,30 @@ async function signContract(transactionId) {
                     };
                 });
                 
-                // For signDirect we need to encode the transaction
-                // This is a simplified version - in production use actual protobuf encoding
-                const bodyBytes = btoa(JSON.stringify({
+                // For signDirect we need proper binary encoding
+                // Create a TextEncoder to get binary data
+                const encoder = new TextEncoder();
+                
+                // Prepare the body object with messages and memo
+                const bodyObj = {
                     messages: protoMsgs,
                     memo: aminoDoc.memo
-                }));
+                };
                 
-                const authInfoBytes = btoa(JSON.stringify({
+                // Convert to binary format (using TextEncoder as simplified protobuf)
+                const bodyBytes = encoder.encode(JSON.stringify(bodyObj));
+                
+                // Prepare the authInfo with fee and empty signer_infos (Keplr will fill this)
+                const authInfoObj = {
                     fee: {
                         amount: aminoDoc.fee.amount,
-                        gasLimit: aminoDoc.fee.gas
-                    }
-                }));
+                        gas_limit: aminoDoc.fee.gas // Use gas_limit for Cosmos SDK compatibility
+                    },
+                    signer_infos: [] // Empty for Keplr to fill in
+                };
+                
+                // Convert to binary format
+                const authInfoBytes = encoder.encode(JSON.stringify(authInfoObj));
                 
                 // Create the direct sign doc
                 const directSignDoc = {

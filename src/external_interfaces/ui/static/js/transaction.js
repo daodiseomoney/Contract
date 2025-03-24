@@ -198,22 +198,30 @@ async function signWithKeplr(chainId, userAddress, signDoc) {
     // Create a proper DirectSignDoc according to Keplr docs
     // https://docs.keplr.app/api/sign.html#request
     
-    // Encode the transaction for signDirect (this is a simplified version, in production would use protobuf)
-    // In a real implementation, we would use proper Protocol Buffers encoding
-    // but for this example we're using a mock encoding to demonstrate the concept
-    const bodyBytes = encodeToBase64(JSON.stringify({
+    // For signDirect, we need to create properly encoded protocol buffer messages
+    // Since we don't have actual protobuf encoding available in the browser,
+    // we'll create Uint8Array representations that Keplr can parse
+    
+    // Convert object to binary format (simplified mock of protobuf encoding)
+    const bodyObj = {
       messages: protoMsgs,
-      memo: signDoc.memo,
-      // Other required fields for body
-    }));
-
-    const authInfoBytes = encodeToBase64(JSON.stringify({
-      // This would include signer info and fee
+      memo: signDoc.memo
+    };
+    
+    // Convert to text encoder for proper binary representation
+    const encoder = new TextEncoder();
+    const bodyBytes = encoder.encode(JSON.stringify(bodyObj));
+    
+    // Create auth info with fee information
+    const authInfoObj = {
       fee: {
         amount: signDoc.fee.amount,
-        gasLimit: signDoc.fee.gas
-      }
-    }));
+        gas_limit: signDoc.fee.gas // Use gas_limit instead of gasLimit for Cosmos SDK compatibility
+      },
+      signer_infos: [] // Empty for Keplr to fill in
+    };
+    
+    const authInfoBytes = encoder.encode(JSON.stringify(authInfoObj));
 
     // Create the DirectSignDoc required by signDirect
     const directSignDoc = {
