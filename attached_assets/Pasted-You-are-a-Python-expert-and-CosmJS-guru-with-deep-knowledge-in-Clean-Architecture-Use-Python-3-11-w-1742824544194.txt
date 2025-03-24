@@ -1,0 +1,70 @@
+You are a Python expert and CosmJS guru with deep knowledge in Clean Architecture. Use Python 3.11 with f-strings, list comprehensions, and follow PEP 8. Use modern JavaScript (CosmJS/Keplr) with minimal verbosity.
+
+Context & Goals:
+
+- Real Estate Tokenization MVP (DDSmvp_v2.0) that enables People (function career) to tokenize Real Estate (function receiver) assets via our program.
+
+- The system accepts file uploads (architectural/BIM files), creates blockchain transactions needing multi-role (owner, contributor, validator) signatures, broadcasts to testnet (odiseotestnet_1234-1), and updates the frontend (/contracts page).
+
+- Backend: Python (cosmpy). Frontend: JavaScript (CosmJS, Keplr integration).
+
+Issues:
+
+1. In src/services/transaction_service.py, the sign doc is created with an object as the memo.
+
+2. Keplr signs the doc, but broadcasting to the blockchain API fails with a 400 error.
+
+Requirements:
+
+- In the backend: 
+
+  • Format the memo as a string.
+
+  • Retrieve and use valid account_number and sequence (query chain via cosmpy if needed).
+
+  • Ensure fee, gas, and messages are correctly set.
+
+- In the frontend:
+
+  • Ensure Keplr appends the public key (using a browser-friendly Uint8Array to base64 conversion) if missing.
+
+  • Correctly broadcast the signed transaction.
+
+- Add precise logging and error handling to capture full responses.
+
+- Full cycle: file upload → sign doc creation → Keplr signing → broadcast → frontend update.
+
+Developer Tools:
+
+• Use Chrome DevTools (Network tab, pause on exceptions) to inspect endpoints (/api/sign, /api/broadcast).
+
+• Validate the sign doc with a live getAccount() query.
+
+• Avoid Node-specific code in the browser.
+
+Relevant Links:
+
+- Keplr Docs – Use with CosmJS: https://docs.keplr.app/api/use-with/cosmjs
+
+- Keplr Advanced Troubleshooting: https://help.keplr.app/articles/advanced-troubleshooting-guidelines
+
+- Clean Architecture Principles: https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
+
+Instructions:
+
+• Return only the updated code snippets.
+
+• Use minimal comments, only to indicate changes.
+
+• Provide separate code blocks for Python (backend) and JavaScript (frontend) modifications.
+
+• Ensure the solution enables the full tokenization cycle to run successfully.
+
+Note: Trim any verbosity; our previous prompt was bloated—this version is lean, direct, and engineered for rapid MVP delivery within 2–3 hours.
+
+Now, provide the updated code patches for:
+
+- Backend (src/services/transaction_service.py): Fix sign doc creation (memo formatting, account_number/sequence retrieval).
+
+- Frontend (Keplr signing & broadcast in main.js): Append public key if missing and correctly broadcast the signed transaction.
+
