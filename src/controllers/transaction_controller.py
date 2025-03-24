@@ -20,14 +20,19 @@ def sign_transaction():
             logger.error("No data received in sign request")
             return jsonify({"error": "No data provided"}), 400
 
+        # Log the complete data for debugging purposes
         logger.debug(f"Processing signed transaction data: {data}")
+        
+        # Log content type and headers for more context
+        logger.debug(f"Request content type: {request.content_type}")
+        logger.debug(f"Request headers: {dict(request.headers)}")
 
-        # Validate required fields
+        # Validate required fields with detailed error messages
         if not data.get("signed"):
-            logger.error("Missing 'signed' field in request data")
+            logger.error(f"Missing 'signed' field in request data. Full data: {data}")
             return jsonify({"error": "Missing 'signed' field in transaction data"}), 400
         if not data.get("signature"):
-            logger.error("Missing 'signature' field in request data")
+            logger.error(f"Missing 'signature' field in request data. Full data: {data}")
             return jsonify({"error": "Missing 'signature' field in transaction data"}), 400
 
         # Verify memo format
@@ -122,8 +127,20 @@ def broadcast_transaction():
 
     except ValueError as e:
         logger.error(f"Transaction broadcast error: {str(e)}")
-        return jsonify({"error": str(e)}), 400
+        # Include more detailed error information
+        return jsonify({
+            "error": str(e),
+            "error_type": "ValueError",
+            "details": "The transaction data format was invalid"
+        }), 400
 
     except Exception as e:
         logger.error(f"Unexpected error broadcasting transaction: {str(e)}", exc_info=True)
-        return jsonify({"error": "Failed to broadcast transaction"}), 500
+        # Include more information about the exception
+        error_type = type(e).__name__
+        error_details = {
+            "error": "Failed to broadcast transaction",
+            "error_type": error_type,
+            "error_message": str(e),
+        }
+        return jsonify(error_details), 500

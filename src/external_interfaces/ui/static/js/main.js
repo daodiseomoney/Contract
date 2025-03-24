@@ -389,14 +389,33 @@ async function signContract(transactionId) {
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
 
-            console.log('Requesting Keplr signature...');
-            const signResponse = await window.keplr.signAmino(
+            console.log('Requesting Keplr signature with params:', {
                 chainId,
                 userAddress,
-                signDoc,
-                { preferNoSetFee: true }
-            );
-            console.log('Got sign response:', signResponse);
+                signDoc: JSON.stringify(signDoc),
+                options: { preferNoSetFee: true }
+            });
+            
+            // Add a try-catch specifically around the signAmino call
+            let signResponse;
+            try {
+                signResponse = await window.keplr.signAmino(
+                    chainId,
+                    userAddress,
+                    signDoc,
+                    { preferNoSetFee: true }
+                );
+                console.log('Got sign response:', signResponse);
+            } catch (signError) {
+                console.error('signAmino specific error:', {
+                    message: signError.message,
+                    stack: signError.stack,
+                    fullError: signError,
+                    chainId,
+                    signDoc: JSON.stringify(signDoc)
+                });
+                throw signError;
+            }
 
             // Send the complete signature response to backend without modifications
             const signResult = await fetch('/api/sign', {
@@ -420,11 +439,19 @@ async function signContract(transactionId) {
             updateRecentActivity();
 
         } catch (error) {
-            console.error('Keplr signing error:', error);
+            console.error('Keplr signing error:', {
+                message: error.message,
+                stack: error.stack,
+                fullError: error
+            });
             showError(error.message || 'Failed to sign transaction');
         }
     } catch (error) {
-        console.error('Contract signing error:', error);
+        console.error('Contract signing error:', {
+            message: error.message,
+            stack: error.stack,
+            fullError: error
+        });
         showError(error.message || 'Failed to process contract signing');
     }
 }
@@ -468,7 +495,13 @@ async function handleUpload(e) {
         handleUploadSuccess(uploadResult);
 
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('Upload error:', {
+            message: error.message,
+            stack: error.stack,
+            fullError: error,
+            responseStatus: uploadResponse?.status,
+            responseStatusText: uploadResponse?.statusText
+        });
         if (statusDiv) {
             statusDiv.innerHTML = `
                 <div class="alert alert-danger">

@@ -177,9 +177,22 @@ class TransactionService:
                 if not response.ok:
                     error_msg = f"Transaction broadcast failed: {response.status_code}, {response.text}"
                     self.logger.error(error_msg)
+                    
+                    # Try to parse the error response if possible
+                    error_details = "Unknown error"
+                    try:
+                        error_json = response.json()
+                        if isinstance(error_json, dict):
+                            error_details = error_json
+                    except Exception as parse_error:
+                        self.logger.error(f"Error parsing response: {str(parse_error)}")
+                        error_details = response.text
+                    
                     return {
                         "success": False,
-                        "error": error_msg
+                        "error": error_msg,
+                        "status_code": response.status_code,
+                        "error_details": error_details
                     }
                 
                 # Parse response
@@ -190,9 +203,16 @@ class TransactionService:
                 if tx_response.get('code', 0) != 0:
                     error_msg = f"Transaction broadcast failed: {tx_response.get('raw_log', 'Unknown error')}"
                     self.logger.error(error_msg)
+                    
+                    # Log additional error details if available
+                    self.logger.error(f"Transaction response details: {json.dumps(tx_response, indent=2)}")
+                    
                     return {
                         "success": False,
-                        "error": error_msg
+                        "error": error_msg,
+                        "tx_response": tx_response,
+                        "error_code": tx_response.get('code'),
+                        "raw_log": tx_response.get('raw_log')
                     }
                 
                 success_result = {
