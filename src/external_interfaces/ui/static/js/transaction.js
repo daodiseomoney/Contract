@@ -165,9 +165,66 @@ async function getAccountSequence(address) {
 }
 
 
+// Register Odiseo chain with Keplr
+async function suggestOdiseoChain(chainId) {
+  console.log("Suggesting Odiseo testnet chain to Keplr...");
+  try {
+    await window.keplr.experimentalSuggestChain({
+      chainId: chainId, // Use the passed chainId
+      chainName: "Odiseo Testnet",
+      rpc: "https://odiseo.test.rpc.nodeshub.online",
+      rest: "https://odiseo.test.api.nodeshub.online",
+      bip44: {
+        coinType: 118 // Standard Cosmos coin type
+      },
+      bech32Config: {
+        bech32PrefixAccAddr: "odiseo",
+        bech32PrefixAccPub: "odiseopub",
+        bech32PrefixValAddr: "odiseovaloper",
+        bech32PrefixValPub: "odiseovaloperpub",
+        bech32PrefixConsAddr: "odiseovalcons",
+        bech32PrefixConsPub: "odiseovalconspub"
+      },
+      currencies: [
+        {
+          coinDenom: "ODIS",
+          coinMinimalDenom: "uodis",
+          coinDecimals: 6
+        }
+      ],
+      feeCurrencies: [
+        {
+          coinDenom: "ODIS",
+          coinMinimalDenom: "uodis",
+          coinDecimals: 6,
+          gasPriceStep: {
+            low: 0.01,
+            average: 0.025,
+            high: 0.04
+          }
+        }
+      ],
+      stakeCurrency: {
+        coinDenom: "ODIS",
+        coinMinimalDenom: "uodis",
+        coinDecimals: 6
+      }
+    });
+    console.log("Successfully suggested Odiseo testnet to Keplr");
+    return true;
+  } catch (error) {
+    console.error("Failed to suggest Odiseo testnet to Keplr:", error);
+    throw error;
+  }
+}
+
 // Transaction handling with Keplr using Protobuf (Direct) signing
 async function signWithKeplr(chainId, userAddress, signDoc) {
   try {
+    // First, suggest the chain to Keplr
+    await suggestOdiseoChain(chainId);
+    console.log("Chain suggestion complete");
+    
     // Enable Keplr for the chain
     await window.keplr.enable(chainId);
     console.log("Keplr enabled for chain");

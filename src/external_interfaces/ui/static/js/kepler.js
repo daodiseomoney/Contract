@@ -1,7 +1,7 @@
 // Kepler wallet integration
 class KeplerWallet {
     constructor() {
-        this.chainId = 'odiseo_1234-1';
+        this.chainId = 'odiseotestnet_1234-1'; // Updated to match exact chainId expected by the system
         this.connected = false;
         this.address = null;
 
@@ -14,6 +14,59 @@ class KeplerWallet {
         }
     }
 
+    // Manually register the Odiseo testnet chain with Keplr
+    async suggestOdiseoChain() {
+        console.log("Suggesting Odiseo testnet chain to Keplr...");
+        try {
+            await window.keplr.experimentalSuggestChain({
+                chainId: this.chainId,
+                chainName: "Odiseo Testnet",
+                rpc: "https://odiseo.test.rpc.nodeshub.online",
+                rest: "https://odiseo.test.api.nodeshub.online",
+                bip44: {
+                    coinType: 118 // Standard Cosmos coin type
+                },
+                bech32Config: {
+                    bech32PrefixAccAddr: "odiseo",
+                    bech32PrefixAccPub: "odiseopub",
+                    bech32PrefixValAddr: "odiseovaloper",
+                    bech32PrefixValPub: "odiseovaloperpub",
+                    bech32PrefixConsAddr: "odiseovalcons",
+                    bech32PrefixConsPub: "odiseovalconspub"
+                },
+                currencies: [
+                    {
+                        coinDenom: "ODIS",
+                        coinMinimalDenom: "uodis",
+                        coinDecimals: 6
+                    }
+                ],
+                feeCurrencies: [
+                    {
+                        coinDenom: "ODIS",
+                        coinMinimalDenom: "uodis",
+                        coinDecimals: 6,
+                        gasPriceStep: {
+                            low: 0.01,
+                            average: 0.025,
+                            high: 0.04
+                        }
+                    }
+                ],
+                stakeCurrency: {
+                    coinDenom: "ODIS",
+                    coinMinimalDenom: "uodis",
+                    coinDecimals: 6
+                }
+            });
+            console.log("Successfully suggested Odiseo testnet to Keplr");
+            return true;
+        } catch (error) {
+            console.error("Failed to suggest Odiseo testnet to Keplr:", error);
+            throw error;
+        }
+    }
+
     async init() {
         // Wait for Kepler to be injected
         if (!window.keplr) {
@@ -21,29 +74,34 @@ class KeplerWallet {
         }
 
         try {
-            // Fetch network config from backend
-            const response = await fetch('/api/network-config');
-            const networkConfig = await response.json();
-
-            // Add the Odiseo testnet to Keplr
-            await window.keplr.experimentalSuggestChain(networkConfig);
+            // First suggest the chain to Keplr
+            await this.suggestOdiseoChain();
 
             // Enable the chain
             await window.keplr.enable(this.chainId);
+            console.log("Keplr enabled for chain:", this.chainId);
 
             // Get the offline signer
             const offlineSigner = await window.keplr.getOfflineSigner(this.chainId);
+            console.log("Got offline signer for chain");
 
             // Get user's address
             const accounts = await offlineSigner.getAccounts();
-            this.address = accounts[0].address;
-            this.connected = true;
+            console.log("Retrieved accounts:", accounts);
+            
+            if (accounts && accounts.length > 0) {
+                this.address = accounts[0].address;
+                this.connected = true;
 
-            // Save connection state
-            localStorage.setItem('kepler_address', this.address);
+                // Save connection state
+                localStorage.setItem('kepler_address', this.address);
+                console.log("Connected with address:", this.address);
 
-            this.updateUI();
-            return this.address;
+                this.updateUI();
+                return this.address;
+            } else {
+                throw new Error("No accounts found in Keplr wallet");
+            }
         } catch (error) {
             console.error('Failed to initialize Keplr:', error);
             this.disconnect();

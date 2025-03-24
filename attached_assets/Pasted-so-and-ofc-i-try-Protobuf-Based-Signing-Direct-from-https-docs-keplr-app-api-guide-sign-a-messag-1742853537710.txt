@@ -1,0 +1,75 @@
+so and ofc i try Protobuf-Based Signing (Direct) from https://docs.keplr.app/api/guide/sign-a-message
+
+but see literally this: There is no modular chain info for odiseotestnet_1234-1
+
+Edit
+The error "There is no modular chain info for odiseotestnet_1234-1" suggests that Keplr doesn't have the chain information registered for your specific testnet chain.
+
+To resolve this, you'll need to:
+
+Register the Chain Information with Keplr Before signing any transaction, you must suggestChain to Keplr. Here's a code snippet to do this:
+javascript
+
+Copy
+async function suggestOdiseoChain() {
+  await window.keplr.experimentalSuggestChain({
+    chainId: "odiseotestnet_1234-1",
+    chainName: "Odiseo Testnet",
+    rpc: "https://your-rpc-endpoint.com", // Replace with actual RPC endpoint
+    rest: "https://your-rest-endpoint.com", // Replace with actual REST endpoint
+    bip44: {
+      coinType: 118 // Standard Cosmos coin type
+    },
+    bech32Config: {
+      bech32PrefixAccAddr: "odiseo",
+      bech32PrefixAccPub: "odiseo" + "pub",
+      bech32PrefixValAddr: "odiseo" + "valoper",
+      bech32PrefixValPub: "odiseo" + "valoperpub",
+      bech32PrefixConsAddr: "odiseo" + "valcons",
+      bech32PrefixConsPub: "odiseo" + "valconspub"
+    },
+    currencies: [
+      {
+        coinDenom: "ODIS",
+        coinMinimalDenom: "uodis",
+        coinDecimals: 6
+      }
+    ],
+    feeCurrencies: [
+      {
+        coinDenom: "ODIS",
+        coinMinimalDenom: "uodis",
+        coinDecimals: 6,
+        gasPriceStep: {
+          low: 0.01,
+          average: 0.025,
+          high: 0.04
+        }
+      }
+    ],
+    stakeCurrency: {
+      coinDenom: "ODIS",
+      coinMinimalDenom: "uodis",
+      coinDecimals: 6
+    }
+  });
+}
+Call this function before any transaction
+javascript
+
+Copy
+try {
+  await suggestOdiseoChain();
+  await window.keplr.enable("odiseotestnet_1234-1");
+  // Then proceed with your transaction signing
+} catch (error) {
+  console.error("Error suggesting chain:", error);
+}
+Key things to replace:
+
+RPC endpoint (where blockchain transactions are broadcast)
+REST endpoint (for querying blockchain state)
+Ensure bech32 prefixes match your chain's configuration
+The chain registration tells Keplr how to interact with your specific blockchain, including address formats, currency details, and network endpoints.
+
+Would you like me to help you find the correct RPC and REST endpoints for the Odiseo testnet?
