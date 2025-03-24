@@ -1,62 +1,71 @@
-# End-to-End Tests for Real Estate Tokenization Platform
+# Test Suite for Real Estate Tokenization Platform
 
-This directory contains end-to-end pytest tests for the Real Estate Tokenization Platform.
+This directory contains the comprehensive test suite for our Real Estate Tokenization platform, focusing heavily on ensuring compatibility with Keplr wallet and proper blockchain transaction handling.
 
-## Overview
+## Test Organization
 
-The test suite in `test_end_to_end.py` verifies the complete flow of the application from:
-1. File upload
-2. Transaction creation
-3. Keplr wallet signature simulation
-4. Transaction broadcasting
-5. Contract status verification
+The tests are organized into several categories:
 
-## Running the Tests
+### API Endpoint Tests
+- `test_api_endpoints.py`: Basic API endpoint tests that verify core HTTP functionality
 
-To run all tests:
+### End-to-End Tests
+- `test_end_to_end.py`: Simulated end-to-end flows through the application with mocked external dependencies
+
+### Isolated Tests
+- `test_isolated_client.py`: Tests using a dedicated Flask test client to prevent interference
+- `test_isolated_flow.py`: Business logic tests isolated from the full application
+
+### Keplr Integration Tests
+- `test_kepler_gateway.py`: Tests for our gateway to the Keplr wallet
+- `test_keplr_frontend_compatibility.py`: Tests that confirm our JavaScript conversion functions work correctly
+- `test_keplr_message_browser_simulation.py`: Tests that simulate actual browser behavior with Keplr wallet
+- `test_keplr_message_formats.py`: Tests for the strict message format requirements of the Keplr wallet
+
+### Message Format Tests
+- `test_message_formats.py`: Tests for conversion between Amino and Proto message formats
+
+### Service Tests
+- `test_transaction_service.py`: Tests for the transaction service that interacts with the blockchain
+
+### Utility Tests
+- `test_utils.py`: Tests for utility functions used throughout the application
+
+## Testing Approach
+
+Our test suite uses a combination of approaches:
+
+1. **Mocks**: Many tests use mocks to avoid real blockchain interactions and external dependencies
+2. **Browser Simulation**: Key tests simulate actual browser behavior to catch integration issues
+3. **Format Validation**: Strict format validation to ensure compatibility with Keplr wallet expectations
+
+## Key Test Areas
+
+The test suite focuses heavily on several critical areas:
+
+1. **Message Format Conversion**: Testing conversion between Amino and Proto formats
+2. **Field Name Conversion**: Testing snake_case to camelCase conversion
+3. **Error Scenario Reproduction**: Reproducing and fixing the "Expected a message object" error
+4. **Memo Parsing**: Testing both legacy and simplified memo format parsing
+
+## Coverage Notes
+
+While traditional coverage metrics may not show high percentages due to the heavy use of mocks, our tests thoroughly validate the interfaces, formats, and behaviors that are critical to the application's functionality.
+
+The tests intentionally focus on the interface boundaries (especially the Keplr wallet integration) rather than testing internal implementation details, as the integration points are where most failures occurred.
+
+## Running Tests
 
 ```bash
-pytest tests/
-```
+# Run all tests
+python -m pytest
 
-To run specific tests with detailed output:
+# Run with verbose output
+python -m pytest -v
 
-```bash
-pytest tests/test_end_to_end.py::TestEndToEndFlow::test_full_e2e_flow -v
-```
+# Run specific test file
+python -m pytest tests/test_keplr_message_formats.py
 
-To generate a coverage report:
-
-```bash
-pytest --cov=src tests/
-```
-
-## Test Structure
-
-- **TestEndToEndFlow** - Main test class that verifies the entire application workflow
-  - `test_file_upload` - Verifies file upload functionality
-  - `test_account_info` - Tests account data retrieval
-  - `test_sign_transaction` - Tests transaction signing with mocked Keplr signature
-  - `test_broadcast_transaction` - Tests transaction broadcasting
-  - `test_contracts_endpoint` - Verifies contracts API endpoint
-  - `test_full_e2e_flow` - Simulates the complete end-to-end flow from upload to signed transaction
-
-- **TestUtilities** - Tests for application utility functions
-  - `test_memo_parsing` - Tests both legacy and new memo formats
-  - `test_message_format_conversion` - Tests conversion between Amino and Proto message formats
-
-## Mock Data
-
-The tests use fixtures to provide mock data:
-- `sample_bim_file` - Creates a sample BIM file for testing
-- `mock_account_data` - Provides mock account data from blockchain
-- `mock_keplr_signature` - Simulates Keplr wallet signature response
-- `mock_broadcast_response` - Mock successful transaction broadcast response
-
-## Debugging
-
-Tests include detailed logging. Set the log level to DEBUG for more information:
-
-```python
-logging.basicConfig(level=logging.DEBUG)
+# Run with coverage report
+python -m pytest --cov=src tests/
 ```
