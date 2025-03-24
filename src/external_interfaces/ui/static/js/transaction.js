@@ -141,9 +141,9 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       contentHash: fileData?.content_hash,
       timestamp: new Date().toISOString()
     };
-    
+
     console.error("Keplr transaction error:", errorContext);
-    
+
     // Try to get specific Keplr error information
     let keplrErrorDetails = "Unknown Keplr error";
     if (error.message.includes("User rejected") || error.message.includes("denied")) {
@@ -155,7 +155,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     } else if (error.message.includes("account") && error.message.includes("sequence")) {
       keplrErrorDetails = "Account sequence mismatch. Try refreshing the page and try again.";
     }
-    
+
     // Create a more informative error for handling
     const enhancedError = new Error(`Transaction failed: ${error.message}`);
     enhancedError.details = {
@@ -166,7 +166,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       timestamp: new Date().toISOString()
     };
     enhancedError.originalError = error;
-    
+
     throw enhancedError;
   }
 }
@@ -197,9 +197,9 @@ async function fetchAccountInfo(address) {
       endpoint: `/api/account?address=${address}`,
       timestamp: new Date().toISOString()
     };
-    
+
     console.error("Error fetching account info:", errorContext);
-    
+
     // Create more informative error
     const enhancedError = new Error(`Account info fetch failed: ${error.message}`);
     enhancedError.details = {
@@ -208,7 +208,7 @@ async function fetchAccountInfo(address) {
       originalMessage: error.message
     };
     enhancedError.originalError = error;
-    
+
     throw enhancedError;
   }
 }
@@ -219,26 +219,26 @@ function uint8ArrayToBase64(uint8Array) {
   let binary = '';
   const bytes = new Uint8Array(uint8Array);
   const len = bytes.byteLength;
-  
+
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  
+
   return window.btoa(binary);
 }
 
 // Helper function to convert message to Proto format
 function convertAminoToProto(msg) {
   console.log("Converting message to Proto format:", msg);
-  
+
   // We now use direct object format without type/value structure for signAmino
   // For broadcast, we need to convert from direct format to Proto format
-  
+
   // Handle direct object format, which is what we're now using
   // This is the format that works with Keplr's signAmino
   if (msg.from_address && msg.to_address && msg.amount) {
     console.log("Processing direct format message (converting to Proto):", msg);
-    
+
     // Add the typeUrl for Proto format
     return {
       typeUrl: "/cosmos.bank.v1beta1.MsgSend",
@@ -249,7 +249,7 @@ function convertAminoToProto(msg) {
       }
     };
   }
-  
+
   // For backward compatibility, handle Amino format with type/value structure
   if (msg.type && msg.value) {
     // Map Amino types to Proto typeUrls
@@ -257,16 +257,16 @@ function convertAminoToProto(msg) {
       'cosmos-sdk/MsgSend': '/cosmos.bank.v1beta1.MsgSend',
       // Add other message types as needed
     };
-    
+
     // Get corresponding typeUrl from mapping
     const typeUrl = typeUrlMapping[msg.type];
     if (!typeUrl) {
       console.error('Unknown message type:', msg.type);
       throw new Error(`Unknown message type: ${msg.type}`);
     }
-    
+
     console.log(`Converting Amino type '${msg.type}' to Proto typeUrl '${typeUrl}'`);
-    
+
     // For MsgSend, convert snake_case to camelCase
     if (msg.type === 'cosmos-sdk/MsgSend') {
       return {
@@ -278,22 +278,22 @@ function convertAminoToProto(msg) {
         }
       };
     }
-    
+
     // For other message types, pass value as-is
     return {
       typeUrl: typeUrl,
       value: msg.value
     };
   }
-  
+
   // Handle direct format with @type field (Proto format)
   if (msg["@type"]) {
     const typeUrl = msg["@type"];
-    
+
     // Extract all fields except @type
     const value = {...msg};
     delete value["@type"];
-    
+
     // For MsgSend with direct format, convert snake_case to camelCase
     if (typeUrl === "/cosmos.bank.v1beta1.MsgSend") {
       return {
@@ -305,14 +305,14 @@ function convertAminoToProto(msg) {
         }
       };
     }
-    
+
     // For other message types with direct format
     return {
       typeUrl: typeUrl,
       value: value
     };
   }
-  
+
   // If message is in an unknown format, log an error
   console.error("Unexpected message format:", msg);
   throw new Error("Unsupported message format");
@@ -323,10 +323,10 @@ async function broadcastTransaction(signResponse) {
   try {
     console.log("Preparing to broadcast transaction...");
     console.log("Sign response:", signResponse);
-    
+
     // Ensure public key is properly formatted for blockchain
     let pubKey = signResponse.signature.pub_key;
-    
+
     // Format signature for network compatibility
     // Check if we have the public key in the correct format
     if (pubKey && !pubKey.type) {
@@ -353,18 +353,18 @@ async function broadcastTransaction(signResponse) {
         console.log("Using pubkey as-is:", pubKey);
       }
     }
-    
+
     // Make sure signature is a string
     let signature = signResponse.signature.signature;
     if (signature instanceof Uint8Array) {
       signature = uint8ArrayToBase64(signature);
       console.log("Converted signature to base64:", signature);
     }
-    
+
     // Convert Amino messages to Proto format
     const protoMsgs = signResponse.signed.msgs.map(msg => convertAminoToProto(msg));
     console.log("Converted messages to Proto format:", protoMsgs);
-    
+
     // Prepare the transaction for broadcasting with properly formatted pub_key and Proto messages
     const broadcastBody = {
       tx: {
@@ -380,7 +380,7 @@ async function broadcastTransaction(signResponse) {
       },
       mode: "block" // Use "block" to wait for confirmation
     };
-    
+
     console.log("Broadcasting transaction:", JSON.stringify(broadcastBody, null, 2));
 
     // Send to your backend API endpoint that will broadcast to the blockchain
@@ -391,23 +391,23 @@ async function broadcastTransaction(signResponse) {
       },
       body: JSON.stringify(broadcastBody)
     });
-    
+
     console.log("Broadcast response status:", response.status);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Error response text:", errorText);
-      
+
       let errorData;
       try {
         errorData = JSON.parse(errorText);
       } catch (e) {
         errorData = { error: "Failed to parse error response" };
       }
-      
+
       throw new Error(errorData.error || `Failed to broadcast transaction: ${response.status}`);
     }
-    
+
     const result = await response.json();
     console.log("Broadcast result:", result);
     return result;
@@ -418,19 +418,19 @@ async function broadcastTransaction(signResponse) {
       stack: error.stack,
       fullError: error
     });
-    
+
     // Try to extract more detailed error information
     let errorDetails = {
       message: error.message,
       type: error.name || 'Error',
       timestamp: new Date().toISOString()
     };
-    
+
     // Enhanced error with more context
     const enhancedError = new Error(`Transaction broadcast failed: ${error.message}`);
     enhancedError.details = errorDetails;
     enhancedError.originalError = error;
-    
+
     throw enhancedError;
   }
 }
