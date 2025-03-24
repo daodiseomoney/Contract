@@ -14,63 +14,12 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const chainId = "odiseotestnet_1234-1";
     console.log("Using chain ID:", chainId);
 
-    // Enable Keplr for the chain
-    try {
-      await window.keplr.enable(chainId);
-      console.log("Keplr enabled for chain");
-    } catch (keplrError) {
-      console.error("Error enabling Keplr:", keplrError);
-      throw new Error(`Failed to enable Keplr for chain ${chainId}: ${keplrError.message}`);
-    }
-
-    // Get the offline signer from Keplr
-    const offlineSigner = window.keplr.getOfflineSigner(chainId);
-    console.log("Got offline signer");
-
-    // Get user's account info from Keplr
-    let accounts;
-    try {
-      accounts = await offlineSigner.getAccounts();
-      console.log("Keplr accounts:", accounts);
-    } catch (accountsError) {
-      console.error("Error getting accounts from Keplr:", accountsError);
-      throw new Error(`Failed to get accounts from Keplr: ${accountsError.message}`);
-    }
-
-    const userAccount = accounts.find(acc => acc.address === userAddress);
-    if (!userAccount) {
-      console.error("User account not found in Keplr. Available accounts:", accounts);
-      throw new Error("User account not found in Keplr");
-    }
-
-    // Get the latest account details from the chain
-    let accountInfo;
-    try {
-      accountInfo = await fetchAccountInfo(userAddress);
-      console.log("Account data from chain:", accountInfo);
-    } catch (accountError) {
-      console.error("Error fetching account info:", accountError);
-      throw new Error(`Failed to fetch account info: ${accountError.message}`);
-    }
-
-    // Ensure account data is valid
-    if (!accountInfo || !accountInfo.account_number || !accountInfo.sequence) {
-      console.error("Invalid account data:", accountInfo);
-      throw new Error("Invalid account data received from the chain");
-    }
-
-    // Use structured memo format that backend expects
-    const memo = `tx:${transactionId}|hash:${contentHash}|role:${role}`;
-    console.log("Using structured memo format:", memo);
-
     // Create sign doc according to official Keplr docs
     // https://docs.keplr.app/api/guide/sign-a-message
-    // THIS IS THE KEY FIX: Messages should NOT use type/value structure!
-    // They should be direct objects as shown in the Keplr error message
     const signDoc = {
       chain_id: chainId,
-      account_number: String(accountInfo.account_number),
-      sequence: String(accountInfo.sequence),
+      account_number: String(await getAccountNumber(userAddress)),
+      sequence: String(await getAccountSequence(userAddress)),
       fee: {
         amount: [{ denom: "uodis", amount: "2500" }],
         gas: "100000"
@@ -84,28 +33,15 @@ async function createAndSignTransaction(fileData, userAddress, role) {
           amount: [{ denom: "uodis", amount: "1000" }]
         }
       ],
-      memo: memo
+      memo: `tx:${transactionId}|hash:${contentHash}|role:${role}`
     };
 
     // Log the complete sign doc for debugging
     console.log("Amino sign doc for Keplr:", JSON.stringify(signDoc, null, 2));
 
-    // Sign the transaction with Keplr
-    console.log("Requesting Keplr signature with Amino format...");
-    let signResponse;
-    try {
-      // Use window.keplr.signAmino with properly formatted Amino doc
-      signResponse = await window.keplr.signAmino(chainId, userAddress, signDoc);
-      console.log("Got sign response from Keplr:", signResponse);
-    } catch (signingError) {
-      console.error("Error during Keplr signing:", signingError);
-      // Check if user rejected the request
-      if (signingError.message.includes("Request rejected") || 
-          signingError.message.includes("User denied")) {
-        throw new Error("Transaction was rejected by the user");
-      }
-      throw new Error(`Failed to sign transaction with Keplr: ${signingError.message}`);
-    }
+    // Sign the transaction with Keplr using the new function
+    const signResponse = await signContract(chainId, userAddress, signDoc);
+
 
     if (!signResponse || !signResponse.signature) {
       throw new Error("Failed to get signature from Keplr (empty response)");
@@ -161,7 +97,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     enhancedError.details = {
       keplrErrorDetails,
       userAddress,
-      chainId: chainId || "odiseotestnet_1234-1", 
+      chainId: chainId || "odiseotestnet_1234-1",
       transactionId: fileData?.transaction_id,
       timestamp: new Date().toISOString()
     };
@@ -211,6 +147,76 @@ async function fetchAccountInfo(address) {
 
     throw enhancedError;
   }
+}
+
+async function getAccountNumber(address) {
+    const accountInfo = await fetchAccountInfo(address);
+    return accountInfo.account_number;
+}
+
+async function getAccountSequence(address) {
+    const accountInfo = await fetchAccountInfo(address);
+    return accountInfo.sequence;
+}
+
+
+// Transaction handling with Keplr
+async function signWithKeplr(chainId, userAddress, signDoc) {
+  try {
+    // Enable Keplr for the chain
+    await window.keplr.enable(chainId);
+    console.log("Keplr enabled for chain");
+
+    // Get the offline signer
+    const offlineSigner = window.keplr.getOfflineSigner(chainId);
+    console.log("Got offline signer");
+
+    // Verify accounts
+    const accounts = await offlineSigner.getAccounts();
+    console.log("Accounts verified:", accounts.length);
+
+    // Format message in Amino format
+    const aminoDoc = {
+      ...signDoc,
+      msgs: signDoc.msgs.map(msg => ({
+        type: "cosmos-sdk/MsgSend",
+        value: {
+          from_address: msg.from_address,
+          to_address: msg.to_address,
+          amount: msg.amount
+        }
+      }))
+    };
+
+    console.log("Using signAmino with Keplr (properly formatted)");
+    console.log("Clean sign doc for Keplr:", JSON.stringify(aminoDoc, null, 2));
+
+    // Sign the transaction
+    const signResponse = await window.keplr.signAmino(
+      chainId,
+      userAddress,
+      aminoDoc,
+      {
+        preferNoSetFee: true
+      }
+    );
+
+    console.log("Got sign response from Keplr:", signResponse);
+    return signResponse;
+
+  } catch (error) {
+    console.error("Keplr signing error:", {
+      message: error.message,
+      stack: error.stack,
+      fullError: error
+    });
+    throw error;
+  }
+}
+
+async function signContract(chainId, userAddress, signDoc) {
+  console.log("Starting Keplr signing process...");
+  return await signWithKeplr(chainId, userAddress, signDoc);
 }
 
 // Convert Uint8Array to base64 string
@@ -435,5 +441,6 @@ async function broadcastTransaction(signResponse) {
   }
 }
 
-// Export the function
+// Export functions
+window.signContract = signContract;
 export { createAndSignTransaction };
