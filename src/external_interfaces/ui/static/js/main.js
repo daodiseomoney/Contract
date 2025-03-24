@@ -369,7 +369,7 @@ async function signContract(transactionId) {
 
             console.log('Signing as role:', nextRole);
 
-            // Create sign doc with proper account info
+            // Create sign doc with proper account info (simplified for compatibility)
             const signDoc = {
                 chain_id: chainId,
                 account_number: accountData.account_number,
@@ -378,6 +378,7 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
+                // Using a minimal message format to avoid message format issues
                 msgs: [{
                     type: "cosmos-sdk/MsgSend",
                     value: {
@@ -386,6 +387,7 @@ async function signContract(transactionId) {
                         amount: [{ denom: "uodis", amount: "1000" }]
                     }
                 }],
+                // Use simpler memo format for testing
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
 
