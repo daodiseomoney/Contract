@@ -231,11 +231,26 @@ function uint8ArrayToBase64(uint8Array) {
 function convertAminoToProto(msg) {
   console.log("Converting message to Proto format:", msg);
   
-  // In all cases, we expect to handle Amino format for signAmino
-  // For broadcast, we need to convert from Amino to Proto format
+  // We now use direct object format without type/value structure for signAmino
+  // For broadcast, we need to convert from direct format to Proto format
   
-  // Handle standard Amino format with type/value structure
-  // This is the format we now consistently use throughout the app
+  // Handle direct object format, which is what we're now using
+  // This is the format that works with Keplr's signAmino
+  if (msg.from_address && msg.to_address && msg.amount) {
+    console.log("Processing direct format message (converting to Proto):", msg);
+    
+    // Add the typeUrl for Proto format
+    return {
+      typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+      value: {
+        fromAddress: msg.from_address,
+        toAddress: msg.to_address,
+        amount: msg.amount
+      }
+    };
+  }
+  
+  // For backward compatibility, handle Amino format with type/value structure
   if (msg.type && msg.value) {
     // Map Amino types to Proto typeUrls
     const typeUrlMapping = {
@@ -268,21 +283,6 @@ function convertAminoToProto(msg) {
     return {
       typeUrl: typeUrl,
       value: msg.value
-    };
-  }
-  
-  // For backward compatibility, handle direct object format without type/value structure
-  if (msg.from_address && msg.to_address && msg.amount) {
-    console.log("Processing direct format message (converting to Proto):", msg);
-    
-    // Add the typeUrl for Proto format
-    return {
-      typeUrl: "/cosmos.bank.v1beta1.MsgSend",
-      value: {
-        fromAddress: msg.from_address,
-        toAddress: msg.to_address,
-        amount: msg.amount
-      }
     };
   }
   
