@@ -319,59 +319,6 @@ function formatBudgetSplits(splits) {
 }
 
 // Contract interaction functions
-// Register Odiseo chain with Keplr
-async function suggestOdiseoChain(chainId) {
-    console.log("Suggesting Odiseo testnet chain to Keplr...");
-    try {
-        await window.keplr.experimentalSuggestChain({
-            chainId: chainId,
-            chainName: "Odiseo Testnet",
-            rpc: "https://odiseo.test.rpc.nodeshub.online",
-            rest: "https://odiseo.test.api.nodeshub.online",
-            bip44: {
-                coinType: 118 // Standard Cosmos coin type
-            },
-            bech32Config: {
-                bech32PrefixAccAddr: "odiseo",
-                bech32PrefixAccPub: "odiseopub",
-                bech32PrefixValAddr: "odiseovaloper",
-                bech32PrefixValPub: "odiseovaloperpub",
-                bech32PrefixConsAddr: "odiseovalcons",
-                bech32PrefixConsPub: "odiseovalconspub"
-            },
-            currencies: [
-                {
-                    coinDenom: "ODIS",
-                    coinMinimalDenom: "uodis",
-                    coinDecimals: 6
-                }
-            ],
-            feeCurrencies: [
-                {
-                    coinDenom: "ODIS",
-                    coinMinimalDenom: "uodis",
-                    coinDecimals: 6,
-                    gasPriceStep: {
-                        low: 0.01,
-                        average: 0.025,
-                        high: 0.04
-                    }
-                }
-            ],
-            stakeCurrency: {
-                coinDenom: "ODIS",
-                coinMinimalDenom: "uodis",
-                coinDecimals: 6
-            }
-        });
-        console.log("Successfully suggested Odiseo testnet to Keplr");
-        return true;
-    } catch (error) {
-        console.error("Failed to suggest Odiseo testnet to Keplr:", error);
-        throw error;
-    }
-}
-
 async function signContract(transactionId) {
     try {
         if (!window.keplr) {
@@ -465,10 +412,6 @@ async function signContract(transactionId) {
                 }
                 
                 try {
-                    // First suggest the chain to Keplr
-                    await suggestOdiseoChain(chainId);
-                    console.log("Chain suggestion complete");
-                    
                     // Explicitly enable chain
                     await window.keplr.enable(chainId);
                     console.log("Keplr enabled for chain");
@@ -496,77 +439,35 @@ async function signContract(transactionId) {
                     }
                 }
                 
-                console.log('Using signDirect with Keplr (Proto format)');
-                
-                // We're switching to use signDirect instead of signAmino
-                // https://docs.keplr.app/api/sign.html#request-1
-                
-                // Convert from Amino to Proto format for direct signing
-                const protoMsgs = aminoDoc.msgs.map(msg => {
-                    return {
-                        typeUrl: "/cosmos.bank.v1beta1.MsgSend",
-                        value: {
-                            fromAddress: msg.value.from_address,
-                            toAddress: msg.value.to_address,
-                            amount: msg.value.amount
-                        }
-                    };
-                });
-                
-                // For signDirect we need proper binary encoding
-                // Create a TextEncoder to get binary data
-                const encoder = new TextEncoder();
-                
-                // Prepare the body object with messages and memo
-                const bodyObj = {
-                    messages: protoMsgs,
-                    memo: aminoDoc.memo
+                console.log('Using signAmino with Keplr (properly formatted)');
+                const signOptions = { 
+                    preferNoSetFee: true,
+                    disableBalanceCheck: false
                 };
                 
-                // Convert to binary format (using TextEncoder as simplified protobuf)
-                const bodyBytes = encoder.encode(JSON.stringify(bodyObj));
+                // According to Keplr documentation, for signAmino we need Amino format with type/value structure
+                // https://docs.keplr.app/api/sign.html#cosmjssignamino
                 
-                // Prepare the authInfo with fee and empty signer_infos (Keplr will fill this)
-                const authInfoObj = {
-                    fee: {
-                        amount: aminoDoc.fee.amount,
-                        gas_limit: aminoDoc.fee.gas // Use gas_limit for Cosmos SDK compatibility
-                    },
-                    signer_infos: [] // Empty for Keplr to fill in
-                };
-                
-                // Convert to binary format
-                const authInfoBytes = encoder.encode(JSON.stringify(authInfoObj));
-                
-                // Create the direct sign doc
-                const directSignDoc = {
-                    bodyBytes,
-                    authInfoBytes,
-                    chainId,
-                    accountNumber: parseInt(aminoDoc.account_number)
+                // Keep the document exactly as we prepared it with proper Amino format
+                const cleanedSignDoc = {
+                    account_number: aminoDoc.account_number,
+                    chain_id: aminoDoc.chain_id,
+                    fee: aminoDoc.fee,
+                    memo: aminoDoc.memo,
+                    // Properly formatted messages with type/value structure
+                    msgs: aminoDoc.msgs,
+                    sequence: aminoDoc.sequence
                 };
                 
                 // Log the exact document we're sending to Keplr
-                console.log('Direct sign doc for Keplr:', JSON.stringify(directSignDoc, null, 2));
+                console.log('Clean sign doc for Keplr:', JSON.stringify(cleanedSignDoc, null, 2));
                 
-                // Use signDirect instead of signAmino
-                const directSignResponse = await window.keplr.signDirect(
+                signResponse = await window.keplr.signAmino(
                     chainId,
                     userAddress,
-                    directSignDoc
+                    cleanedSignDoc,
+                    signOptions
                 );
-                
-                // Transform the response to match what our backend expects
-                signResponse = {
-                    signed: aminoDoc,
-                    signature: {
-                        pub_key: {
-                            type: "tendermint/PubKeySecp256k1",
-                            value: btoa(String.fromCharCode.apply(null, directSignResponse.pubKey))
-                        },
-                        signature: directSignResponse.signature
-                    }
-                };
                 console.log('Got sign response from Keplr:', signResponse);
             } catch (signError) {
                 console.error('Keplr signing error:', {
@@ -793,18 +694,7 @@ function uint8ToBase64(u8Arr) {
 }
 
 // Initialize everything when DOM is ready
-document.addEventListener('DOMContentLoaded', async function() {
-    // First thing: Register the chain with Keplr if available
-    if (window.keplr) {
-        try {
-            console.log("Registering Odiseo testnet chain with Keplr on page load");
-            await suggestOdiseoChain("odiseotestnet_1234-1");
-            console.log("Successfully registered Odiseo chain on page load");
-        } catch (error) {
-            console.warn("Error pre-registering chain, will try again when needed:", error);
-        }
-    }
-
+document.addEventListener('DOMContentLoaded', function() {
     // Handle file upload form
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {
