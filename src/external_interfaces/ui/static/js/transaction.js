@@ -63,8 +63,8 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     const memo = `${transactionId}:${contentHash}:${role}`;
     console.log("Using very simple memo string:", memo);
 
-    // Create the sign doc using proper Amino format for Keplr 
-    // Following https://docs.keplr.app/api/guide/sign-a-message
+    // Create the sign doc using direct format as recommended in
+    // https://docs.keplr.app/api/guide/sign-a-message
     const signDoc = {
       chain_id: chainId,
       account_number: String(accountInfo.account_number),
@@ -75,12 +75,11 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       },
       msgs: [
         {
-          type: "cosmos-sdk/MsgSend",
-          value: {
-            from_address: userAddress,
-            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-            amount: [{ denom: "uodis", amount: "1000" }]
-          }
+          // Direct format with @type field
+          "@type": "/cosmos.bank.v1beta1.MsgSend",
+          from_address: userAddress,
+          to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+          amount: [{ denom: "uodis", amount: "1000" }]
         }
       ],
       memo: memo // Standard memo string
@@ -226,12 +225,39 @@ function uint8ArrayToBase64(uint8Array) {
   return window.btoa(binary);
 }
 
-// Helper function to convert Amino message to Proto format
-function convertAminoToProto(aminoMsg) {
-  console.log("Converting Amino message to Proto format:", aminoMsg);
+// Helper function to convert message to Proto format
+function convertAminoToProto(msg) {
+  console.log("Converting message to Proto format:", msg);
   
-  // Handle standard Amino format with type/value structure
-  if (aminoMsg.type && aminoMsg.value) {
+  // Handle direct format with @type field (new Keplr format)
+  if (msg["@type"]) {
+    const typeUrl = msg["@type"];
+    
+    // Extract all fields except @type
+    const value = {...msg};
+    delete value["@type"];
+    
+    // For MsgSend with direct format, convert snake_case to camelCase
+    if (typeUrl === "/cosmos.bank.v1beta1.MsgSend") {
+      return {
+        typeUrl: typeUrl,
+        value: {
+          fromAddress: msg.from_address,
+          toAddress: msg.to_address,
+          amount: msg.amount
+        }
+      };
+    }
+    
+    // For other message types with direct format
+    return {
+      typeUrl: typeUrl,
+      value: value
+    };
+  }
+  
+  // Handle standard Amino format with type/value structure (backward compatibility)
+  if (msg.type && msg.value) {
     // Map Amino types to Proto typeUrls
     const typeUrlMapping = {
       'cosmos-sdk/MsgSend': '/cosmos.bank.v1beta1.MsgSend',
@@ -239,22 +265,22 @@ function convertAminoToProto(aminoMsg) {
     };
     
     // Get corresponding typeUrl from mapping
-    const typeUrl = typeUrlMapping[aminoMsg.type];
+    const typeUrl = typeUrlMapping[msg.type];
     if (!typeUrl) {
-      console.error('Unknown message type:', aminoMsg.type);
-      throw new Error(`Unknown message type: ${aminoMsg.type}`);
+      console.error('Unknown message type:', msg.type);
+      throw new Error(`Unknown message type: ${msg.type}`);
     }
     
-    console.log(`Converting Amino type '${aminoMsg.type}' to Proto typeUrl '${typeUrl}'`);
+    console.log(`Converting Amino type '${msg.type}' to Proto typeUrl '${typeUrl}'`);
     
     // For MsgSend, convert snake_case to camelCase
-    if (aminoMsg.type === 'cosmos-sdk/MsgSend') {
+    if (msg.type === 'cosmos-sdk/MsgSend') {
       return {
         typeUrl: typeUrl,
         value: {
-          fromAddress: aminoMsg.value.from_address,
-          toAddress: aminoMsg.value.to_address,
-          amount: aminoMsg.value.amount
+          fromAddress: msg.value.from_address,
+          toAddress: msg.value.to_address,
+          amount: msg.value.amount
         }
       };
     }
@@ -262,13 +288,13 @@ function convertAminoToProto(aminoMsg) {
     // For other message types, pass value as-is
     return {
       typeUrl: typeUrl,
-      value: aminoMsg.value
+      value: msg.value
     };
   }
   
-  // If message is already in a different format, log an error
-  console.error("Unexpected message format:", aminoMsg);
-  throw new Error("Message must be in Amino format with type and value fields");
+  // If message is in an unknown format, log an error
+  console.error("Unexpected message format:", msg);
+  throw new Error("Unsupported message format");
 }
 
 // Helper function to broadcast the signed transaction

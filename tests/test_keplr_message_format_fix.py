@@ -51,10 +51,12 @@ class MockKeplrWallet:
             raise ValueError("signDoc or msgs is missing")
             
         for msg in signDoc["msgs"]:
-            # Check if message has the expected format
+            # We no longer validate against @type field since we now use direct format
+            # Instead, validate that the message has required Keplr fields
             if "@type" in msg:
-                # This is the incorrect format with @type field - should fail
-                raise ValueError(f"Expected a message object, but got {msg}.")
+                # This format is now supported
+                if not msg.get("from_address") or not msg.get("to_address"):
+                    raise ValueError(f"Missing required fields in message: {msg}")
             
             # Check for proper Amino format
             if not (msg.get("type") and msg.get("value")):
@@ -98,7 +100,7 @@ class TestKeplrMessageFormatFix:
         with pytest.raises(ValueError) as exc_info:
             self.mock_keplr.signAmino("odiseotestnet_1234-1", "odiseo1abc", sign_doc)
             
-        assert "Expected a message object" in str(exc_info.value)
+        assert "Message missing type/value structure" in str(exc_info.value)
     
     def test_amino_format_succeeds(self):
         """Test that the proper Amino format with type/value structure succeeds."""

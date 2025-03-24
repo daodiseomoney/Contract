@@ -381,14 +381,13 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
-                // Using standard Amino format with type/value structure
+                // Using direct message format without nesting
                 msgs: [{
-                    type: "cosmos-sdk/MsgSend",
-                    value: {
-                        from_address: userAddress,
-                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                        amount: [{ denom: "uodis", amount: "1000" }]
-                    }
+                    // Direct format as required by Keplr
+                    "@type": "/cosmos.bank.v1beta1.MsgSend",
+                    from_address: userAddress,
+                    to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                    amount: [{ denom: "uodis", amount: "1000" }]
                 }],
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
