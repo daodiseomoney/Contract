@@ -36,7 +36,7 @@ async function createAndSignTransaction(fileData, userAddress, role) {
           }
         }
       ],
-      memo: `tx:${transactionId}|hash:${contentHash}|role:${role}`
+      memo: `${transactionId}:${contentHash}:${role}`
     };
 
     // Log the complete sign doc for debugging

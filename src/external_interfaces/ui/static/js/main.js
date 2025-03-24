@@ -370,9 +370,9 @@ async function signContract(transactionId) {
             console.log('Signing as role:', nextRole);
 
             // Create proper message format according to Keplr docs
-            // https://docs.keplr.app/api/guide/sign-a-message
-            // Despite Keplr docs suggesting type/value structure for Amino,
-            // testing shows it wants direct object format without type/value nesting
+            // https://docs.keplr.app/api/sign.html#cosmjssignamino
+            // Keplr.signAmino() REQUIRES Amino format WITH type/value structure
+            // Direct object format will cause errors in Keplr
             
             const aminoDoc = {
                 chain_id: chainId,
@@ -382,7 +382,7 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
-                // Using correct Amino format WITH type/value structure for Keplr
+                // Proper Amino format WITH type/value structure as required by Keplr
                 msgs: [{
                     type: "cosmos-sdk/MsgSend",
                     value: {
@@ -391,7 +391,7 @@ async function signContract(transactionId) {
                         amount: [{ denom: "uodis", amount: "1000" }]
                     }
                 }],
-                memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
+                memo: `${transaction.transaction_id}:${transaction.content_hash}:${nextRole}`
             };
             
             console.log("Amino signDoc for Keplr:", JSON.stringify(aminoDoc, null, 2));
