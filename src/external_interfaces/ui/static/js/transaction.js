@@ -226,6 +226,35 @@ function uint8ArrayToBase64(uint8Array) {
   return window.btoa(binary);
 }
 
+// Helper function to convert Amino message to Proto format
+function convertAminoToProto(aminoMsg) {
+  // Map Amino types to Proto typeUrls
+  const typeUrlMapping = {
+    'cosmos-sdk/MsgSend': '/cosmos.bank.v1beta1.MsgSend',
+    // Add other message types as needed
+  };
+
+  if (!aminoMsg || !aminoMsg.type || !aminoMsg.value) {
+    console.error('Invalid Amino message format:', aminoMsg);
+    throw new Error('Invalid Amino message format');
+  }
+
+  // Get corresponding typeUrl from mapping
+  const typeUrl = typeUrlMapping[aminoMsg.type];
+  if (!typeUrl) {
+    console.error('Unknown message type:', aminoMsg.type);
+    throw new Error(`Unknown message type: ${aminoMsg.type}`);
+  }
+
+  console.log(`Converting Amino message type '${aminoMsg.type}' to Proto typeUrl '${typeUrl}'`);
+  
+  // Create Proto format message
+  return {
+    typeUrl: typeUrl,
+    value: aminoMsg.value
+  };
+}
+
 // Helper function to broadcast the signed transaction
 async function broadcastTransaction(signResponse) {
   try {
@@ -269,10 +298,14 @@ async function broadcastTransaction(signResponse) {
       console.log("Converted signature to base64:", signature);
     }
     
-    // Prepare the transaction for broadcasting with properly formatted pub_key
+    // Convert Amino messages to Proto format
+    const protoMsgs = signResponse.signed.msgs.map(msg => convertAminoToProto(msg));
+    console.log("Converted messages to Proto format:", protoMsgs);
+    
+    // Prepare the transaction for broadcasting with properly formatted pub_key and Proto messages
     const broadcastBody = {
       tx: {
-        msg: signResponse.signed.msgs,
+        msg: protoMsgs, // Using converted Proto messages
         fee: signResponse.signed.fee,
         signatures: [
           {

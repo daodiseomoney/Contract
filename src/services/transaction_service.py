@@ -172,6 +172,51 @@ class TransactionService:
                         }
                         self.logger.debug(f"Fixed public key format: {signature['pub_key']}")
             
+            # Check and adapt message format if needed
+            msgs = tx['msg']
+            self.logger.debug(f"Processing messages: {msgs}")
+            adapted_msgs = []
+            
+            for msg in msgs:
+                # Log detailed message structure for debugging
+                self.logger.debug(f"Processing message: {msg}")
+                
+                # Handle Proto format (typeUrl)
+                if 'typeUrl' in msg:
+                    self.logger.debug(f"Found Proto format message with typeUrl: {msg['typeUrl']}")
+                    # Map from Proto typeUrl back to Amino for blockchain
+                    type_mapping = {
+                        '/cosmos.bank.v1beta1.MsgSend': 'cosmos-sdk/MsgSend',
+                        # Add more mappings as needed
+                    }
+                    
+                    # Convert back to Amino if blockchain requires it
+                    amino_type = type_mapping.get(msg['typeUrl'])
+                    if amino_type:
+                        adapted_msg = {
+                            'type': amino_type,
+                            'value': msg['value']
+                        }
+                        self.logger.debug(f"Converted Proto to Amino: {adapted_msg}")
+                        adapted_msgs.append(adapted_msg)
+                    else:
+                        self.logger.warning(f"Unknown Proto typeUrl: {msg['typeUrl']}, using as-is")
+                        adapted_msgs.append(msg)
+                
+                # Handle Amino format (type, value)
+                elif 'type' in msg and 'value' in msg:
+                    self.logger.debug(f"Found Amino format message with type: {msg['type']}")
+                    adapted_msgs.append(msg)
+                
+                else:
+                    error_msg = f"Unsupported message format: {msg}"
+                    self.logger.error(error_msg)
+                    raise ValueError(error_msg)
+            
+            # Update messages in the transaction
+            tx['msg'] = adapted_msgs
+            self.logger.debug(f"Adapted messages for broadcast: {adapted_msgs}")
+            
             # Use direct REST API approach for transaction broadcast
             self.logger.debug("Using direct REST API transaction broadcast approach")
             

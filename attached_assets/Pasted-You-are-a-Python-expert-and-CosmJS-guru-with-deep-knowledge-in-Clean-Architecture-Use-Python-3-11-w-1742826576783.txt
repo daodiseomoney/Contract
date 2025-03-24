@@ -1,0 +1,36 @@
+You are a Python expert and CosmJS guru with deep knowledge in Clean Architecture. Use Python 3.11 with f-strings, list comprehensions, and follow PEP 8 for backend fixes, and modern JavaScript for frontend adjustments.
+
+Context & Goals:
+- DDSmvp_v2.0 is our Real Estate Tokenization MVP: People tokenize Real Estate assets via our program.
+- The system accepts file uploads, creates blockchain transactions requiring multi-role (owner, contributor, validator) signatures, broadcasts them to odiseotestnet_1234-1, and updates the frontend.
+- Backend is Python (cosmpy); frontend uses CosmJS/Keplr integration.
+  
+Current Issue:
+- A POST to /api/sign returns HTTP 500 with error: 
+  "Expected a message object, but got {'type': 'cosmos-sdk/MsgSend', 'value': {…}}."
+- The request data includes a sign doc with "msgs": [{"type": "cosmos-sdk/MsgSend", "value": {…}}].
+- The backend expects a message object in a different format (likely a proto message with "typeUrl").
+
+Requirements:
+1. Frontend (JavaScript):
+   • Convert the sign doc message from Amino format (with "type" and "value") to the proto format required by the broadcast endpoint.
+   • Use CosmJS conversion (e.g., MsgSend.fromAmino(aminoMsg)) or manually map it to: {"typeUrl": "/cosmos.bank.v1beta1.MsgSend", "value": {...}}.
+   • Ensure proper error logging.
+2. Backend (Python):
+   • Validate the received sign doc and log detailed errors.
+   • (If needed) Adapt the transaction broadcast logic to accept the proto message format.
+
+Relevant Links:
+- Keplr Docs – Use with CosmJS: https://docs.keplr.app/api/use-with/cosmjs
+- CosmJS Message Conversion (e.g., MsgSend.fromAmino): https://github.com/cosmos/cosmjs
+- Clean Architecture Principles: https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
+
+Instructions:
+• Return only the updated code snippets.
+• Output minimal code (no extra prose) with inline comments only for context.
+• Provide separate code blocks for Python (backend) and JavaScript (frontend) modifications.
+• Ensure the full tokenization cycle (file upload → sign doc creation → Keplr signing → broadcast → frontend update) works end-to-end.
+
+Now, provide the updated code patches for:
+- Frontend (e.g., in src/external_interfaces/ui/static/js/transaction.js or main.js): Update the sign doc message conversion to replace the "type" field with "typeUrl" and adjust the "value" accordingly.
+- Backend (e.g., in src/services/transaction_service.py): Add detailed error logging for incoming sign data and, if necessary, convert the message format before broadcasting.
