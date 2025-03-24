@@ -80,6 +80,22 @@ class KeplerWallet {
         }
 
         try {
+            // Ensure transaction is in the format Keplr expects
+            // If transaction has type/value structure, transform it
+            let msgForKeplr = transaction;
+            
+            if (transaction.type && transaction.value) {
+                // Extract the message type
+                const msgType = transaction.type.split('/')[1] || transaction.type;
+                
+                // Create a flattened message with @type field
+                msgForKeplr = {
+                    "@type": `/cosmos.bank.v1beta1.${msgType}`,
+                    ...transaction.value  // Spread the value fields directly
+                };
+            }
+            
+            // Create the sign doc with proper structure
             const signDoc = {
                 chain_id: this.chainId,
                 account_number: '0',
@@ -88,13 +104,15 @@ class KeplerWallet {
                     amount: [{ amount: '2000', denom: 'uodis' }],
                     gas: '200000',
                 },
-                msgs: [transaction],
+                msgs: [msgForKeplr],  // Use the properly formatted message
                 memo: ''
             };
+            
+            console.log("Signing with Keplr:", signDoc);
 
-            // Sign the transaction
-            const offlineSigner = await window.keplr.getOfflineSigner(this.chainId);
-            const signature = await offlineSigner.signAmino(
+            // Sign the transaction directly with Keplr (not offlineSigner)
+            const signature = await window.keplr.signAmino(
+                this.chainId,
                 this.address,
                 signDoc
             );

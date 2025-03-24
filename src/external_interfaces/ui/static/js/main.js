@@ -369,8 +369,19 @@ async function signContract(transactionId) {
 
             console.log('Signing as role:', nextRole);
 
-            // Create Amino format signDoc - This is the format documented in Keplr docs
+            // Create proper message format according to Keplr docs
             // https://docs.keplr.app/api/use-with/cosmjs
+            // Keplr expects a flattened message structure instead of the nested type/value format
+            
+            // First extract the MsgSend message data without nesting
+            const msgSendData = {
+                // Standard MsgSend fields
+                from_address: userAddress,
+                to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt", // Contract address
+                amount: [{ denom: "uodis", amount: "1000" }]
+            };
+            
+            // Now create the signDoc with proper structure
             const aminoDoc = {
                 chain_id: chainId,
                 account_number: accountData.account_number,
@@ -379,14 +390,12 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
-                // Using Amino format
+                // Create the message in the format Keplr expects
                 msgs: [{
-                    type: "cosmos-sdk/MsgSend",
-                    value: {
-                        from_address: userAddress,
-                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt", // Contract address
-                        amount: [{ denom: "uodis", amount: "1000" }]
-                    }
+                    // Add the Amino type as a special field
+                    "@type": "/cosmos.bank.v1beta1.MsgSend",
+                    // Include the message data directly instead of nesting
+                    ...msgSendData
                 }],
                 // Use the standard memo format
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
