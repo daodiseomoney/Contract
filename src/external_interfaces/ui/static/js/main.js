@@ -369,7 +369,7 @@ async function signContract(transactionId) {
 
             console.log('Signing as role:', nextRole);
 
-            // Create sign doc with proper account info (simplified for compatibility)
+            // Create sign doc with proper account info for Proto (Keplr compatible)
             const signDoc = {
                 chain_id: chainId,
                 account_number: accountData.account_number,
@@ -378,16 +378,16 @@ async function signContract(transactionId) {
                     amount: [{ denom: "uodis", amount: "2500" }],
                     gas: "100000"
                 },
-                // Using a minimal message format to avoid message format issues
+                // Use Proto format for compatibility
                 msgs: [{
-                    type: "cosmos-sdk/MsgSend",
+                    typeUrl: "/cosmos.bank.v1beta1.MsgSend",
                     value: {
-                        from_address: userAddress,
-                        to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt", // Contract address
+                        fromAddress: userAddress,
+                        toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt", // Contract address
                         amount: [{ denom: "uodis", amount: "1000" }]
                     }
                 }],
-                // Use simpler memo format for testing
+                // Use simpler memo format without complex structures
                 memo: `tx:${transaction.transaction_id}|hash:${transaction.content_hash}|role:${nextRole}`
             };
 

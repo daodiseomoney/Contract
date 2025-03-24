@@ -163,7 +163,30 @@ class MultiSigBlockchainGateway:
                     continue
                 
                 # Handle different message formats
-                if 'type' in msg and msg.get('type') == 'cosmos-sdk/MsgSend':
+                
+                # Proto format (typeUrl)
+                if 'typeUrl' in msg:
+                    self.logger.debug(f"Found Proto format message with typeUrl: {msg.get('typeUrl')}")
+                    
+                    # Handle MsgSend Proto format
+                    if msg.get('typeUrl') == '/cosmos.bank.v1beta1.MsgSend':
+                        value = msg.get('value', {})
+                        # Convert Proto field names to Amino format
+                        amino_msg = {
+                            'type': 'cosmos-sdk/MsgSend',
+                            'value': {
+                                'from_address': value.get('fromAddress', ''),
+                                'to_address': value.get('toAddress', ''),
+                                'amount': value.get('amount', [])
+                            }
+                        }
+                        processed_msgs.append(amino_msg)
+                        self.logger.debug(f"Converted Proto to Amino: {amino_msg}")
+                    else:
+                        self.logger.warning(f"Unknown Proto typeUrl: {msg.get('typeUrl')}")
+                
+                # Amino format (type, value)
+                elif 'type' in msg and msg.get('type') == 'cosmos-sdk/MsgSend':
                     # Proper Amino format with type and value
                     if 'value' in msg and isinstance(msg['value'], dict):
                         msg_value = msg.get('value', {})
@@ -171,12 +194,11 @@ class MultiSigBlockchainGateway:
                         # Check required fields
                         if not all(k in msg_value for k in ['from_address', 'to_address', 'amount']):
                             self.logger.warning(f"Message missing required fields: {msg_value}")
-                            # Try to reconstruct if possible from other sources
                             continue
                         
                         # Message is valid, add to processed messages
                         processed_msgs.append(msg)
-                        self.logger.debug(f"Added valid message: {msg}")
+                        self.logger.debug(f"Added valid Amino message: {msg}")
                     
                     # Flat structure (no nested value)
                     elif all(k in msg for k in ['from_address', 'to_address', 'amount']):
@@ -190,12 +212,26 @@ class MultiSigBlockchainGateway:
                             }
                         }
                         processed_msgs.append(reconstructed_msg)
-                        self.logger.debug(f"Reconstructed message: {reconstructed_msg}")
+                        self.logger.debug(f"Reconstructed Amino message: {reconstructed_msg}")
                     
                     else:
                         self.logger.warning(f"Incomplete MsgSend message: {msg}")
                 
-                # Unknown message type
+                # Try to infer structure based on field names
+                elif all(k in msg for k in ['fromAddress', 'toAddress', 'amount']):
+                    # Looks like Proto format fields but missing typeUrl
+                    amino_msg = {
+                        'type': 'cosmos-sdk/MsgSend',
+                        'value': {
+                            'from_address': msg.get('fromAddress', ''),
+                            'to_address': msg.get('toAddress', ''),
+                            'amount': msg.get('amount', [])
+                        }
+                    }
+                    processed_msgs.append(amino_msg)
+                    self.logger.debug(f"Inferred and converted Proto fields to Amino: {amino_msg}")
+                
+                # Unknown message format
                 else:
                     self.logger.warning(f"Unknown message format: {msg}")
             
@@ -204,7 +240,7 @@ class MultiSigBlockchainGateway:
                 self.logger.error("No valid messages after processing")
                 
                 # For now, we'll accept any message format to prevent errors
-                # This is a temporary workaround while we debug the issue
+                # This is a temporary fallback measure
                 self.logger.debug("Using original messages as fallback")
                 tx_body.messages.extend(msgs)
             else:

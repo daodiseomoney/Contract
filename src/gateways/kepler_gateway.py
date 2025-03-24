@@ -58,29 +58,51 @@ class KeplerGateway:
         """This function will be called from JavaScript to connect Kepler wallet"""
         # The actual connection happens in JavaScript
         # This is just a placeholder for the backend interface
-        return self.connected_address
+        return self.connected_address or ""  # Return empty string if None
 
     async def sign_transaction(self, tx_data: Dict, role: KeplerSignatureRole) -> Dict:
         """This function will be called from JavaScript to sign a transaction"""
         # The actual signing happens in JavaScript
         # This is just a placeholder for the backend interface
+        
+        # Use simplified memo format matching our frontend changes
+        transaction_id = tx_data.get('transaction_id', '')
+        content_hash = tx_data.get('content_hash', '')
+        role_value = role.value if role else 'unknown'
+        
         return {
             'messages': tx_data.get('messages', []),
             'fee': tx_data.get('fee', {}),
-            'memo': f"tx:{tx_data.get('transaction_id')}|hash:{tx_data.get('content_hash')}|role:{role.value}"
+            'memo': f"{transaction_id}:{content_hash}:{role_value}"  # Simple colon-separated format
         }
 
     def parse_memo_data(self, memo: str) -> Dict:
-        """Parse transaction memo data"""
+        """Parse transaction memo data with flexible format support"""
         try:
             data = {}
-            if '|' in memo:
+            
+            # Handle our ultra-simplified format: "transactionId:contentHash:role"
+            if memo.count(':') == 2 and '|' not in memo:
+                parts = memo.split(':')
+                if len(parts) == 3:
+                    data['tx'] = parts[0]
+                    data['hash'] = parts[1]
+                    data['role'] = parts[2]
+                    return data
+            
+            # Handle our original format with pipe separators: "tx:id|hash:123|role:owner"
+            elif '|' in memo:
                 parts = memo.split('|')
                 for part in parts:
                     if ':' in part:
                         key, value = part.split(':', 1)
                         data[key.strip()] = value.strip()
+                
+            # If we didn't parse anything but there's content, store as raw_memo
+            if not data and memo:
+                data["raw_memo"] = memo
+                
             return data
         except Exception as e:
             # Return a minimal dict if parsing fails
-            return {"raw_memo": memo}
+            return {"raw_memo": memo, "error": str(e)}

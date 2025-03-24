@@ -59,11 +59,11 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       throw new Error("Invalid account data received from the chain");
     }
 
-    // IMPORTANT: Use simple string format without JSON - this is the key fix
-    const memo = `tx:${transactionId}|hash:${contentHash}|role:${role}`;
-    console.log("Using simple memo string:", memo);
+    // Use simple string memo without any complex formatting
+    const memo = `${transactionId}:${contentHash}:${role}`;
+    console.log("Using very simple memo string:", memo);
 
-    // Create the sign doc with the correct format
+    // Create the sign doc using Proto format (Keplr compatible)
     // Ensure all numeric values are strings for consistency
     const signDoc = {
       chain_id: chainId,
@@ -75,15 +75,15 @@ async function createAndSignTransaction(fileData, userAddress, role) {
       },
       msgs: [
         {
-          type: "cosmos-sdk/MsgSend",
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
           value: {
-            amount: [{ amount: "1000", denom: "uodis" }],
-            from_address: userAddress,
-            to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"
+            fromAddress: userAddress,
+            toAddress: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+            amount: [{ amount: "1000", denom: "uodis" }]
           }
         }
       ],
-      memo: memo // Simple string memo without any JSON
+      memo: memo // Ultra-simple memo string
     };
 
     // Log the complete sign doc for debugging

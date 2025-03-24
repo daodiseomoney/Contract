@@ -44,10 +44,25 @@ def sign_transaction():
             logger.error("Invalid memo format: JSON object not allowed")
             return jsonify({"error": "Memo must be a simple text string"}), 400
 
-        # Validate memo format (tx:|hash:|role:)
-        expected_parts = ["tx:", "hash:", "role:"]
-        if not all(part in memo for part in expected_parts):
-            logger.error(f"Invalid memo format. Expected format: tx:ID|hash:HASH|role:ROLE, got: {memo}")
+        # Validate memo format - support both formats:
+        # 1. Legacy format: "tx:ID|hash:HASH|role:ROLE"
+        # 2. New format: "ID:HASH:ROLE"
+        is_legacy_format = False
+        is_new_format = False
+        
+        # Check for legacy format with pipe separators
+        if "|" in memo:
+            expected_parts = ["tx:", "hash:", "role:"]
+            is_legacy_format = all(part in memo for part in expected_parts)
+        
+        # Check for new simplified format with just colons
+        elif memo.count(":") == 2:
+            # Format is "ID:HASH:ROLE"
+            parts = memo.split(":")
+            is_new_format = len(parts) == 3 and all(parts)
+        
+        if not (is_legacy_format or is_new_format):
+            logger.error(f"Invalid memo format. Expected either 'tx:ID|hash:HASH|role:ROLE' or 'ID:HASH:ROLE', got: {memo}")
             return jsonify({"error": "Invalid memo format"}), 400
 
         # Format the data for transaction service
@@ -62,31 +77,72 @@ def sign_transaction():
         for msg in msgs:
             # Check if this is a message object that needs to be transformed
             if isinstance(msg, dict):
-                # Make sure the message is in the format expected by the transaction service
+                logger.debug(f"Processing message: {msg}")
+                
+                # Case 1: Already in correct Amino format with type and value
                 if 'type' in msg and 'value' in msg:
-                    # Already in correct amino format
                     processed_msgs.append(msg)
-                    logger.debug(f"Message already in correct format: {msg}")
-                else:
-                    # Try to convert to correct format
-                    logger.debug(f"Converting message to proper format: {msg}")
+                    logger.debug(f"Message already in correct Amino format: {msg}")
+                
+                # Case 2: Proto format with typeUrl
+                elif 'typeUrl' in msg and 'value' in msg:
+                    # Convert Proto to Amino format for backend compatibility
+                    logger.debug(f"Converting Proto format message to Amino: {msg}")
                     
-                    # Handle case where the Cosmos SDK message might be a single message object
-                    # rather than an array of message objects
-                    if msg.get('type') == 'cosmos-sdk/MsgSend' and 'value' not in msg:
-                        # Reconstruct the message in correct format
-                        processed_msg = {
+                    if msg['typeUrl'] == '/cosmos.bank.v1beta1.MsgSend':
+                        value = msg.get('value', {})
+                        # Convert Proto field names to Amino format
+                        amino_msg = {
                             'type': 'cosmos-sdk/MsgSend',
                             'value': {
-                                'from_address': msg.get('from_address', ''),
-                                'to_address': msg.get('to_address', ''),
-                                'amount': msg.get('amount', [])
+                                'from_address': value.get('fromAddress', ''),
+                                'to_address': value.get('toAddress', ''),
+                                'amount': value.get('amount', [])
                             }
                         }
-                        processed_msgs.append(processed_msg)
-                        logger.debug(f"Converted message: {processed_msg}")
+                        processed_msgs.append(amino_msg)
+                        logger.debug(f"Converted Proto to Amino: {amino_msg}")
+                    else:
+                        logger.warning(f"Unknown Proto typeUrl: {msg.get('typeUrl')}")
+                        # Still include the message to avoid losing data
+                        processed_msgs.append(msg)
+                
+                # Case 3: Flat structure (no nested value)
+                elif all(k in msg for k in ['from_address', 'to_address', 'amount']):
+                    # Amino format without proper structure
+                    logger.debug(f"Restructuring flat Amino message: {msg}")
+                    reconstructed_msg = {
+                        'type': 'cosmos-sdk/MsgSend',
+                        'value': {
+                            'from_address': msg.get('from_address', ''),
+                            'to_address': msg.get('to_address', ''),
+                            'amount': msg.get('amount', [])
+                        }
+                    }
+                    processed_msgs.append(reconstructed_msg)
+                    logger.debug(f"Restructured message: {reconstructed_msg}")
+                
+                # Case 4: Proto format flat structure
+                elif all(k in msg for k in ['fromAddress', 'toAddress', 'amount']):
+                    logger.debug(f"Restructuring flat Proto message: {msg}")
+                    amino_msg = {
+                        'type': 'cosmos-sdk/MsgSend',
+                        'value': {
+                            'from_address': msg.get('fromAddress', ''),
+                            'to_address': msg.get('toAddress', ''),
+                            'amount': msg.get('amount', [])
+                        }
+                    }
+                    processed_msgs.append(amino_msg)
+                    logger.debug(f"Converted Proto fields to Amino: {amino_msg}")
+                
+                # Case 5: Unknown format but still valid dictionary
+                else:
+                    logger.warning(f"Unknown message format, passing through as-is: {msg}")
+                    # For compatibility, don't drop messages during testing phase
+                    processed_msgs.append(msg)
             else:
-                logger.error(f"Unexpected message format: {msg}")
+                logger.error(f"Unexpected message format (not a dict): {msg}")
         
         tx_data = {
             'tx': {
