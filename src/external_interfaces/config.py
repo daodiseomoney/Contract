@@ -16,3 +16,9 @@ class Config:
     # LLM config
     LLM_MODEL = "distilbert-base-uncased"
     MAX_TOKENS = 512
+    
+    # BIMserver config
+    BIMSERVER_URL = os.environ.get("BIMSERVER_URL", "http://localhost:8080")
+    BIMSERVER_USERNAME = os.environ.get("BIMSERVER_USERNAME", "admin@example.com")
+    BIMSERVER_PASSWORD = os.environ.get("BIMSERVER_PASSWORD", "admin")
+    BIMSERVER_ENABLED = os.environ.get("BIMSERVER_ENABLED", "False") == "True"
