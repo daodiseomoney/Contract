@@ -51,6 +51,7 @@ def tokenize_property():
             content = {
                 'file_path': data['file_path'],
                 'budget_splits': data['budget_splits'],
+                'storage_type': data.get('storage_type', 'local'),  # Include storage type
                 'network': {
                     'chain_id': 'odiseotestnet_1234-1',
                     'denom': 'uodis',

@@ -6,7 +6,7 @@ Replaces the local storage approach with a model-driven architecture.
 import os
 import requests
 import logging
-from typing import BinaryIO, Dict, List, Optional
+from typing import BinaryIO, Dict, List, Optional, cast
 import json
 
 # Set up logging
@@ -141,7 +141,7 @@ class BIMServerGateway:
             logger.error(f"Error creating project: {str(e)}")
             raise
     
-    def store_file(self, file: BinaryIO, project_id: str = None, project_name: str = None) -> str:
+    def store_file(self, file: BinaryIO, project_id: Optional[str] = None, project_name: Optional[str] = None) -> str:
         """
         Store BIM file in BIMserver and return revision ID.
         
@@ -170,7 +170,7 @@ class BIMServerGateway:
                 # Generate a project name from the filename if none provided
                 filename = os.path.basename(file.name) if hasattr(file, 'name') else "unnamed_project"
                 project_name = f"Project_{filename.split('.')[0]}"
-                project_id = self.create_project(project_name)
+                project_id = self.create_project(project_name if project_name else "Default_Project")
             
             # Read file content
             file_content = file.read()
@@ -187,6 +187,10 @@ class BIMServerGateway:
                 deserializer = "dwg"  # Note: May need configuration in BIMserver
             else:
                 deserializer = "ifc"  # Default to IFC
+            
+            # Make sure project_id is not None at this point
+            if project_id is None:
+                raise ValueError("project_id cannot be None when checking in a file")
             
             # First, checkin the file to get a topicId
             checkin_result = self._call_api(

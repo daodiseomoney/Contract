@@ -5,6 +5,7 @@ import logging
 import hashlib
 import json
 import requests
+from src.gateways.storage_factory import StorageFactory
 
 upload_bp = Blueprint('upload', __name__, url_prefix='/api')
 
@@ -37,11 +38,16 @@ def upload_file():
             return jsonify({'error': f'Invalid file type. Allowed types: {", ".join(ALLOWED_EXTENSIONS)}'}), 400
 
         try:
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
-
-            current_app.logger.info(f"File uploaded successfully: {file_path}")
+            # Create appropriate storage gateway based on configuration
+            storage_gateway = StorageFactory.create_storage_gateway()
+            
+            # Store the file using the selected gateway
+            try:
+                file_path = storage_gateway.store_file(file)
+                current_app.logger.info(f"File uploaded successfully: {file_path}")
+            except Exception as e:
+                current_app.logger.error(f"Error storing file: {str(e)}", exc_info=True)
+                return jsonify({'error': f'Error storing file: {str(e)}'}), 500
 
             # Get budget splits from form data
             budget_splits = {}
@@ -71,7 +77,8 @@ def upload_file():
             # Prepare data for tokenization
             tokenize_data = {
                 'file_path': file_path,
-                'budget_splits': budget_splits
+                'budget_splits': budget_splits,
+                'storage_type': 'bimserver' if current_app.config.get('BIMSERVER_ENABLED', False) else 'local'
             }
 
             current_app.logger.debug(f"Sending tokenization request: {tokenize_data}")
