@@ -1,65 +1,83 @@
 # Real Estate Tokenization Platform
 
-The Real Estate Tokenization Platform is a blockchain-powered application that enables secure and transparent property investment through advanced blockchain technology, with comprehensive transaction management and Keplr wallet integration.
+A blockchain-powered real estate tokenization platform that enables secure and transparent property investment through advanced blockchain technology, with comprehensive transaction management and wallet integration.
 
-## Key Features
+## Key Technologies
 
-- Blockchain-based property tokenization using Cosmos SDK (Odiseo testnet)
-- Multi-signature transaction management for real estate contracts
-- Keplr wallet integration for transaction signing
-- File upload and content hashing for property documentation
-- Transaction status tracking and management
+- Flask web framework
+- Cosmos blockchain (Odiseo testnet)
+- CosmPy for blockchain interactions
+- Keplr wallet browser integration
+- BIMserver for advanced BIM file management
+- PostgreSQL database
 
-## Technical Stack
+## Features
 
-- **Backend**: Flask web framework
-- **Blockchain**: Cosmos (Odiseo testnet)
-- **SDK**: CosmPy for blockchain interactions
-- **Wallet**: Keplr browser extension integration
-- **Security**: Multi-signature wallet interactions
+- Upload and validate Building Information Modeling (BIM) files
+- Tokenize real estate properties on the blockchain
+- Distribute budget allocations among stakeholders
+- Multi-signature transaction processing
+- Comprehensive transaction tracking
+- Advanced error handling for blockchain transactions
 
-## Recent Fixes
+## BIMserver Integration
 
-### Keplr Wallet Integration Fix (March 24, 2025)
+The platform now features integration with [BIMserver](https://github.com/opensourceBIM/BIMserver), a dedicated Building Information Modeling server that provides:
 
-Fixed a critical issue with Keplr wallet transaction signing where messages weren't being properly formatted. The specific error was:
+- Project and revision management for BIM files
+- Model-driven architecture (storing BIM as objects rather than files)
+- Advanced querying and validation capabilities
+- Format conversion between IFC, XML, and JSON
+- Multi-user collaboration support
 
-```
-Expected a message object, but got {'type': 'cosmos-sdk/MsgSend', 'value': {...}}
-```
+### Configuration
 
-The fix transforms messages from the nested Amino format to a flattened format that Keplr expects:
+To enable BIMserver integration, set the following environment variables:
 
-**Old Format (Amino):**
-```json
-{
-  "type": "cosmos-sdk/MsgSend",
-  "value": {
-    "from_address": "odiseo1...",
-    "to_address": "odiseo1...",
-    "amount": [...]
-  }
-}
-```
+```bash
+# Enable BIMserver integration
+export BIMSERVER_ENABLED=True
 
-**New Format (Keplr-compatible):**
-```json
-{
-  "@type": "/cosmos.bank.v1beta1.MsgSend",
-  "from_address": "odiseo1...",
-  "to_address": "odiseo1...",
-  "amount": [...]
-}
+# BIMserver connection settings
+export BIMSERVER_URL=http://your-bimserver-instance:8080
+export BIMSERVER_USERNAME=your_username
+export BIMSERVER_PASSWORD=your_password
 ```
 
-The fix has been implemented across the frontend JavaScript files that interact with Keplr wallet.
+Without these variables, the system will automatically fall back to local file storage.
 
-## Development
+## Installation
 
-To run the application locally:
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Set up environment variables (optional, for BIMserver integration)
+4. Start the application:
 
 ```bash
 python main.py
 ```
 
-The application will be available at http://localhost:5000
+## System Architecture
+
+See [architecture.md](architecture.md) for a detailed overview of the system architecture.
+
+## API Documentation
+
+For BIMserver API integration details, see [bimserver_api.html](bimserver_api.html).
+
+## Testing
+
+Run the test suite to validate the application:
+
+```bash
+python -m pytest
+```
+
+## License
+
+Copyright © 2025 Real Estate Tokenization Platform. All rights reserved.

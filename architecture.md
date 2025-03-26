@@ -74,7 +74,8 @@ A modular Flask-based platform enabling real estate stakeholders to tokenize pro
 - **UI Components**: Custom Flask components
 
 ### Storage
-- Local file system for BIM files (MVP)
+- BIMserver for BIM file management and model-driven architecture
+- Local file system as fallback storage (MVP)
 - PostgreSQL for application data
 - Blockchain for asset tokenization
 
@@ -111,12 +112,36 @@ POST /validate    - Validate BIM compliance
 GET  /analytics   - Retrieve property insights
 ```
 
+## BIMserver Integration
+
+The platform integrates with BIMserver, a model-driven architecture for BIM data management.
+
+### Architecture
+- **Factory Pattern**: `StorageFactory` creates the appropriate storage gateway based on configuration
+- **Gateway Interface**: Common interface for `LocalStorageGateway` and `BIMServerGateway`
+- **Fallback Mechanism**: Automatically falls back to local storage if BIMserver is unavailable
+
+### Features
+- Project and revision management for BIM files
+- Advanced model querying and validation
+- Version control for architectural models
+- Multi-user collaboration support
+- Format conversion (IFC, XML, JSON)
+
+### Benefits
+- Improved model quality through validation services
+- Enhanced collaboration between stakeholders
+- Better version control for complex architectural models
+- Advanced querying capabilities for model data
+- Integration with industry-standard BIM tools
+
 ## Future Enhancements
-1. **IPFS Integration**: Decentralized file storage
-2. **Cosmos SDK**: Full blockchain integration
-3. **Advanced LLM**: GPT-4/Llama 3 integration
-4. **Multi-chain Support**: Cross-chain compatibility
-5. **Advanced Analytics**: ML-based property valuation
+1. **BIMserver Query Language**: Advanced model interrogation
+2. **IPFS Integration**: Decentralized file storage
+3. **Cosmos SDK**: Full blockchain integration
+4. **Advanced LLM**: GPT-4/Llama 3 integration
+5. **Multi-chain Support**: Cross-chain compatibility
+6. **Advanced Analytics**: ML-based property valuation
 
 ## Development Guidelines
 - Clean Architecture principles
