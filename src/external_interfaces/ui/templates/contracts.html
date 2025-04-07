@@ -1,343 +1,494 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="dashboard-header">
-    <h1 class="dashboard-title">Smart Contracts</h1>
-    <p class="lead">Manage your blockchain contracts and multi-signature agreements</p>
-</div>
+{% block title %}Contracts - BIM AI Management Dashboard{% endblock %}
 
-<div class="row">
-    <!-- Active Contracts -->
-    <div class="col-lg-8 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-file-earmark-code-fill text-info-custom me-2"></i> Active Contracts</span>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
-                        <i class="bi bi-filter"></i> Filter
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#newContractModal">
-                        <i class="bi bi-plus-lg"></i> New Contract
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
+{% block page_title %}Smart Contracts Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Smart Contracts List -->
+        <div class="col-md-7 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-success">
+                <div class="card-title">Active Smart Contracts</div>
                 <div class="table-responsive">
-                    <table class="table table-dark table-hover align-middle">
+                    <table class="table table-dark" id="contracts-table">
                         <thead>
                             <tr>
-                                <th>Contract</th>
+                                <th width="5%"></th>
+                                <th>Contract Name</th>
+                                <th>Property</th>
                                 <th>Type</th>
                                 <th>Created</th>
                                 <th>Status</th>
-                                <th>Signatures</th>
-                                <th>Actions</th>
+                                <th width="10%">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-file-earmark-text text-info-custom"></i>
-                                        </div>
-                                        <div>Cosmic Tower Ownership</div>
-                                    </div>
-                                </td>
-                                <td>Property Deed</td>
-                                <td>April 4, 2025</td>
+                            <tr class="contract-row" data-contract-id="1">
+                                <td><i data-feather="file-text" class="feather-sm"></i></td>
+                                <td>Cosmic Tower Ownership</td>
+                                <td>Cosmic Tower</td>
+                                <td>Ownership</td>
+                                <td>Apr 01, 2025</td>
                                 <td><span class="badge bg-success">Active</span></td>
-                                <td>4/4</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
-                                        <i class="bi bi-download"></i>
-                                    </button>
+                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-file-earmark-text text-info-custom"></i>
-                                        </div>
-                                        <div>Quantum Residences Management</div>
-                                    </div>
-                                </td>
-                                <td>Management Agreement</td>
-                                <td>April 3, 2025</td>
+                            <tr class="contract-row" data-contract-id="2">
+                                <td><i data-feather="file-text" class="feather-sm"></i></td>
+                                <td>Tenant Agreement #104</td>
+                                <td>Cosmic Tower</td>
+                                <td>Lease</td>
+                                <td>Apr 02, 2025</td>
                                 <td><span class="badge bg-success">Active</span></td>
-                                <td>3/3</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
-                                        <i class="bi bi-download"></i>
-                                    </button>
+                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr class="contract-row" data-contract-id="3">
+                                <td><i data-feather="file-text" class="feather-sm"></i></td>
+                                <td>Maintenance Service Contract</td>
+                                <td>Cosmic Tower</td>
+                                <td>Service</td>
+                                <td>Apr 03, 2025</td>
+                                <td><span class="badge bg-success">Active</span></td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-file-earmark-text text-info-custom"></i>
-                                        </div>
-                                        <div>Nova Business Center Investment</div>
-                                    </div>
+                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
                                 </td>
-                                <td>Investment Agreement</td>
-                                <td>April 2, 2025</td>
+                            </tr>
+                            <tr class="contract-row" data-contract-id="4">
+                                <td><i data-feather="file-text" class="feather-sm"></i></td>
+                                <td>Token Distribution</td>
+                                <td>Cosmic Tower</td>
+                                <td>Tokenization</td>
+                                <td>Apr 05, 2025</td>
                                 <td><span class="badge bg-warning">Pending</span></td>
-                                <td>2/4</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Sign">
-                                        <i class="bi bi-pen"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-file-earmark-text text-info-custom"></i>
-                                        </div>
-                                        <div>Stellar Heights Revenue Share</div>
-                                    </div>
-                                </td>
-                                <td>Revenue Agreement</td>
-                                <td>April 1, 2025</td>
-                                <td><span class="badge bg-success">Active</span></td>
-                                <td>5/5</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
-                                        <i class="bi bi-download"></i>
-                                    </button>
+                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Contract Actions -->
+                <div class="contract-actions d-flex justify-content-between mt-3">
+                    <button class="btn btn-outline-info" id="create-contract-btn">
+                        <i data-feather="plus"></i> New Contract
+                    </button>
+                    <div>
+                        <button class="btn btn-outline-secondary" id="export-contracts-btn">
+                            <i data-feather="download"></i> Export
+                        </button>
+                        <button class="btn btn-outline-secondary" id="refresh-contracts-btn">
+                            <i data-feather="refresh-cw"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contract Details Panel -->
+        <div class="col-md-5 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-secondary" id="contract-details-panel">
+                <div class="card-title">Contract Details</div>
+                
+                <!-- No Contract Selected State -->
+                <div id="no-contract-selected" class="text-center p-5">
+                    <i data-feather="file-text" style="width: 64px; height: 64px; opacity: 0.7;"></i>
+                    <h4 class="mt-3">No Contract Selected</h4>
+                    <p class="text-muted">Select a contract from the list to view details</p>
+                </div>
+                
+                <!-- Contract Details Content -->
+                <div id="contract-details-content" style="display: none;">
+                    <h4 class="cosmic-text" id="contract-title">Cosmic Tower Ownership</h4>
+                    
+                    <!-- Contract Info -->
+                    <div class="contract-info mb-4">
+                        <table class="table table-dark">
+                            <tbody>
+                                <tr>
+                                    <th width="40%">Contract ID</th>
+                                    <td id="contract-id">COSMOS-CONTRACT-0001</td>
+                                </tr>
+                                <tr>
+                                    <th>Contract Type</th>
+                                    <td id="contract-type">Ownership</td>
+                                </tr>
+                                <tr>
+                                    <th>Property</th>
+                                    <td id="contract-property">Cosmic Tower</td>
+                                </tr>
+                                <tr>
+                                    <th>Blockchain Address</th>
+                                    <td id="contract-address" class="text-truncate">cosmos1abcdefghijklmnopqrstuvwxyz</td>
+                                </tr>
+                                <tr>
+                                    <th>Created Date</th>
+                                    <td id="contract-date">April 1, 2025</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td id="contract-status"><span class="badge bg-success">Active</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Stakeholders -->
+                    <div class="contract-stakeholders mb-4">
+                        <h5>Contract Stakeholders</h5>
+                        <div class="glassmorphism p-3">
+                            <div class="stakeholder d-flex justify-content-between mb-2">
+                                <div>
+                                    <strong>Property Owner</strong>
+                                    <div class="text-muted small">Cosmic Real Estate LLC</div>
+                                </div>
+                                <span class="badge bg-info">Signatory</span>
+                            </div>
+                            <div class="stakeholder d-flex justify-content-between mb-2">
+                                <div>
+                                    <strong>Investor Group</strong>
+                                    <div class="text-muted small">Galactic Investments Inc.</div>
+                                </div>
+                                <span class="badge bg-info">Signatory</span>
+                            </div>
+                            <div class="stakeholder d-flex justify-content-between">
+                                <div>
+                                    <strong>Property Manager</strong>
+                                    <div class="text-muted small">Nova Management Services</div>
+                                </div>
+                                <span class="badge bg-secondary">Observer</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contract Actions -->
+                    <div class="contract-detail-actions mb-3">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-sm btn-outline-info" id="view-on-chain-btn">
+                                <i data-feather="link"></i> View On Chain
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" id="download-contract-btn">
+                                <i data-feather="download"></i> Download
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" id="sign-contract-btn">
+                                <i data-feather="edit"></i> Sign
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" id="terminate-contract-btn">
+                                <i data-feather="x-circle"></i> Terminate
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Transaction History -->
+                    <div class="contract-transactions">
+                        <h5>Recent Transactions</h5>
+                        <div class="glassmorphism p-3">
+                            <div class="transaction mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Contract Creation</strong>
+                                    <span class="text-muted small">Apr 01, 2025</span>
+                                </div>
+                                <div class="text-truncate text-muted small">Tx: cosmos1txn2345678abcdef...</div>
+                            </div>
+                            <div class="transaction mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Property Owner Signature</strong>
+                                    <span class="text-muted small">Apr 01, 2025</span>
+                                </div>
+                                <div class="text-truncate text-muted small">Tx: cosmos1txn3456789abcdef...</div>
+                            </div>
+                            <div class="transaction">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Investor Group Signature</strong>
+                                    <span class="text-muted small">Apr 02, 2025</span>
+                                </div>
+                                <div class="text-truncate text-muted small">Tx: cosmos1txn4567890abcdef...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- Contract Templates and Status -->
-    <div class="col-lg-4 mb-4">
-        <!-- Contract Templates -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <i class="bi bi-file-earmark-ruled-fill text-info-custom me-2"></i> Contract Templates
-            </div>
-            <div class="card-body">
-                <div class="list-group bg-transparent">
-                    <a href="#" class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">Property Deed</h6>
-                            <small class="text-muted">Standard</small>
+    <!-- Create Contract Modal -->
+    <div class="modal fade" id="create-contract-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glassmorphism">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Create New Smart Contract</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-contract-form">
+                        <div class="mb-3">
+                            <label class="form-label">Contract Name</label>
+                            <input type="text" class="form-control bg-dark text-light" required>
                         </div>
-                        <p class="mb-1 text-muted">Legal property ownership document with blockchain verification</p>
-                    </a>
-                    <a href="#" class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">Management Agreement</h6>
-                            <small class="text-muted">Standard</small>
+                        <div class="mb-3">
+                            <label class="form-label">Property</label>
+                            <select class="form-select bg-dark text-light" required>
+                                <option value="">Select Property</option>
+                                <option value="1">Cosmic Tower</option>
+                                <option value="2">Galactic Plaza</option>
+                                <option value="3">Nova Heights</option>
+                            </select>
                         </div>
-                        <p class="mb-1 text-muted">Terms for property management and service delivery</p>
-                    </a>
-                    <a href="#" class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">Investment Agreement</h6>
-                            <small class="text-info-custom">Premium</small>
+                        <div class="mb-3">
+                            <label class="form-label">Contract Type</label>
+                            <select class="form-select bg-dark text-light" required>
+                                <option value="">Select Type</option>
+                                <option value="ownership">Ownership</option>
+                                <option value="lease">Lease</option>
+                                <option value="service">Service</option>
+                                <option value="tokenization">Tokenization</option>
+                            </select>
                         </div>
-                        <p class="mb-1 text-muted">Multi-party investment terms with profit distribution</p>
-                    </a>
-                    <a href="#" class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">Revenue Share</h6>
-                            <small class="text-info-custom">Premium</small>
+                        <div class="mb-3">
+                            <label class="form-label">Stakeholders</label>
+                            <div class="glassmorphism p-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="stakeholderOwner" checked>
+                                    <label class="form-check-label" for="stakeholderOwner">Property Owner</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="stakeholderInvestor">
+                                    <label class="form-check-label" for="stakeholderInvestor">Investor Group</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="stakeholderManager">
+                                    <label class="form-check-label" for="stakeholderManager">Property Manager</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="stakeholderTenant">
+                                    <label class="form-check-label" for="stakeholderTenant">Tenant</label>
+                                </div>
+                            </div>
                         </div>
-                        <p class="mb-1 text-muted">Automated revenue distribution among stakeholders</p>
-                    </a>
+                        <div class="mb-3">
+                            <label class="form-label">Contract Description</label>
+                            <textarea class="form-control bg-dark text-light" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Blockchain Wallet</label>
+                                <button type="button" class="btn btn-sm btn-outline-info" id="modal-connect-wallet-btn">Connect Wallet</button>
+                            </div>
+                            <div class="wallet-status glassmorphism p-3">
+                                <div class="text-center" id="modal-wallet-not-connected">
+                                    <p class="text-muted">No wallet connected</p>
+                                    <p class="small">Connect your wallet to create and sign contracts</p>
+                                </div>
+                                <div id="modal-wallet-connected" style="display: none;">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="mb-1"><strong>Wallet Connected</strong></p>
+                                            <p class="wallet-address text-truncate mb-1" id="modal-wallet-address">cosmos1abcdef...</p>
+                                            <p class="small text-muted mb-0">Blockchain: <span id="modal-blockchain-name">Cosmos (Odiseo Testnet)</span></p>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-success">Connected</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-info" id="submit-contract-btn">Create Contract</button>
                 </div>
             </div>
-            <div class="card-footer text-center">
-                <a href="#" class="btn btn-sm btn-outline-info">View All Templates</a>
-            </div>
         </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const contractsTable = document.getElementById('contracts-table');
+        const noContractSelected = document.getElementById('no-contract-selected');
+        const contractDetailsContent = document.getElementById('contract-details-content');
+        const createContractBtn = document.getElementById('create-contract-btn');
+        const createContractModal = new bootstrap.Modal(document.getElementById('create-contract-modal'));
         
-        <!-- Contract Stats -->
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-graph-up-arrow text-info-custom me-2"></i> Contract Statistics
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6 mb-4">
-                        <div class="bg-glass rounded-custom py-3 h-100">
-                            <div class="text-info-custom display-5 mb-2">
-                                <i class="bi bi-file-earmark-check"></i>
-                            </div>
-                            <h5>43</h5>
-                            <p class="text-muted mb-0">Active Contracts</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-4">
-                        <div class="bg-glass rounded-custom py-3 h-100">
-                            <div class="text-warning-custom display-5 mb-2">
-                                <i class="bi bi-hourglass-split"></i>
-                            </div>
-                            <h5>12</h5>
-                            <p class="text-muted mb-0">Pending Signatures</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-4">
-                        <div class="bg-glass rounded-custom py-3 h-100">
-                            <div class="text-success-custom display-5 mb-2">
-                                <i class="bi bi-person-check"></i>
-                            </div>
-                            <h5>185</h5>
-                            <p class="text-muted mb-0">Total Signers</p>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-4">
-                        <div class="bg-glass rounded-custom py-3 h-100">
-                            <div class="text-secondary-custom display-5 mb-2">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                            <h5>8</h5>
-                            <p class="text-muted mb-0">Avg. Time (hours)</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- New Contract Modal -->
-<div class="modal fade" id="newContractModal" tabindex="-1" aria-labelledby="newContractModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="newContractModalLabel">Create New Contract</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="contractTitle" class="form-label">Contract Title</label>
-                        <input type="text" class="form-control" id="contractTitle" placeholder="Enter contract title">
-                    </div>
-                    <div class="mb-3">
-                        <label for="contractType" class="form-label">Contract Type</label>
-                        <select class="form-select" id="contractType">
-                            <option value="" selected disabled>Select contract type</option>
-                            <option value="deed">Property Deed</option>
-                            <option value="management">Management Agreement</option>
-                            <option value="investment">Investment Agreement</option>
-                            <option value="revenue">Revenue Share</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="contractParties" class="form-label">Involved Parties</label>
-                        <select class="form-select" id="contractParties" multiple aria-label="Multiple parties">
-                            <option value="user1">admin@example.com</option>
-                            <option value="user2">john.doe@example.com</option>
-                            <option value="user3">jane.smith@example.com</option>
-                            <option value="user4">investor@example.com</option>
-                        </select>
-                        <small class="text-muted">Hold Ctrl/Cmd to select multiple parties</small>
-                    </div>
-                    <div class="mb-3">
-                        <label for="contractDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="contractDescription" rows="3" placeholder="Brief description of the contract"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="contractTemplate" class="form-label">Use Template</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="useTemplate" checked>
-                            <label class="form-check-label" for="useTemplate">
-                                Use standard template for selected contract type
-                            </label>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Create Contract</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Filter Modal -->
-<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="filterModalLabel">Filter Contracts</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="filterStatus" class="form-label">Status</label>
-                        <select class="form-select" id="filterStatus">
-                            <option value="all" selected>All</option>
-                            <option value="active">Active</option>
-                            <option value="pending">Pending</option>
-                            <option value="expired">Expired</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="filterType" class="form-label">Contract Type</label>
-                        <select class="form-select" id="filterType">
-                            <option value="all" selected>All</option>
-                            <option value="deed">Property Deed</option>
-                            <option value="management">Management Agreement</option>
-                            <option value="investment">Investment Agreement</option>
-                            <option value="revenue">Revenue Share</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="filterDate" class="form-label">Date Range</label>
-                        <div class="row">
-                            <div class="col">
-                                <input type="date" class="form-control" id="filterDateFrom">
-                                <small class="text-muted">From</small>
-                            </div>
-                            <div class="col">
-                                <input type="date" class="form-control" id="filterDateTo">
-                                <small class="text-muted">To</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="filterSignatures" class="form-label">Signature Status</label>
-                        <select class="form-select" id="filterSignatures">
-                            <option value="all" selected>All</option>
-                            <option value="complete">Complete</option>
-                            <option value="incomplete">Incomplete</option>
-                            <option value="needsAction">Needs My Signature</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-info">Apply Filters</button>
-            </div>
-        </div>
-    </div>
-</div>
+        // Contract details elements
+        const contractTitle = document.getElementById('contract-title');
+        const contractId = document.getElementById('contract-id');
+        const contractType = document.getElementById('contract-type');
+        const contractProperty = document.getElementById('contract-property');
+        const contractAddress = document.getElementById('contract-address');
+        const contractDate = document.getElementById('contract-date');
+        const contractStatus = document.getElementById('contract-status');
+        
+        // Modal elements
+        const modalConnectWalletBtn = document.getElementById('modal-connect-wallet-btn');
+        const modalWalletNotConnected = document.getElementById('modal-wallet-not-connected');
+        const modalWalletConnected = document.getElementById('modal-wallet-connected');
+        const modalWalletAddress = document.getElementById('modal-wallet-address');
+        const submitContractBtn = document.getElementById('submit-contract-btn');
+        
+        // Mock contract data
+        const contracts = [
+            {
+                id: 1,
+                title: 'Cosmic Tower Ownership',
+                contractId: 'COSMOS-CONTRACT-0001',
+                type: 'Ownership',
+                property: 'Cosmic Tower',
+                address: 'cosmos1abcdefghijklmnopqrstuvwxyz',
+                date: 'April 1, 2025',
+                status: 'Active'
+            },
+            {
+                id: 2,
+                title: 'Tenant Agreement #104',
+                contractId: 'COSMOS-CONTRACT-0002',
+                type: 'Lease',
+                property: 'Cosmic Tower',
+                address: 'cosmos2abcdefghijklmnopqrstuvwxyz',
+                date: 'April 2, 2025',
+                status: 'Active'
+            },
+            {
+                id: 3,
+                title: 'Maintenance Service Contract',
+                contractId: 'COSMOS-CONTRACT-0003',
+                type: 'Service',
+                property: 'Cosmic Tower',
+                address: 'cosmos3abcdefghijklmnopqrstuvwxyz',
+                date: 'April 3, 2025',
+                status: 'Active'
+            },
+            {
+                id: 4,
+                title: 'Token Distribution',
+                contractId: 'COSMOS-CONTRACT-0004',
+                type: 'Tokenization',
+                property: 'Cosmic Tower',
+                address: 'cosmos4abcdefghijklmnopqrstuvwxyz',
+                date: 'April 5, 2025',
+                status: 'Pending'
+            }
+        ];
+        
+        // Initialize event listeners
+        function init() {
+            // Contract row click
+            document.querySelectorAll('.contract-row').forEach(row => {
+                row.addEventListener('click', function() {
+                    const contractId = this.getAttribute('data-contract-id');
+                    showContractDetails(parseInt(contractId));
+                    
+                    // Highlight selected row
+                    document.querySelectorAll('.contract-row').forEach(r => r.classList.remove('selected-row'));
+                    this.classList.add('selected-row');
+                });
+            });
+            
+            // View contract buttons
+            document.querySelectorAll('.view-contract-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const contractId = this.closest('.contract-row').getAttribute('data-contract-id');
+                    showContractDetails(parseInt(contractId));
+                    
+                    // Highlight selected row
+                    document.querySelectorAll('.contract-row').forEach(r => r.classList.remove('selected-row'));
+                    this.closest('.contract-row').classList.add('selected-row');
+                });
+            });
+            
+            // Create contract button
+            createContractBtn.addEventListener('click', () => {
+                createContractModal.show();
+            });
+            
+            // Modal connect wallet button
+            modalConnectWalletBtn.addEventListener('click', async () => {
+                try {
+                    // Simulate connecting to wallet
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Update UI
+                    modalWalletNotConnected.style.display = 'none';
+                    modalWalletConnected.style.display = 'block';
+                    modalWalletAddress.textContent = 'cosmos1abcdefghijklmnopqrstuvwxyz123456789';
+                    modalConnectWalletBtn.textContent = 'Disconnect';
+                } catch (error) {
+                    console.error('Error connecting wallet:', error);
+                    alert('Failed to connect wallet. Please try again.');
+                }
+            });
+            
+            // Submit contract button
+            submitContractBtn.addEventListener('click', () => {
+                createContractModal.hide();
+                alert('Contract created successfully!');
+            });
+            
+            // Contract detail buttons
+            document.getElementById('view-on-chain-btn').addEventListener('click', () => {
+                alert('Opening blockchain explorer in a new tab...');
+            });
+            
+            document.getElementById('download-contract-btn').addEventListener('click', () => {
+                alert('Downloading contract...');
+            });
+            
+            document.getElementById('sign-contract-btn').addEventListener('click', () => {
+                alert('Please connect your wallet to sign this contract.');
+            });
+            
+            document.getElementById('terminate-contract-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to terminate this contract? This action cannot be undone.')) {
+                    alert('Contract termination initiated. All stakeholders will be notified.');
+                }
+            });
+        }
+        
+        // Show contract details
+        function showContractDetails(id) {
+            // Find contract data
+            const contract = contracts.find(c => c.id === id);
+            
+            if (!contract) {
+                noContractSelected.style.display = 'block';
+                contractDetailsContent.style.display = 'none';
+                return;
+            }
+            
+            // Update UI
+            noContractSelected.style.display = 'none';
+            contractDetailsContent.style.display = 'block';
+            
+            // Populate contract details
+            contractTitle.textContent = contract.title;
+            contractId.textContent = contract.contractId;
+            contractType.textContent = contract.type;
+            contractProperty.textContent = contract.property;
+            contractAddress.textContent = contract.address;
+            contractDate.textContent = contract.date;
+            
+            if (contract.status === 'Active') {
+                contractStatus.innerHTML = '<span class="badge bg-success">Active</span>';
+            } else if (contract.status === 'Pending') {
+                contractStatus.innerHTML = '<span class="badge bg-warning">Pending</span>';
+            } else {
+                contractStatus.innerHTML = '<span class="badge bg-danger">Terminated</span>';
+            }
+        }
+        
+        // Initialize
+        init();
+    });
+</script>
 {% endblock %}

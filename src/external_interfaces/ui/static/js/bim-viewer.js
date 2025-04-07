@@ -1,383 +1,583 @@
 /**
- * BIM Viewer Module
- * Handles 3D visualization of BIM models using Three.js and Google Model Viewer
+ * BIM Viewer Component for BIM AI Management Dashboard
+ * A simplified 3D viewer for building models
  */
-class BIMViewer {
-    constructor() {
-        this.currentModel = null;
-        this.selectedObjects = [];
-        this.objectTree = [];
-        this.isWireframe = false;
-    }
 
+const bimViewer = {
+    // Viewer container element
+    container: null,
+    
+    // Canvas context
+    canvas: null,
+    ctx: null,
+    
+    // Viewer state
+    state: {
+        initialized: false,
+        dataLoaded: false,
+        cameraPosition: { x: 0, y: 0, z: -10 },
+        cameraTarget: { x: 0, y: 0, z: 0 },
+        rotating: false,
+        autoRotate: false,
+        showWireframe: false,
+        defaultColor: '#4CAF50',
+        highlightColor: '#FF4081',
+        currentFloor: 1,
+        totalFloors: 3,
+    },
+    
+    // Mock building data
+    buildingData: {
+        name: "Cosmic Tower",
+        location: "Silicon Valley, CA",
+        floors: 3,
+        yearBuilt: 2024,
+        totalArea: 12500,
+        elements: []
+    },
+    
     /**
-     * Initialize the BIM viewer with a container element
-     * @param {HTMLElement} container - The container element for the viewer
+     * Initialize the BIM viewer
+     * @param {string} containerId - ID of the container element
      */
-    initialize(container) {
-        this.container = container;
-        this.setupModelViewer();
+    init(containerId) {
+        this.container = document.getElementById(containerId);
+        
+        if (!this.container) {
+            console.error('BIM Viewer container not found');
+            return;
+        }
+        
+        // Create viewer UI
+        this.createViewerUI();
+        
+        // Set up controls
+        this.setupControls();
+        
+        // Generate mock building data
+        this.generateMockData();
+        
+        // Start rendering
+        this.startRenderLoop();
+        
+        this.state.initialized = true;
         console.log('BIM Viewer initialized');
-    }
-
+    },
+    
     /**
-     * Set up the model viewer component
+     * Create the viewer UI elements
      */
-    setupModelViewer() {
-        if (!this.container) return;
+    createViewerUI() {
+        // Create canvas and controls
+        this.container.innerHTML = `
+            <canvas class="bim-viewer-canvas" id="bim-canvas"></canvas>
+            <div class="viewer-controls">
+                <button class="viewer-control-btn" id="btn-rotate" title="Toggle Auto-Rotate">
+                    <i data-feather="refresh-cw"></i>
+                </button>
+                <button class="viewer-control-btn" id="btn-wireframe" title="Toggle Wireframe">
+                    <i data-feather="grid"></i>
+                </button>
+                <button class="viewer-control-btn" id="btn-floor-up" title="Next Floor">
+                    <i data-feather="chevron-up"></i>
+                </button>
+                <button class="viewer-control-btn" id="btn-floor-down" title="Previous Floor">
+                    <i data-feather="chevron-down"></i>
+                </button>
+                <button class="viewer-control-btn" id="btn-reset" title="Reset View">
+                    <i data-feather="home"></i>
+                </button>
+            </div>
+        `;
         
-        // Check if we're using a model-viewer component or Three.js
-        if (this.container.tagName === 'MODEL-VIEWER') {
-            this.modelViewer = this.container;
-            
-            // Add event listeners for model-viewer
-            this.modelViewer.addEventListener('load', () => this.onModelLoaded());
-            this.modelViewer.addEventListener('model-visibility', (event) => {
-                console.log('Model visibility changed:', event.detail.visible);
-            });
-            
-            // Set viewer options
-            this.modelViewer.cameraControls = true;
-            this.modelViewer.autoRotate = false;
-            this.modelViewer.shadowIntensity = 1;
-            this.modelViewer.exposure = 0.75;
-            this.modelViewer.environmentImage = 'neutral';
-            
-            // Add custom AR button if available
-            if ('xr' in navigator) {
-                this.modelViewer.ar = true;
-                this.modelViewer.arModes = 'webxr scene-viewer';
+        // Initialize Feather icons
+        feather.replace();
+        
+        // Get canvas
+        this.canvas = document.getElementById('bim-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        // Set canvas size
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+    },
+    
+    /**
+     * Set up viewer controls
+     */
+    setupControls() {
+        // Toggle auto-rotate
+        document.getElementById('btn-rotate').addEventListener('click', () => {
+            this.state.autoRotate = !this.state.autoRotate;
+        });
+        
+        // Toggle wireframe
+        document.getElementById('btn-wireframe').addEventListener('click', () => {
+            this.state.showWireframe = !this.state.showWireframe;
+        });
+        
+        // Floor navigation
+        document.getElementById('btn-floor-up').addEventListener('click', () => {
+            if (this.state.currentFloor < this.state.totalFloors) {
+                this.state.currentFloor++;
             }
-        } else {
-            console.error('Unsupported viewer type');
-        }
-    }
-
-    /**
-     * Load a 3D model into the viewer
-     * @param {string} modelUrl - URL to the model file
-     */
-    loadModel(modelUrl) {
-        if (!this.modelViewer) return;
+        });
         
-        console.log('Loading model:', modelUrl);
+        document.getElementById('btn-floor-down').addEventListener('click', () => {
+            if (this.state.currentFloor > 1) {
+                this.state.currentFloor--;
+            }
+        });
         
-        // Set the source of the model-viewer component
-        this.modelViewer.src = modelUrl;
+        // Reset view
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            this.state.cameraPosition = { x: 0, y: 0, z: -10 };
+            this.state.cameraTarget = { x: 0, y: 0, z: 0 };
+            this.state.autoRotate = false;
+            this.state.showWireframe = false;
+            this.state.currentFloor = 1;
+        });
         
-        // Update UI elements
-        this.showLoadingIndicator(true);
+        // Mouse interaction for rotation
+        this.canvas.addEventListener('mousedown', () => {
+            this.state.rotating = true;
+        });
         
-        // If we have model-viewer, we let the component handle loading
-        if (this.modelViewer) {
-            this.modelViewer.addEventListener('load', () => {
-                this.showLoadingIndicator(false);
-                this.currentModel = modelUrl;
-                console.log('Model loaded successfully');
+        this.canvas.addEventListener('mouseup', () => {
+            this.state.rotating = false;
+        });
+        
+        this.canvas.addEventListener('mousemove', (e) => {
+            if (this.state.rotating) {
+                // Rotate the camera position around the target
+                const deltaX = e.movementX * 0.01;
+                const deltaY = e.movementY * 0.01;
                 
-                // Generate object tree from model
-                this.generateObjectTree();
-            }, { once: true });
+                // Update camera position
+                const x = this.state.cameraPosition.x;
+                const z = this.state.cameraPosition.z;
+                
+                // Rotate around Y axis (left/right)
+                this.state.cameraPosition.x = x * Math.cos(deltaX) - z * Math.sin(deltaX);
+                this.state.cameraPosition.z = z * Math.cos(deltaX) + x * Math.sin(deltaX);
+                
+                // Limit vertical rotation
+                const y = this.state.cameraPosition.y;
+                this.state.cameraPosition.y = Math.max(-5, Math.min(5, y + deltaY));
+            }
+        });
+    },
+    
+    /**
+     * Resize canvas to match container size
+     */
+    resizeCanvas() {
+        if (this.canvas) {
+            this.canvas.width = this.container.clientWidth;
+            this.canvas.height = this.container.clientHeight;
+        }
+    },
+    
+    /**
+     * Generate mock building data for visualization
+     */
+    generateMockData() {
+        // Reset building elements
+        this.buildingData.elements = [];
+        
+        // Generate mock walls, floors, doors, windows
+        
+        // Floor 1
+        this.buildingData.elements.push(
+            // Floor
+            {
+                type: 'floor',
+                position: { x: 0, y: -2, z: 0 },
+                size: { x: 8, y: 0.2, z: 8 },
+                color: '#78909C',
+                floor: 1,
+            },
+            // Exterior walls
+            {
+                type: 'wall',
+                position: { x: -4, y: -1, z: 0 },
+                size: { x: 0.2, y: 2, z: 8 },
+                color: '#455A64',
+                floor: 1,
+            },
+            {
+                type: 'wall',
+                position: { x: 4, y: -1, z: 0 },
+                size: { x: 0.2, y: 2, z: 8 },
+                color: '#455A64',
+                floor: 1,
+            },
+            {
+                type: 'wall',
+                position: { x: 0, y: -1, z: -4 },
+                size: { x: 8, y: 2, z: 0.2 },
+                color: '#455A64',
+                floor: 1,
+            },
+            {
+                type: 'wall',
+                position: { x: 0, y: -1, z: 4 },
+                size: { x: 8, y: 2, z: 0.2 },
+                color: '#455A64',
+                floor: 1,
+            }
+        );
+        
+        // Floor 2
+        this.buildingData.elements.push(
+            // Floor
+            {
+                type: 'floor',
+                position: { x: 0, y: 0, z: 0 },
+                size: { x: 8, y: 0.2, z: 8 },
+                color: '#78909C',
+                floor: 2,
+            },
+            // Exterior walls
+            {
+                type: 'wall',
+                position: { x: -4, y: 1, z: 0 },
+                size: { x: 0.2, y: 2, z: 8 },
+                color: '#455A64',
+                floor: 2,
+            },
+            {
+                type: 'wall',
+                position: { x: 4, y: 1, z: 0 },
+                size: { x: 0.2, y: 2, z: 8 },
+                color: '#455A64',
+                floor: 2,
+            },
+            {
+                type: 'wall',
+                position: { x: 0, y: 1, z: -4 },
+                size: { x: 8, y: 2, z: 0.2 },
+                color: '#455A64',
+                floor: 2,
+            },
+            {
+                type: 'wall',
+                position: { x: 0, y: 1, z: 4 },
+                size: { x: 8, y: 2, z: 0.2 },
+                color: '#455A64',
+                floor: 2,
+            },
+            // Interior walls floor 2
+            {
+                type: 'wall',
+                position: { x: -2, y: 1, z: 0 },
+                size: { x: 0.2, y: 2, z: 8 },
+                color: '#607D8B',
+                floor: 2,
+            }
+        );
+        
+        // Floor 3
+        this.buildingData.elements.push(
+            // Floor
+            {
+                type: 'floor',
+                position: { x: 0, y: 2, z: 0 },
+                size: { x: 8, y: 0.2, z: 8 },
+                color: '#78909C',
+                floor: 3,
+            },
+            // Exterior walls
+            {
+                type: 'wall',
+                position: { x: -3, y: 3, z: 0 },
+                size: { x: 0.2, y: 2, z: 6 },
+                color: '#455A64',
+                floor: 3,
+            },
+            {
+                type: 'wall',
+                position: { x: 3, y: 3, z: 0 },
+                size: { x: 0.2, y: 2, z: 6 },
+                color: '#455A64',
+                floor: 3,
+            },
+            {
+                type: 'wall',
+                position: { x: 0, y: 3, z: -3 },
+                size: { x: 6, y: 2, z: 0.2 },
+                color: '#455A64',
+                floor: 3,
+            },
+            {
+                type: 'wall',
+                position: { x: 0, y: 3, z: 3 },
+                size: { x: 6, y: 2, z: 0.2 },
+                color: '#455A64',
+                floor: 3,
+            }
+        );
+        
+        // Windows and doors
+        for (let floor = 1; floor <= 3; floor++) {
+            const yPos = (floor - 2) * 2;
             
-            this.modelViewer.addEventListener('error', (error) => {
-                this.showLoadingIndicator(false);
-                console.error('Error loading model:', error);
-                this.showErrorMessage('Failed to load model. Please check the file format and try again.');
-            }, { once: true });
-        }
-    }
-
-    /**
-     * Show or hide the loading indicator
-     * @param {boolean} show - Whether to show the loading indicator
-     */
-    showLoadingIndicator(show) {
-        const loadingElement = document.querySelector('.tree-loading');
-        if (loadingElement) {
-            loadingElement.style.display = show ? 'flex' : 'none';
-        }
-    }
-
-    /**
-     * Display an error message
-     * @param {string} message - The error message to display
-     */
-    showErrorMessage(message) {
-        const elementProperties = document.getElementById('elementProperties');
-        if (elementProperties) {
-            elementProperties.innerHTML = `<div class="alert alert-danger">${message}</div>`;
-        }
-    }
-
-    /**
-     * Generate object tree from the loaded model
-     */
-    generateObjectTree() {
-        const treeContainer = document.getElementById('objectTree');
-        if (!treeContainer) return;
-        
-        // Clear existing tree
-        while (treeContainer.firstChild) {
-            if (treeContainer.firstChild.classList && treeContainer.firstChild.classList.contains('tree-loading')) {
-                // Skip removing the loading indicator
-                treeContainer.removeChild(treeContainer.firstChild);
-            }
+            // Windows
+            this.buildingData.elements.push(
+                {
+                    type: 'window',
+                    position: { x: -4, y: yPos, z: -2 },
+                    size: { x: 0.3, y: 1, z: 1 },
+                    color: '#BBDEFB',
+                    floor: floor,
+                },
+                {
+                    type: 'window',
+                    position: { x: -4, y: yPos, z: 2 },
+                    size: { x: 0.3, y: 1, z: 1 },
+                    color: '#BBDEFB',
+                    floor: floor,
+                },
+                {
+                    type: 'window',
+                    position: { x: 4, y: yPos, z: -2 },
+                    size: { x: 0.3, y: 1, z: 1 },
+                    color: '#BBDEFB',
+                    floor: floor,
+                },
+                {
+                    type: 'window',
+                    position: { x: 4, y: yPos, z: 2 },
+                    size: { x: 0.3, y: 1, z: 1 },
+                    color: '#BBDEFB',
+                    floor: floor,
+                }
+            );
+            
+            // Door
+            this.buildingData.elements.push({
+                type: 'door',
+                position: { x: 0, y: yPos - 0.5, z: 4 },
+                size: { x: 1.2, y: 1, z: 0.3 },
+                color: '#5D4037',
+                floor: floor,
+            });
         }
         
-        // For demonstration, generate a sample tree structure
-        // In a real implementation, this would be derived from the model
-        const sampleStructure = [
-            {
-                name: 'Building Structure',
-                id: 'structure',
-                children: [
-                    { name: 'Foundation', id: 'foundation' },
-                    { name: 'Columns', id: 'columns' },
-                    { name: 'Beams', id: 'beams' },
-                    { name: 'Floors', id: 'floors' }
-                ]
-            },
-            {
-                name: 'Architectural Elements',
-                id: 'architecture',
-                children: [
-                    { name: 'Walls', id: 'walls' },
-                    { name: 'Windows', id: 'windows' },
-                    { name: 'Doors', id: 'doors' },
-                    { name: 'Stairs', id: 'stairs' }
-                ]
-            },
-            {
-                name: 'MEP Systems',
-                id: 'mep',
-                children: [
-                    { name: 'HVAC', id: 'hvac' },
-                    { name: 'Plumbing', id: 'plumbing' },
-                    { name: 'Electrical', id: 'electrical' },
-                    { name: 'Fire Protection', id: 'fire' }
-                ]
+        this.state.dataLoaded = true;
+    },
+    
+    /**
+     * Start the rendering loop
+     */
+    startRenderLoop() {
+        const render = () => {
+            if (this.state.initialized) {
+                this.render();
             }
+            requestAnimationFrame(render);
+        };
+        
+        render();
+    },
+    
+    /**
+     * Render the 3D scene
+     */
+    render() {
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Update camera position if auto-rotate is enabled
+        if (this.state.autoRotate) {
+            const x = this.state.cameraPosition.x;
+            const z = this.state.cameraPosition.z;
+            const angle = 0.01;
+            
+            this.state.cameraPosition.x = x * Math.cos(angle) - z * Math.sin(angle);
+            this.state.cameraPosition.z = z * Math.cos(angle) + x * Math.sin(angle);
+        }
+        
+        // Draw background grid
+        this.drawGrid();
+        
+        // Get visible elements (for the current floor)
+        const visibleElements = this.buildingData.elements.filter(
+            element => element.floor === this.state.currentFloor
+        );
+        
+        // Sort elements by distance (painter's algorithm)
+        visibleElements.sort((a, b) => {
+            const distA = this.distance(a.position, this.state.cameraPosition);
+            const distB = this.distance(b.position, this.state.cameraPosition);
+            return distB - distA;
+        });
+        
+        // Draw each element
+        visibleElements.forEach(element => {
+            this.drawElement(element);
+        });
+        
+        // Draw floor indicator
+        this.drawFloorIndicator();
+    },
+    
+    /**
+     * Draw the background grid
+     */
+    drawGrid() {
+        const gridSize = 20;
+        const gridSpacing = 50;
+        
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        this.ctx.lineWidth = 1;
+        
+        // Calculate center of canvas
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        
+        // Draw horizontal grid lines
+        for (let i = -gridSize; i <= gridSize; i++) {
+            const y = centerY + i * gridSpacing;
+            
+            this.ctx.beginPath();
+            this.ctx.moveTo(centerX - gridSize * gridSpacing, y);
+            this.ctx.lineTo(centerX + gridSize * gridSpacing, y);
+            this.ctx.stroke();
+        }
+        
+        // Draw vertical grid lines
+        for (let i = -gridSize; i <= gridSize; i++) {
+            const x = centerX + i * gridSpacing;
+            
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, centerY - gridSize * gridSpacing);
+            this.ctx.lineTo(x, centerY + gridSize * gridSpacing);
+            this.ctx.stroke();
+        }
+    },
+    
+    /**
+     * Draw a 3D element with perspective projection
+     * @param {object} element - The element to draw
+     */
+    drawElement(element) {
+        // Extract element properties
+        const { position, size, color, type } = element;
+        
+        // Define vertices of the cuboid
+        const vertices = [
+            // Front face
+            { x: position.x - size.x/2, y: position.y - size.y/2, z: position.z + size.z/2 },
+            { x: position.x + size.x/2, y: position.y - size.y/2, z: position.z + size.z/2 },
+            { x: position.x + size.x/2, y: position.y + size.y/2, z: position.z + size.z/2 },
+            { x: position.x - size.x/2, y: position.y + size.y/2, z: position.z + size.z/2 },
+            
+            // Back face
+            { x: position.x - size.x/2, y: position.y - size.y/2, z: position.z - size.z/2 },
+            { x: position.x + size.x/2, y: position.y - size.y/2, z: position.z - size.z/2 },
+            { x: position.x + size.x/2, y: position.y + size.y/2, z: position.z - size.z/2 },
+            { x: position.x - size.x/2, y: position.y + size.y/2, z: position.z - size.z/2 },
         ];
         
-        // Create tree UI
-        const treeHtml = this.createTreeHtml(sampleStructure);
-        treeContainer.innerHTML = treeHtml;
+        // Project vertices to 2D
+        const projectedVertices = vertices.map(vertex => this.projectVertex(vertex));
         
-        // Add event listeners for tree nodes
-        const treeToggleButtons = treeContainer.querySelectorAll('.tree-toggle');
-        treeToggleButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const treeItem = button.closest('.tree-item');
-                treeItem.classList.toggle('expanded');
-                const icon = button.querySelector('i');
-                if (treeItem.classList.contains('expanded')) {
-                    icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
-                } else {
-                    icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
-                }
-            });
-        });
+        // Define faces (pairs of vertices that form edges)
+        const faces = [
+            // Front face
+            [0, 1, 2, 3],
+            // Back face
+            [4, 5, 6, 7],
+            // Top face
+            [3, 2, 6, 7],
+            // Bottom face
+            [0, 1, 5, 4],
+            // Left face
+            [0, 3, 7, 4],
+            // Right face
+            [1, 2, 6, 5],
+        ];
         
-        const treeElements = treeContainer.querySelectorAll('.tree-element');
-        treeElements.forEach(element => {
-            element.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.selectElement(element.dataset.id);
-                
-                // Highlight the selected element
-                treeElements.forEach(el => el.classList.remove('selected'));
-                element.classList.add('selected');
-                
-                // Show element properties
-                this.showElementProperties(element.dataset.id);
-            });
-        });
-        
-        // Update state
-        this.objectTree = sampleStructure;
-    }
-
-    /**
-     * Create HTML for the tree structure
-     * @param {Array} items - Array of tree items
-     * @param {number} level - Indentation level
-     * @returns {string} - HTML string
-     */
-    createTreeHtml(items, level = 0) {
-        if (!items || items.length === 0) return '';
-        
-        let html = '<ul class="tree-list" style="padding-left: ' + (level * 16) + 'px">';
-        
-        items.forEach(item => {
-            const hasChildren = item.children && item.children.length > 0;
+        // Draw faces
+        faces.forEach(face => {
+            const points = face.map(index => projectedVertices[index]);
             
-            html += '<li class="tree-item">';
+            // Set fill color based on element type
+            this.ctx.fillStyle = color;
             
-            if (hasChildren) {
-                html += `<div class="tree-toggle"><i class="bi bi-chevron-right"></i></div>`;
+            // Start path
+            this.ctx.beginPath();
+            this.ctx.moveTo(points[0].x, points[0].y);
+            
+            // Draw lines between vertices
+            for (let i = 1; i < points.length; i++) {
+                this.ctx.lineTo(points[i].x, points[i].y);
+            }
+            
+            // Close path
+            this.ctx.closePath();
+            
+            // Fill or stroke based on wireframe setting
+            if (this.state.showWireframe) {
+                this.ctx.strokeStyle = color;
+                this.ctx.stroke();
             } else {
-                html += `<div class="tree-toggle-placeholder"></div>`;
+                this.ctx.fill();
+                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+                this.ctx.stroke();
             }
-            
-            html += `<div class="tree-element" data-id="${item.id}">${item.name}</div>`;
-            
-            if (hasChildren) {
-                html += this.createTreeHtml(item.children, level + 1);
-            }
-            
-            html += '</li>';
         });
-        
-        html += '</ul>';
-        return html;
-    }
-
+    },
+    
     /**
-     * Select an element in the model
-     * @param {string} elementId - ID of the element to select
+     * Draw floor indicator
      */
-    selectElement(elementId) {
-        console.log('Selected element:', elementId);
-        
-        // In a real implementation, we would highlight the element in the 3D model
-        // and possibly adjust camera view to focus on it
-        this.selectedObjects = [elementId];
-        
-        // For model-viewer, we could use annotations if supported
-        if (this.modelViewer) {
-            // This is a placeholder - model-viewer doesn't directly support selecting parts
-            // of a model, but we could add annotations or custom highlighting
-        }
-    }
-
+    drawFloorIndicator() {
+        const text = `Floor ${this.state.currentFloor} of ${this.state.totalFloors}`;
+        this.ctx.font = '14px Arial';
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        this.ctx.fillText(text, 20, this.canvas.height - 20);
+    },
+    
     /**
-     * Show properties of the selected element
-     * @param {string} elementId - ID of the element
+     * Project a 3D vertex to 2D with perspective
+     * @param {object} vertex - The 3D vertex { x, y, z }
+     * @returns {object} The projected 2D point { x, y }
      */
-    showElementProperties(elementId) {
-        const propertiesContainer = document.getElementById('elementProperties');
-        if (!propertiesContainer) return;
-        
-        // For demonstration, show some sample properties
-        // In a real implementation, these would be retrieved from the model
-        const sampleProperties = {
-            'foundation': {
-                'Type': 'Concrete Slab',
-                'Material': 'Reinforced Concrete',
-                'Thickness': '500mm',
-                'Strength Class': 'C30/37',
-                'Reinforcement': 'Steel Rebar #8@12"O.C.E.W.'
-            },
-            'columns': {
-                'Type': 'Structural Column',
-                'Material': 'Steel',
-                'Profile': 'W12x40',
-                'Height': '3.5m',
-                'Fire Rating': '2hr'
-            },
-            'beams': {
-                'Type': 'Structural Beam',
-                'Material': 'Steel',
-                'Profile': 'W16x26',
-                'Length': '6m',
-                'Connection': 'Bolted'
-            },
-            'walls': {
-                'Type': 'External Wall',
-                'Material': 'Brick Veneer with CMU Backup',
-                'Thickness': '300mm',
-                'R-Value': 'R-19',
-                'Fire Rating': '2hr'
-            },
-            'windows': {
-                'Type': 'Double-Hung Window',
-                'Material': 'Aluminum Frame with Low-E Glass',
-                'Size': '1.2m x 1.8m',
-                'U-Factor': '0.35',
-                'SHGC': '0.40'
-            }
+    projectVertex(vertex) {
+        // Translate based on camera position
+        const translated = {
+            x: vertex.x - this.state.cameraPosition.x,
+            y: vertex.y - this.state.cameraPosition.y,
+            z: vertex.z - this.state.cameraPosition.z,
         };
         
-        // Default properties if none are found
-        const defaultProperties = {
-            'Type': 'Unknown Element',
-            'ID': elementId,
-            'Status': 'Loaded'
+        // Apply perspective
+        const focalLength = 1.5;
+        const depth = Math.max(0.1, translated.z + 10);
+        const scale = focalLength / depth;
+        
+        // Project to 2D
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        
+        return {
+            x: centerX + translated.x * scale * 50,
+            y: centerY - translated.y * scale * 50, // Flip Y for screen coordinates
         };
-        
-        const properties = sampleProperties[elementId] || defaultProperties;
-        
-        // Create properties table
-        let propertiesHtml = '<table class="table table-sm table-striped">';
-        propertiesHtml += '<thead><tr><th>Property</th><th>Value</th></tr></thead>';
-        propertiesHtml += '<tbody>';
-        
-        Object.entries(properties).forEach(([key, value]) => {
-            propertiesHtml += `<tr><td>${key}</td><td>${value}</td></tr>`;
-        });
-        
-        propertiesHtml += '</tbody></table>';
-        propertiesContainer.innerHTML = propertiesHtml;
-    }
-
+    },
+    
     /**
-     * Called when model is loaded
+     * Calculate distance between two points
+     * @param {object} p1 - First point { x, y, z }
+     * @param {object} p2 - Second point { x, y, z }
+     * @returns {number} Distance between the points
      */
-    onModelLoaded() {
-        console.log('Model loaded event fired');
-        this.showLoadingIndicator(false);
+    distance(p1, p2) {
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dz = p2.z - p1.z;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
-
-    /**
-     * Reset the view to default camera position
-     */
-    resetView() {
-        if (this.modelViewer) {
-            this.modelViewer.cameraOrbit = 'auto auto auto';
-            this.modelViewer.cameraTarget = 'auto auto auto';
-            this.modelViewer.fieldOfView = 'auto';
-        }
-    }
-
-    /**
-     * Take a screenshot of the current view
-     */
-    takeScreenshot() {
-        if (this.modelViewer) {
-            // For model-viewer, we can use the built-in toDataURL method if available
-            const img = this.modelViewer.toDataURL('image/png');
-            
-            // Create a download link
-            const link = document.createElement('a');
-            link.href = img;
-            link.download = 'bim-screenshot-' + new Date().toISOString().slice(0, 10) + '.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-
-    /**
-     * Toggle wireframe mode
-     */
-    toggleWireframe() {
-        this.isWireframe = !this.isWireframe;
-        
-        if (this.modelViewer) {
-            // Model-viewer doesn't have a built-in wireframe mode
-            // This is a placeholder - in a real implementation, we might 
-            // need to modify the model or use custom shaders
-            console.log('Wireframe mode toggled:', this.isWireframe);
-            
-            // Visual feedback for the user
-            const toggleButton = document.getElementById('toggleWireframe');
-            if (toggleButton) {
-                if (this.isWireframe) {
-                    toggleButton.classList.replace('btn-outline-success', 'btn-success');
-                } else {
-                    toggleButton.classList.replace('btn-success', 'btn-outline-success');
-                }
-            }
-        }
-    }
-}
+};

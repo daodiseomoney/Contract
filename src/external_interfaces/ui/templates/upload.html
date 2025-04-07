@@ -1,199 +1,448 @@
 {% extends "base.html" %}
 
+{% block title %}Upload - BIM AI Management Dashboard{% endblock %}
+
+{% block page_title %}Upload BIM Models & Documents{% endblock %}
+
 {% block content %}
-<div class="dashboard-header">
-    <h1 class="dashboard-title">Upload Files</h1>
-    <p class="lead">Securely upload building models and documents to the blockchain</p>
-</div>
-
-<div class="row">
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-cloud-upload-fill text-info-custom me-2"></i> File Upload
-            </div>
-            <div class="card-body">
-                <form id="fileUploadForm" enctype="multipart/form-data">
-                    <div class="upload-container">
-                        <div class="upload-icon">
-                            <i class="bi bi-cloud-arrow-up"></i>
+<div class="container-fluid">
+    <div class="row">
+        <!-- File Upload Panel -->
+        <div class="col-md-6 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-info">
+                <div class="card-title">Upload Files</div>
+                <div class="upload-container">
+                    <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+                        <!-- File Drop Zone -->
+                        <div class="file-drop-zone glassmorphism mb-4" id="drop-zone">
+                            <div class="drop-zone-content text-center p-5">
+                                <i data-feather="upload-cloud" style="width: 64px; height: 64px; opacity: 0.7;"></i>
+                                <h4 class="mt-3">Drag & Drop Files Here</h4>
+                                <p class="text-muted">or</p>
+                                <button type="button" class="btn btn-outline-info browse-btn" id="browse-btn">Browse Files</button>
+                                <input type="file" id="file-input" name="files[]" multiple style="display: none;">
+                            </div>
+                            
+                            <!-- Selected Files List -->
+                            <div class="selected-files mt-3" id="selected-files"></div>
                         </div>
-                        <h4 class="upload-title">Drag and drop your file here</h4>
-                        <p class="upload-subtitle">or click to browse files</p>
                         
-                        <label for="fileInput" class="btn btn-info">
-                            <i class="bi bi-folder2-open me-2"></i>Browse Files
-                        </label>
-                        <input type="file" id="fileInput" name="file" class="file-input">
-                        
-                        <div class="mt-3">
-                            <span class="text-muted" id="fileInfo">No file selected</span>
+                        <!-- File Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">File Type</label>
+                            <div class="d-flex flex-wrap">
+                                <div class="form-check me-4">
+                                    <input class="form-check-input" type="radio" name="fileType" id="typeBIM" value="bim" checked>
+                                    <label class="form-check-label" for="typeBIM">BIM Model (IFC)</label>
+                                </div>
+                                <div class="form-check me-4">
+                                    <input class="form-check-input" type="radio" name="fileType" id="typeCAD" value="cad">
+                                    <label class="form-check-label" for="typeCAD">CAD Drawing</label>
+                                </div>
+                                <div class="form-check me-4">
+                                    <input class="form-check-input" type="radio" name="fileType" id="typeDocument" value="document">
+                                    <label class="form-check-label" for="typeDocument">Document</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="fileType" id="typeBlockchain" value="blockchain">
+                                    <label class="form-check-label" for="typeBlockchain">Blockchain Record</label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="preview-container" id="filePreview">
-                        <!-- File preview will be shown here -->
-                    </div>
-                    
-                    <div class="progress mt-4" style="display: none;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <button type="submit" id="uploadButton" class="btn btn-primary">
-                            <i class="bi bi-upload me-2"></i>Upload to Blockchain
-                        </button>
-                    </div>
-                </form>
+                        
+                        <!-- Metadata -->
+                        <div class="mb-4">
+                            <label class="form-label">Document Metadata</label>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control bg-dark text-light" name="title" placeholder="Title">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <input type="text" class="form-control bg-dark text-light" name="author" placeholder="Author">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <select class="form-select bg-dark text-light" name="project">
+                                        <option value="">Select Project</option>
+                                        <option value="1">Cosmic Tower</option>
+                                        <option value="2">Galactic Plaza</option>
+                                        <option value="3">Nova Heights</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <select class="form-select bg-dark text-light" name="category">
+                                        <option value="">Select Category</option>
+                                        <option value="architectural">Architectural</option>
+                                        <option value="structural">Structural</option>
+                                        <option value="mechanical">Mechanical</option>
+                                        <option value="electrical">Electrical</option>
+                                        <option value="plumbing">Plumbing</option>
+                                        <option value="legal">Legal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <textarea class="form-control bg-dark text-light" name="description" rows="3" placeholder="Description"></textarea>
+                        </div>
+                        
+                        <!-- Blockchain Document Role Selection (for Blockchain Record type) -->
+                        <div class="mb-4 blockchain-options" style="display: none;">
+                            <label class="form-label">Blockchain Document Roles</label>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="glassmorphism p-3">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="roles[]" id="roleOwner" value="owner" checked>
+                                            <label class="form-check-label" for="roleOwner">Property Owner</label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="roles[]" id="roleContributor" value="contributor">
+                                            <label class="form-check-label" for="roleContributor">Contributor</label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="roles[]" id="roleValidator" value="validator">
+                                            <label class="form-check-label" for="roleValidator">Validator</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="roles[]" id="roleAuditor" value="auditor">
+                                            <label class="form-check-label" for="roleAuditor">Auditor</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Wallet Integration for Blockchain Uploads -->
+                        <div class="mb-4 blockchain-options" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Blockchain Wallet</label>
+                                <button type="button" class="btn btn-sm btn-outline-info" id="connect-wallet-btn">Connect Wallet</button>
+                            </div>
+                            <div class="wallet-status glassmorphism p-3">
+                                <div class="text-center" id="wallet-not-connected">
+                                    <p class="text-muted">No wallet connected</p>
+                                    <p class="small">Connect your wallet to sign and upload documents to the blockchain</p>
+                                </div>
+                                <div id="wallet-connected" style="display: none;">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="mb-1"><strong>Wallet Connected</strong></p>
+                                            <p class="wallet-address text-truncate mb-1" id="wallet-address">cosmos1abcdef...</p>
+                                            <p class="small text-muted mb-0">Blockchain: <span id="blockchain-name">Cosmos (Odiseo Testnet)</span></p>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-success">Connected</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger" id="cancel-btn">Cancel</button>
+                            <button type="submit" class="btn btn-info" id="upload-btn">Upload</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-info-circle-fill text-info-custom me-2"></i> Upload Information
-            </div>
-            <div class="card-body">
-                <div class="mb-4">
-                    <h5 class="text-info-custom">Supported File Types</h5>
-                    <div class="row mt-3">
-                        <div class="col-md-4 mb-3 text-center">
-                            <i class="bi bi-building text-info-custom display-5"></i>
-                            <p class="mt-2">BIM Models</p>
-                            <small class="text-muted">.ifc, .glb, .gltf</small>
-                        </div>
-                        <div class="col-md-4 mb-3 text-center">
-                            <i class="bi bi-file-earmark-text text-secondary-custom display-5"></i>
-                            <p class="mt-2">Documents</p>
-                            <small class="text-muted">.pdf, .doc, .docx</small>
-                        </div>
-                        <div class="col-md-4 mb-3 text-center">
-                            <i class="bi bi-image text-success-custom display-5"></i>
-                            <p class="mt-2">Images</p>
-                            <small class="text-muted">.jpg, .png, .gif</small>
-                        </div>
+        
+        <!-- Upload Information Panel -->
+        <div class="col-md-6 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-secondary">
+                <div class="card-title">Upload Information</div>
+                
+                <!-- File Type Information -->
+                <div class="type-info mb-4">
+                    <h5 class="cosmic-text" id="type-info-title">BIM Model (IFC)</h5>
+                    <div id="type-info-description">
+                        <p>Building Information Model (BIM) files in IFC format contain comprehensive 3D building data with detailed specifications for all building components.</p>
+                        <ul>
+                            <li>Upload IFC files to enable 3D visualization</li>
+                            <li>AI analysis of structural components</li>
+                            <li>Integration with blockchain for secure record-keeping</li>
+                            <li>Supported formats: .ifc, .ifczip, .ifcxml</li>
+                        </ul>
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <h5 class="text-info-custom">Blockchain Security</h5>
-                    <p>When you upload a file, it undergoes the following process:</p>
-                    <ol class="text-muted">
-                        <li>File is encrypted with AES-256 encryption</li>
-                        <li>Content hash is generated and stored on the blockchain</li>
-                        <li>Multi-signature validation is performed by network validators</li>
-                        <li>Upon successful validation, the file becomes part of the immutable blockchain record</li>
-                    </ol>
+                <!-- Recent Uploads -->
+                <div class="recent-uploads">
+                    <h5 class="mb-3">Recent Uploads</h5>
+                    <div class="table-responsive">
+                        <table class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>CosmicTower_v2.ifc</td>
+                                    <td>BIM Model</td>
+                                    <td>Apr 05, 2025</td>
+                                    <td><span class="badge bg-success">Processed</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Legal_Ownership.pdf</td>
+                                    <td>Document</td>
+                                    <td>Apr 03, 2025</td>
+                                    <td><span class="badge bg-info">On Chain</span></td>
+                                </tr>
+                                <tr>
+                                    <td>FloorPlan_Floor3.dwg</td>
+                                    <td>CAD Drawing</td>
+                                    <td>Apr 01, 2025</td>
+                                    <td><span class="badge bg-success">Processed</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 
-                <div class="alert bg-glass border-glow-info">
-                    <div class="d-flex">
-                        <div class="me-3">
-                            <i class="bi bi-shield-lock text-info-custom display-6"></i>
+                <!-- Blockchain Transaction Status (initially hidden) -->
+                <div class="transaction-status mt-4" id="transaction-status" style="display: none;">
+                    <h5 class="mb-3">Blockchain Transaction Status</h5>
+                    <div class="glassmorphism p-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Transaction ID:</span>
+                            <span class="transaction-id text-truncate" id="tx-id">0x123456789abcdef...</span>
                         </div>
-                        <div>
-                            <h5 class="text-info-custom">Security Guarantee</h5>
-                            <p class="mb-0">Your files are secured with enterprise-grade encryption and decentralized storage. Only authorized parties with proper permissions can access uploaded documents.</p>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Status:</span>
+                            <span class="badge bg-warning" id="tx-status">Pending</span>
                         </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Network:</span>
+                            <span id="tx-network">Cosmos (Odiseo Testnet)</span>
+                        </div>
+                        <div class="progress mt-3" style="height: 6px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 75%"></div>
+                        </div>
+                        <p class="text-center mt-2 small" id="tx-message">Transaction is being processed...</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- Recent Uploads -->
-<div class="card mt-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-clock-history text-info-custom me-2"></i> Recent Uploads</span>
-        <a href="#" class="btn btn-sm btn-outline-info">
-            <i class="bi bi-arrow-right me-1"></i>View All
-        </a>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>File</th>
-                        <th>Uploader</th>
-                        <th>Date</th>
-                        <th>Size</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-glass rounded-custom me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-building-fill text-info-custom"></i>
-                                </div>
-                                <div>Cosmic_Tower_Model.glb</div>
-                            </div>
-                        </td>
-                        <td>admin@example.com</td>
-                        <td>April 4, 2025</td>
-                        <td>8.2 MB</td>
-                        <td><span class="badge bg-success">Verified</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
-                                <i class="bi bi-download"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-glass rounded-custom me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-file-earmark-pdf text-danger-custom"></i>
-                                </div>
-                                <div>Property_Deed_CT500.pdf</div>
-                            </div>
-                        </td>
-                        <td>john.doe@example.com</td>
-                        <td>April 3, 2025</td>
-                        <td>1.3 MB</td>
-                        <td><span class="badge bg-success">Verified</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
-                                <i class="bi bi-download"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-glass rounded-custom me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-image text-success-custom"></i>
-                                </div>
-                                <div>Building_Elevation.jpg</div>
-                            </div>
-                        </td>
-                        <td>jane.smith@example.com</td>
-                        <td>April 2, 2025</td>
-                        <td>3.7 MB</td>
-                        <td><span class="badge bg-warning">Pending</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Download">
-                                <i class="bi bi-download"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File drop zone functionality
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const browseBtn = document.getElementById('browse-btn');
+        const selectedFiles = document.getElementById('selected-files');
+        
+        // File type info elements
+        const typeInfoTitle = document.getElementById('type-info-title');
+        const typeInfoDescription = document.getElementById('type-info-description');
+        
+        // Connect wallet button
+        const connectWalletBtn = document.getElementById('connect-wallet-btn');
+        const walletNotConnected = document.getElementById('wallet-not-connected');
+        const walletConnected = document.getElementById('wallet-connected');
+        const walletAddress = document.getElementById('wallet-address');
+        
+        // Transaction status elements
+        const transactionStatus = document.getElementById('transaction-status');
+        
+        // File type radio buttons
+        const fileTypeRadios = document.querySelectorAll('input[name="fileType"]');
+        const blockchainOptions = document.querySelectorAll('.blockchain-options');
+        
+        // File type info content
+        const fileTypeInfo = {
+            bim: {
+                title: 'BIM Model (IFC)',
+                description: `
+                    <p>Building Information Model (BIM) files in IFC format contain comprehensive 3D building data with detailed specifications for all building components.</p>
+                    <ul>
+                        <li>Upload IFC files to enable 3D visualization</li>
+                        <li>AI analysis of structural components</li>
+                        <li>Integration with blockchain for secure record-keeping</li>
+                        <li>Supported formats: .ifc, .ifczip, .ifcxml</li>
+                    </ul>
+                `
+            },
+            cad: {
+                title: 'CAD Drawing',
+                description: `
+                    <p>Computer-Aided Design (CAD) drawings provide 2D technical representations of building plans, sections, and details.</p>
+                    <ul>
+                        <li>Integration with BIM models</li>
+                        <li>Support for multiple layers and annotations</li>
+                        <li>Supported formats: .dwg, .dxf, .dwf</li>
+                    </ul>
+                `
+            },
+            document: {
+                title: 'Document',
+                description: `
+                    <p>Upload project-related documents such as contracts, specifications, meeting minutes, and reports.</p>
+                    <ul>
+                        <li>Central document repository</li>
+                        <li>Version tracking</li>
+                        <li>Integration with project data</li>
+                        <li>Supported formats: .pdf, .docx, .xlsx, .pptx</li>
+                    </ul>
+                `
+            },
+            blockchain: {
+                title: 'Blockchain Record',
+                description: `
+                    <p>Securely store critical project documents on the blockchain to ensure immutability and transparent record-keeping.</p>
+                    <ul>
+                        <li>Immutable document records</li>
+                        <li>Multi-signature authorization</li>
+                        <li>Transparent validation history</li>
+                        <li>Cryptographic proof of document integrity</li>
+                        <li>Supported formats: All document formats</li>
+                    </ul>
+                `
+            }
+        };
+        
+        // Browse button click handler
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // File input change handler
+        fileInput.addEventListener('change', () => {
+            updateFileList(fileInput.files);
+        });
+        
+        // Drag and drop handlers
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileList(e.dataTransfer.files);
+            }
+        });
+        
+        // Update the file list UI
+        function updateFileList(files) {
+            selectedFiles.innerHTML = '';
+            
+            if (files.length === 0) {
+                return;
+            }
+            
+            const fileList = document.createElement('div');
+            fileList.className = 'file-list glassmorphism p-3';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item d-flex justify-content-between align-items-center mb-2';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'd-flex align-items-center';
+                
+                // File icon
+                const fileIcon = document.createElement('div');
+                fileIcon.className = 'file-icon me-2';
+                fileIcon.innerHTML = '<i data-feather="file"></i>';
+                
+                // File name and size
+                const fileDetails = document.createElement('div');
+                fileDetails.className = 'file-details';
+                fileDetails.innerHTML = `
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size text-muted small">${formatFileSize(file.size)}</div>
+                `;
+                
+                // Remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn btn-sm btn-outline-danger remove-file-btn';
+                removeBtn.innerHTML = '<i data-feather="x"></i>';
+                removeBtn.onclick = () => {
+                    fileItem.remove();
+                    if (selectedFiles.querySelectorAll('.file-item').length === 0) {
+                        selectedFiles.innerHTML = '';
+                    }
+                };
+                
+                fileInfo.appendChild(fileIcon);
+                fileInfo.appendChild(fileDetails);
+                fileItem.appendChild(fileInfo);
+                fileItem.appendChild(removeBtn);
+                fileList.appendChild(fileItem);
+            }
+            
+            selectedFiles.appendChild(fileList);
+            feather.replace();
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // File type change handler
+        fileTypeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const selectedType = document.querySelector('input[name="fileType"]:checked').value;
+                
+                // Update info panel
+                typeInfoTitle.textContent = fileTypeInfo[selectedType].title;
+                typeInfoDescription.innerHTML = fileTypeInfo[selectedType].description;
+                
+                // Show/hide blockchain options
+                blockchainOptions.forEach(option => {
+                    option.style.display = selectedType === 'blockchain' ? 'block' : 'none';
+                });
+            });
+        });
+        
+        // Connect wallet button handler
+        connectWalletBtn.addEventListener('click', async () => {
+            try {
+                // Simulate connecting to wallet (in a real app, this would use the Keplr wallet API)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Update UI
+                walletNotConnected.style.display = 'none';
+                walletConnected.style.display = 'block';
+                walletAddress.textContent = 'cosmos1abcdefghijklmnopqrstuvwxyz123456789';
+                connectWalletBtn.textContent = 'Disconnect';
+                
+                // Show transaction status panel
+                transactionStatus.style.display = 'block';
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                alert('Failed to connect wallet. Please try again.');
+            }
+        });
+        
+        // Initialize the page
+        feather.replace();
+    });
+</script>
 {% endblock %}

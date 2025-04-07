@@ -1,324 +1,181 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard - BIM AI Management Dashboard{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
 {% block content %}
-<div class="dashboard-header">
-    <h1 class="dashboard-title">Real Estate Tokenization Dashboard</h1>
-    <p class="lead">Monitor your tokenized properties and blockchain transactions</p>
-</div>
-
-<!-- Stats Cards -->
-<div class="row">
-    <div class="col-md-3 mb-4">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-building"></i>
-                </div>
-                <div class="stat-value">12</div>
+<div class="container-fluid">
+    <!-- Stats overview row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="cosmic-card glassmorphism stat-card">
                 <div class="stat-label">Properties</div>
+                <div class="stat-value">12</div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-currency-exchange"></i>
-                </div>
-                <div class="stat-value">$24.5M</div>
+        <div class="col-md-3">
+            <div class="cosmic-card glassmorphism stat-card">
                 <div class="stat-label">Total Value</div>
+                <div class="stat-value">$24.5M</div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-file-earmark-text"></i>
-                </div>
-                <div class="stat-value">43</div>
-                <div class="stat-label">Contracts</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card stat-card">
-            <div class="card-body">
-                <div class="stat-icon">
-                    <i class="bi bi-people"></i>
-                </div>
-                <div class="stat-value">156</div>
+        <div class="col-md-3">
+            <div class="cosmic-card glassmorphism stat-card">
                 <div class="stat-label">Investors</div>
+                <div class="stat-value">47</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="cosmic-card glassmorphism stat-card">
+                <div class="stat-label">Contracts</div>
+                <div class="stat-value">8</div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <!-- Active Properties -->
-    <div class="col-lg-8 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-building-fill-check text-info-custom me-2"></i> Active Properties</span>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-filter"></i> Filter
-                    </button>
-                    <button class="btn btn-sm btn-outline-info">
-                        <i class="bi bi-plus-lg"></i> Add New
-                    </button>
+    <!-- Main content row -->
+    <div class="row">
+        <!-- AI Chat panel -->
+        <div class="col-md-6 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-info">
+                <div class="card-title">BIM AI Assistant</div>
+                <div class="chat-container" id="ai-chat-container"></div>
+            </div>
+        </div>
+
+        <!-- Building overview panel -->
+        <div class="col-md-6 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-secondary">
+                <div class="card-title">Building Overview</div>
+                <div class="building-overview">
+                    <!-- Current Building Info -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5 class="cosmic-text">Cosmic Tower</h5>
+                            <p><i data-feather="map-pin" class="feather-sm"></i> Silicon Valley, CA</p>
+                            <p><i data-feather="calendar" class="feather-sm"></i> Built in 2024</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i data-feather="layers" class="feather-sm"></i> 3 Floors</p>
+                            <p><i data-feather="square" class="feather-sm"></i> 12,500 sq ft</p>
+                            <p><i data-feather="users" class="feather-sm"></i> 45 Occupants</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Building Mini Viewer -->
+                    <div class="bim-mini-viewer" id="mini-viewer-container" style="height: 200px;"></div>
                 </div>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-dark table-hover align-middle">
+        </div>
+    </div>
+
+    <!-- Bottom row -->
+    <div class="row">
+        <!-- Transaction History panel -->
+        <div class="col-md-6 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-success">
+                <div class="card-title">Recent Blockchain Transactions</div>
+                <div class="transaction-list">
+                    <table class="table table-dark table-hover">
                         <thead>
                             <tr>
-                                <th>Property</th>
-                                <th>Location</th>
-                                <th>Value</th>
+                                <th>Date</th>
+                                <th>Transaction</th>
                                 <th>Status</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-building-fill text-info-custom"></i>
-                                        </div>
-                                        <div>Cosmic Tower</div>
-                                    </div>
-                                </td>
-                                <td>New York, NY</td>
-                                <td>$5.2M</td>
-                                <td><span class="badge bg-success">Active</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="View BIM Model">
-                                        <i class="bi bi-building-up"></i>
-                                    </button>
-                                </td>
+                                <td>Apr 05, 2025</td>
+                                <td>Property Tokenization #125</td>
+                                <td><span class="badge bg-success">Confirmed</span></td>
                             </tr>
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-houses-fill text-info-custom"></i>
-                                        </div>
-                                        <div>Quantum Residences</div>
-                                    </div>
-                                </td>
-                                <td>San Francisco, CA</td>
-                                <td>$8.7M</td>
-                                <td><span class="badge bg-success">Active</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="View BIM Model">
-                                        <i class="bi bi-building-up"></i>
-                                    </button>
-                                </td>
+                                <td>Apr 03, 2025</td>
+                                <td>Investor Share Transfer</td>
+                                <td><span class="badge bg-success">Confirmed</span></td>
                             </tr>
                             <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-building-fill text-info-custom"></i>
-                                        </div>
-                                        <div>Nova Business Center</div>
-                                    </div>
-                                </td>
-                                <td>Austin, TX</td>
-                                <td>$4.1M</td>
+                                <td>Apr 01, 2025</td>
+                                <td>Smart Contract Deployment</td>
+                                <td><span class="badge bg-success">Confirmed</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mar 28, 2025</td>
+                                <td>Property Valuation Update</td>
                                 <td><span class="badge bg-warning">Pending</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="View BIM Model">
-                                        <i class="bi bi-building-up"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-glass rounded-custom" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
-                                            <i class="bi bi-houses-fill text-info-custom"></i>
-                                        </div>
-                                        <div>Stellar Heights</div>
-                                    </div>
-                                </td>
-                                <td>Miami, FL</td>
-                                <td>$6.5M</td>
-                                <td><span class="badge bg-success">Active</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="View Details">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="View BIM Model">
-                                        <i class="bi bi-building-up"></i>
-                                    </button>
-                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Blockchain Activity -->
-    <div class="col-lg-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-activity text-info-custom me-2"></i> Blockchain Activity
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    <div class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-2">Token Transfer</h6>
-                            <small>3 mins ago</small>
-                        </div>
-                        <p class="mb-1 text-muted">200 PROP tokens transferred to wallet 0x7a3b...</p>
-                        <small class="text-info-custom">Block #10245780</small>
-                    </div>
-                    <div class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-2">Property Tokenized</h6>
-                            <small>2 hours ago</small>
-                        </div>
-                        <p class="mb-1 text-muted">Stellar Heights property successfully tokenized</p>
-                        <small class="text-info-custom">Block #10245678</small>
-                    </div>
-                    <div class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-2">Contract Created</h6>
-                            <small>5 hours ago</small>
-                        </div>
-                        <p class="mb-1 text-muted">New multi-signature contract deployed</p>
-                        <small class="text-info-custom">Block #10245621</small>
-                    </div>
-                    <div class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-2">File Uploaded</h6>
-                            <small>1 day ago</small>
-                        </div>
-                        <p class="mb-1 text-muted">Property blueprint added to blockchain</p>
-                        <small class="text-info-custom">Block #10245589</small>
-                    </div>
-                    <div class="list-group-item bg-transparent text-light border-info-custom">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-2">Approval Received</h6>
-                            <small>2 days ago</small>
-                        </div>
-                        <p class="mb-1 text-muted">Regulatory approval for Quantum Residences</p>
-                        <small class="text-info-custom">Block #10245432</small>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer text-center">
-                <a href="#" class="btn btn-sm btn-outline-info">View All Activity</a>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Quick Actions and BIM Models -->
-<div class="row">
-    <!-- Quick Actions -->
-    <div class="col-md-5 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-lightning-charge-fill text-info-custom me-2"></i> Quick Actions
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-3">
-                    <button class="btn btn-info">
-                        <i class="bi bi-upload me-2"></i>Upload New Building Model
-                    </button>
-                    <button class="btn btn-secondary">
-                        <i class="bi bi-file-earmark-plus me-2"></i>Create New Contract
-                    </button>
-                    <button class="btn btn-primary">
-                        <i class="bi bi-building-add me-2"></i>Tokenize Property
-                    </button>
-                    <button class="btn btn-success">
-                        <i class="bi bi-rocket-takeoff me-2"></i>Launch Token Sale
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent BIM Models -->
-    <div class="col-md-7 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-building-up text-info-custom me-2"></i> Recent BIM Models</span>
-                <a href="/viewer" class="btn btn-sm btn-outline-info">
-                    <i class="bi bi-box-arrow-up-right me-1"></i>Open Viewer
-                </a>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-6 mb-3">
-                        <div class="card bg-transparent border-glow-info">
-                            <div class="card-body text-center">
-                                <i class="bi bi-building text-info-custom display-4 mb-3"></i>
-                                <h5 class="card-title">Cosmic Tower</h5>
-                                <p class="card-text text-muted">Mixed-use skyscraper in New York</p>
-                                <a href="/viewer?model=cosmic_tower.glb" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 mb-3">
-                        <div class="card bg-transparent border-glow-secondary">
-                            <div class="card-body text-center">
-                                <i class="bi bi-houses text-secondary-custom display-4 mb-3"></i>
-                                <h5 class="card-title">Quantum Residences</h5>
-                                <p class="card-text text-muted">Luxury condominiums in San Francisco</p>
-                                <a href="/viewer?model=quantum_residences.glb" class="btn btn-sm btn-secondary">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 mb-3">
-                        <div class="card bg-transparent border-glow-success">
-                            <div class="card-body text-center">
-                                <i class="bi bi-building text-success-custom display-4 mb-3"></i>
-                                <h5 class="card-title">Nova Business Center</h5>
-                                <p class="card-text text-muted">Commercial complex in Austin</p>
-                                <a href="/viewer?model=nova_business.glb" class="btn btn-sm btn-success">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 mb-3">
-                        <div class="card bg-transparent border-glow-warning">
-                            <div class="card-body text-center">
-                                <i class="bi bi-houses text-warning-custom display-4 mb-3"></i>
-                                <h5 class="card-title">Stellar Heights</h5>
-                                <p class="card-text text-muted">Beachfront property in Miami</p>
-                                <a href="/viewer?model=stellar_heights.glb" class="btn btn-sm btn-warning">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Stakeholder panel -->
+        <div class="col-md-6 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-primary">
+                <div class="card-title">Stakeholder Distribution</div>
+                <div class="stakeholder-chart-container">
+                    <canvas id="stakeholder-chart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Custom Scripts -->
+<script src="{{ url_for('static', filename='js/ai-chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bim-viewer.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize AI Chat
+        aiChat.init('ai-chat-container');
+        
+        // Initialize mini BIM viewer
+        bimViewer.init('mini-viewer-container');
+        
+        // Initialize stakeholder chart
+        const ctx = document.getElementById('stakeholder-chart').getContext('2d');
+        const stakeholderChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Tenants/Buyers', 'Brokers', 'Landlords', 'Property Managers', 'Appraisers', 'Mortgage Brokers', 'Investors'],
+                datasets: [{
+                    data: [20, 5, 10, 8, 7, 5, 45],
+                    backgroundColor: [
+                        'rgba(0, 153, 7, 0.7)',    // success
+                        'rgba(176, 5, 150, 0.7)',  // secondary
+                        'rgba(224, 13, 121, 0.7)', // info
+                        'rgba(0, 30, 0, 0.7)',     // primary
+                        'rgba(243, 192, 0, 0.7)',  // warning
+                        'rgba(237, 0, 72, 0.7)',   // danger
+                        'rgba(176, 5, 150, 0.7)'   // secondary
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Update feather icons
+        feather.replace();
+    });
+</script>
 {% endblock %}

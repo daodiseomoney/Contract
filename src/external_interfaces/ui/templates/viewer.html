@@ -1,222 +1,107 @@
 {% extends "base.html" %}
 
+{% block title %}3D Viewer - BIM AI Management Dashboard{% endblock %}
+
+{% block page_title %}3D Building Information Model Viewer{% endblock %}
+
 {% block content %}
-<div class="dashboard-header">
-    <h1 class="dashboard-title">BIM Viewer & AI Assistant</h1>
-    <p class="lead">Explore 3D building models and get AI-powered insights</p>
-</div>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main 3D viewer -->
+        <div class="col-md-8 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-primary">
+                <div class="card-title">
+                    <span>3D BIM Viewer</span>
+                    <small class="text-muted ms-2">Cosmic Tower</small>
+                </div>
+                <div class="bim-viewer-container" id="bim-viewer-container"></div>
+            </div>
+        </div>
 
-<div class="row">
-    <!-- BIM Viewer Column -->
-    <div class="col-lg-8 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-building-up text-info-custom me-2"></i> 3D Model Viewer</span>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" id="toggleFullscreen" data-bs-toggle="tooltip" title="Fullscreen">
-                        <i class="bi bi-arrows-fullscreen"></i>
-                    </button>
+        <!-- Building info sidebar -->
+        <div class="col-md-4">
+            <!-- Building Properties -->
+            <div class="cosmic-card glassmorphism panel panel-secondary mb-4">
+                <div class="card-title">Building Properties</div>
+                <div class="property-list">
+                    <table class="table table-dark">
+                        <tbody>
+                            <tr>
+                                <th>Name</th>
+                                <td>Cosmic Tower</td>
+                            </tr>
+                            <tr>
+                                <th>Location</th>
+                                <td>Silicon Valley, CA</td>
+                            </tr>
+                            <tr>
+                                <th>Year Built</th>
+                                <td>2024</td>
+                            </tr>
+                            <tr>
+                                <th>Total Area</th>
+                                <td>12,500 sq ft</td>
+                            </tr>
+                            <tr>
+                                <th>Floors</th>
+                                <td>3</td>
+                            </tr>
+                            <tr>
+                                <th>Energy Rating</th>
+                                <td>A+</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="card-body p-0">
-                <div class="viewer-container">
-                    <model-viewer 
-                        id="bimViewer" 
-                        alt="3D Building Model" 
-                        camera-controls 
-                        shadow-intensity="1" 
-                        auto-rotate
-                        ar-status="not-presenting">
-                    </model-viewer>
-                    <div class="viewer-controls">
-                        <button id="resetView" class="btn btn-outline-info" data-bs-toggle="tooltip" title="Reset View">
-                            <i class="bi bi-arrow-counterclockwise"></i>
-                        </button>
-                        <button id="toggleWireframe" class="btn btn-outline-success" data-bs-toggle="tooltip" title="Toggle Wireframe">
-                            <i class="bi bi-grid-3x3"></i>
-                        </button>
-                        <button id="takeScreenshot" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Take Screenshot">
-                            <i class="bi bi-camera"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Model Information -->
-        <div class="row mt-4">
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <i class="bi bi-info-circle-fill text-info-custom me-2"></i> Model Information
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <h6 class="text-info-custom">Project</h6>
-                            <p>Cosmic Tower</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="text-info-custom">Location</h6>
-                            <p>123 Blockchain Avenue, Metaverse</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="text-info-custom">Architect</h6>
-                            <p>Futuristic Designs Inc.</p>
-                        </div>
-                        <div>
-                            <h6 class="text-info-custom">Status</h6>
-                            <span class="badge bg-success">Active</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header">
-                        <i class="bi bi-file-earmark-binary-fill text-info-custom me-2"></i> Element Properties
-                    </div>
-                    <div class="card-body" id="elementProperties">
-                        <p class="text-center text-muted">Select an element from the model or tree to view properties</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Right Sidebar -->
-    <div class="col-lg-4 mb-4">
-        <!-- Object Tree -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <i class="bi bi-diagram-3-fill text-info-custom me-2"></i> Object Tree
-            </div>
-            <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
-                <div id="objectTree">
-                    <div class="tree-loading">
-                        <div class="spinner-border text-info" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- AI Chat Interface -->
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-robot text-info-custom me-2"></i> AI Assistant
-            </div>
-            <div class="card-body p-0">
-                <div class="chat-container" id="chatInterface">
-                    <div class="chat-header">
-                        <div class="chat-title">
-                            <i class="bi bi-stars"></i>
-                            <span>BIM Assistant</span>
-                        </div>
-                        <div class="chat-controls">
-                            <button id="clearChat" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Clear Chat">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            <button id="exportChat" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Export Chat">
-                                <i class="bi bi-download"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="chat-body" id="chatMessages">
-                        <!-- Messages will be added here dynamically -->
-                    </div>
-                    <div class="chat-footer">
-                        <div class="chat-input-container">
-                            <input type="text" class="chat-input form-control" id="userMessage" placeholder="Ask about the building model...">
-                            <button class="chat-send-btn btn btn-info" id="sendMessage">
-                                <i class="bi bi-send"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Transaction History -->
-<div class="card mt-4">
-    <div class="card-header">
-        <i class="bi bi-clock-history text-info-custom me-2"></i> Recent Blockchain Transactions
+            <!-- Material Analysis -->
+            <div class="cosmic-card glassmorphism panel panel-info mb-4">
+                <div class="card-title">Material Analysis</div>
+                <div class="material-analysis">
+                    <canvas id="materials-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Element Information Panel (initially hidden) -->
+            <div class="cosmic-card glassmorphism panel panel-success" id="element-info-panel">
+                <div class="card-title">Selected Element</div>
+                <div id="element-info-content">
+                    <p class="text-center text-muted">No element selected</p>
+                    <p>Click on an element in the 3D viewer to see detailed information</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="transaction-item">
-                    <div class="transaction-header">
-                        <div class="transaction-title">Property Tokenization</div>
-                        <div class="transaction-date">April 4, 2025</div>
+
+    <!-- AI Assistant for BIM Analysis -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="cosmic-card glassmorphism panel panel-warning">
+                <div class="card-title">BIM Analysis Assistant</div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="chat-container" id="bim-ai-container"></div>
                     </div>
-                    <div class="transaction-status">
-                        <span class="badge bg-success">Confirmed</span>
-                    </div>
-                    <div class="transaction-details">
-                        <div class="transaction-detail">
-                            <span class="detail-label">Transaction Hash:</span>
-                            <span class="detail-value hash-value">0x7a3bc8e4f82b...</span>
-                        </div>
-                        <div class="transaction-detail">
-                            <span class="detail-label">Block:</span>
-                            <span class="detail-value">10245678</span>
-                        </div>
-                        <div class="transaction-detail">
-                            <span class="detail-label">Value:</span>
-                            <span class="detail-value">1,500,000 ATOM</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="transaction-item">
-                    <div class="transaction-header">
-                        <div class="transaction-title">Document Upload</div>
-                        <div class="transaction-date">April 3, 2025</div>
-                    </div>
-                    <div class="transaction-status">
-                        <span class="badge bg-success">Confirmed</span>
-                    </div>
-                    <div class="transaction-details">
-                        <div class="transaction-detail">
-                            <span class="detail-label">Transaction Hash:</span>
-                            <span class="detail-value hash-value">0x9d2e7c6b45a3...</span>
-                        </div>
-                        <div class="transaction-detail">
-                            <span class="detail-label">Block:</span>
-                            <span class="detail-value">10245621</span>
-                        </div>
-                        <div class="transaction-detail">
-                            <span class="detail-label">Document:</span>
-                            <span class="detail-value">Property Deed.pdf</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="transaction-item">
-                    <div class="transaction-header">
-                        <div class="transaction-title">Multi-sig Approval</div>
-                        <div class="transaction-date">April 2, 2025</div>
-                    </div>
-                    <div class="transaction-status">
-                        <span class="badge bg-success">Confirmed</span>
-                    </div>
-                    <div class="transaction-details">
-                        <div class="transaction-detail">
-                            <span class="detail-label">Transaction Hash:</span>
-                            <span class="detail-value hash-value">0x3f8e2d9c15b7...</span>
-                        </div>
-                        <div class="transaction-detail">
-                            <span class="detail-label">Block:</span>
-                            <span class="detail-value">10245589</span>
-                        </div>
-                        <div class="transaction-detail">
-                            <span class="detail-label">Signatures:</span>
-                            <span class="detail-value">3/4</span>
+                    <div class="col-md-6">
+                        <div class="ai-analysis-results glassmorphism p-3 mb-3">
+                            <h5 class="cosmic-text">Structural Analysis</h5>
+                            <p>The structural integrity of the building meets all code requirements. Load bearing walls are properly positioned and sized.</p>
+                            <div class="progress mb-2" style="height: 5px">
+                                <div class="progress-bar bg-success" style="width: 95%"></div>
+                            </div>
+                            
+                            <h5 class="cosmic-text mt-4">Energy Efficiency</h5>
+                            <p>The building achieves excellent energy efficiency through proper insulation and window placement. Low-E glass used throughout.</p>
+                            <div class="progress mb-2" style="height: 5px">
+                                <div class="progress-bar bg-success" style="width: 90%"></div>
+                            </div>
+                            
+                            <h5 class="cosmic-text mt-4">Spatial Organization</h5>
+                            <p>Room layout follows best practices for workflow optimization and accessibility compliance.</p>
+                            <div class="progress mb-2" style="height: 5px">
+                                <div class="progress-bar bg-info" style="width: 85%"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -227,23 +112,55 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Custom Scripts -->
+<script src="{{ url_for('static', filename='js/ai-chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bim-viewer.js') }}"></script>
 <script>
-    // Initialize fullscreen functionality
     document.addEventListener('DOMContentLoaded', function() {
-        const toggleFullscreenButton = document.getElementById('toggleFullscreen');
-        const viewerContainer = document.querySelector('.viewer-container');
+        // Initialize BIM Viewer
+        bimViewer.init('bim-viewer-container');
         
-        if (toggleFullscreenButton && viewerContainer) {
-            toggleFullscreenButton.addEventListener('click', function() {
-                if (!document.fullscreenElement) {
-                    viewerContainer.requestFullscreen().catch(err => {
-                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                    });
-                } else {
-                    document.exitFullscreen();
+        // Initialize BIM AI Chat
+        aiChat.init('bim-ai-container');
+        
+        // Initialize materials chart
+        const ctx = document.getElementById('materials-chart').getContext('2d');
+        const materialsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Concrete', 'Steel', 'Glass', 'Wood', 'Insulation', 'Other'],
+                datasets: [{
+                    data: [45, 25, 15, 5, 8, 2],
+                    backgroundColor: [
+                        'rgba(176, 5, 150, 0.7)',  // secondary
+                        'rgba(0, 30, 0, 0.7)',     // primary 
+                        'rgba(224, 13, 121, 0.7)', // info
+                        'rgba(0, 153, 7, 0.7)',    // success
+                        'rgba(243, 192, 0, 0.7)',  // warning
+                        'rgba(237, 0, 72, 0.7)'    // danger
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
                 }
-            });
-        }
+            }
+        });
+        
+        // Update feather icons
+        feather.replace();
     });
 </script>
 {% endblock %}
