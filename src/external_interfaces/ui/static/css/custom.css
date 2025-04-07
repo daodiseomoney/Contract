@@ -1,0 +1,129 @@
+/* Custom theme colors */
+:root {
+  --bs-light: #000000;
+  --bs-dark: #000000;
+  --bs-primary: #001e00;
+  --bs-secondary: #b80596;
+  --bs-info: #e00d79;
+  --bs-success: #009907;
+  --bs-warning: #f3c000;
+  --bs-danger: #ed0048;
+  --bs-white: #ffffff;
+  
+  /* Adding background colors */
+  --bs-light-bg: var(--bs-light);
+  --bs-dark-bg: var(--bs-dark);
+  --bs-primary-bg: var(--bs-primary);
+  --bs-secondary-bg: var(--bs-secondary);
+  --bs-info-bg: var(--bs-info);
+  --bs-success-bg: var(--bs-success);
+  --bs-warning-bg: var(--bs-warning);
+  --bs-danger-bg: var(--bs-danger);
+  
+  /* Adding text colors */
+  --bs-light-text: var(--bs-light);
+  --bs-dark-text: var(--bs-dark);
+  --bs-primary-text: var(--bs-primary);
+  --bs-secondary-text: var(--bs-secondary);
+  --bs-info-text: var(--bs-info);
+  --bs-success-text: var(--bs-success);
+  --bs-warning-text: var(--bs-warning);
+  --bs-danger-text: var(--bs-danger);
+}
+
+/* Bootstrap button overrides */
+.btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.btn-secondary {
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+}
+
+.btn-info {
+  background-color: var(--bs-info);
+  border-color: var(--bs-info);
+}
+
+.btn-success {
+  background-color: var(--bs-success);
+  border-color: var(--bs-success);
+}
+
+.btn-warning {
+  background-color: var(--bs-warning);
+  border-color: var(--bs-warning);
+}
+
+.btn-danger {
+  background-color: var(--bs-danger);
+  border-color: var(--bs-danger);
+}
+
+/* Background colors */
+.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bs-secondary) !important;
+}
+
+.bg-info {
+  background-color: var(--bs-info) !important;
+}
+
+.bg-success {
+  background-color: var(--bs-success) !important;
+}
+
+.bg-warning {
+  background-color: var(--bs-warning) !important;
+}
+
+.bg-danger {
+  background-color: var(--bs-danger) !important;
+}
+
+.bg-light {
+  background-color: var(--bs-light) !important;
+}
+
+.bg-dark {
+  background-color: var(--bs-dark) !important;
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--bs-primary) !important;
+}
+
+.text-secondary {
+  color: var(--bs-secondary) !important;
+}
+
+.text-info {
+  color: var(--bs-info) !important;
+}
+
+.text-success {
+  color: var(--bs-success) !important;
+}
+
+.text-warning {
+  color: var(--bs-warning) !important;
+}
+
+.text-danger {
+  color: var(--bs-danger) !important;
+}
+
+.text-light {
+  color: var(--bs-light) !important;
+}
+
+.text-dark {
+  color: var(--bs-dark) !important;
+}
