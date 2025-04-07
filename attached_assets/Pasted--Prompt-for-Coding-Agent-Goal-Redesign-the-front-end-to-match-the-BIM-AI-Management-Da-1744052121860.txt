@@ -1,0 +1,58 @@
+**Prompt for Coding Agent**:  
+
+**Goal**  
+Redesign the front-end to match the "BIM-AI Management Dashboard" described below, using the structure and metrics from the appended image (sections for analytics, logs, workflows, and property grids). Prioritize:  
+- IFC file integration with 3D model visualization.  
+- AI agent collaboration interfaces (chat, task automation).  
+- Real-time sustainability/performance analytics.  
+- Dark cosmic theme with neon-cyan accents and glassmorphism.  
+
+**Return Format**  
+Provide code snippets for:  MAIN PAGE WITH:
+1. **3D BIM Viewer**: Component rendering IFC files with layer toggles (structural, mechanical).  
+2. **AI Agent Hub**: Chat-style UI showing AI task discussions (e.g., clash detection logs).  
+3. **Analytics Panel**: Live-updating charts/grids for energy use, carbon metrics, or cost estimates.  
+4. **Theme Implementation**: Bootstrap 5 dark mode setup with neon accents and glassmorphism CSS.  
+
+**Warnings**  
+- Optimize 3D rendering for large IFC files (use lazy-loading/web workers).  
+- Ensure real-time data streams (analytics/logs) don’t block UI responsiveness.  
+- Use secure WebSocket connections for AI agent communication.  
+- Avoid inline styling; rely on Bootstrap utilities + CSS variables for theme consistency.  
+
+**Context**  
+The current codebase uses:  
+- React + Three.js for 3D visualization (no IFC parsing).  
+- Basic chat UI without AI agent integration.  
+- Static tables for property data (no real-time updates).  
+- No dark theme or advanced styling.  
+
+---  
+**Example Code Snippet (3D BIM Viewer)**:  
+```javascript  
+// IFC Loader Component with Layer Toggles  
+import { IfcViewerAPI } from 'web-ifc-viewer';  
+
+const BIMViewer = () => {  
+  const viewer = new IfcViewerAPI({  
+    container: document.getElementById('viewer-container'),  
+    backgroundColor: new THREE.Color(0x0a0e14),  
+  });  
+
+  // Load IFC file and enable layer controls  
+  const loadModel = async (url) => {  
+    const model = await viewer.loadIfcUrl(url);  
+    viewer.toggleLayer('structural', true); // Default visible layer  
+    viewer.toggleLayer('mechanical', false);  
+  };  
+
+  return (  
+    <div className="glassmorphism-panel">  
+      <div id="viewer-container" />  
+      <LayerToggleButtons layers={['structural', 'mechanical']} />  
+    </div>  
+  );  
+};  
+```  
+
+**Style Keywords**: Dark-tech futurism, IFC data pipelines, AI swarm interfaces, cosmic minimalism.
