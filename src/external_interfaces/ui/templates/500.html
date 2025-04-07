@@ -1,22 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}500 - Server Error{% endblock %}
+{% block title %}Server Error - BIM AI Management Dashboard{% endblock %}
 
-{% block page_title %}Server Error{% endblock %}
+{% block page_title %}500 - Server Error{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="cosmic-card glassmorphism panel panel-danger text-center p-5">
-                <h1 class="neon-text" style="font-size: 72px;">500</h1>
-                <h2 class="mb-4">Internal Server Error</h2>
-                <p class="lead mb-5">Oops! Something went wrong on our end. Our team has been notified and is working to fix the issue.</p>
-                <a href="{{ url_for('index') }}" class="btn btn-info btn-lg">
-                    <i data-feather="refresh-cw"></i> Try Again
-                </a>
-            </div>
+<div class="error-page">
+    <div class="error-content">
+        <div class="error-icon">
+            <i data-feather="alert-octagon"></i>
         </div>
+        <h2 class="error-title">500</h2>
+        <p class="error-message">Something went wrong on our servers. Please try again later.</p>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-info">
+            <i data-feather="refresh-cw" class="icon-inline"></i>
+            Refresh Page
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,235 @@
+/* Enhanced Chat Interface Styles */
+
+.chat-container {
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.chat-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.chat-mode-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--info);
+}
+
+input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+input:focus + .toggle-slider {
+    box-shadow: 0 0 1px var(--info);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+}
+
+.toggle-label {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    background: rgba(0, 10, 10, 0.3);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid var(--glass-border);
+}
+
+.chat-input-container {
+    display: flex;
+}
+
+.chat-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-light);
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-right: 10px;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--info);
+    box-shadow: 0 0 10px rgba(224, 13, 121, 0.3);
+}
+
+.chat-send-btn {
+    background: var(--info);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chat-send-btn:hover {
+    background: var(--info-light);
+    box-shadow: 0 0 10px rgba(224, 13, 121, 0.5);
+}
+
+.message {
+    margin-bottom: 15px;
+    max-width: 80%;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-user {
+    margin-left: auto;
+    background: rgba(224, 13, 121, 0.2);
+    border-radius: 15px 15px 0 15px;
+    padding: 10px 15px;
+}
+
+.message-ai {
+    margin-right: auto;
+    background: rgba(184, 5, 150, 0.2);
+    border-radius: 15px 15px 15px 0;
+    padding: 10px 15px;
+}
+
+.message-system {
+    font-style: italic;
+    background: rgba(0, 30, 0, 0.4);
+    opacity: 0.8;
+}
+
+.message-error {
+    background: rgba(237, 0, 72, 0.15);
+}
+
+.message-meta {
+    font-size: 12px;
+    margin-top: 4px;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.stakeholder-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.enhanced-tag {
+    display: flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+    background: rgba(224, 13, 121, 0.2);
+    color: var(--info-light);
+}
+
+.enhanced-tag svg {
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+}
+
+.stakeholder-tenant_buyer {
+    background: rgba(0, 153, 7, 0.2);
+    color: var(--success-light);
+}
+
+.stakeholder-broker {
+    background: rgba(184, 5, 150, 0.2);
+    color: var(--secondary-light);
+}
+
+.stakeholder-landlord {
+    background: rgba(224, 13, 121, 0.2);
+    color: var(--info-light);
+}
+
+.stakeholder-property_manager {
+    background: rgba(0, 30, 0, 0.2);
+    color: var(--primary-light);
+}
+
+.stakeholder-appraiser {
+    background: rgba(243, 192, 0, 0.2);
+    color: var(--warning-light);
+}
+
+.stakeholder-mortgage_broker {
+    background: rgba(237, 0, 72, 0.2);
+    color: var(--danger-light);
+}
+
+.stakeholder-investor {
+    background: rgba(184, 5, 150, 0.2);
+    color: var(--secondary-light);
+}

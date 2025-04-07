@@ -1,583 +1,336 @@
 /**
- * BIM Viewer Component for BIM AI Management Dashboard
- * A simplified 3D viewer for building models
+ * BIM Viewer Module
+ * Provides 3D visualization for building models
  */
 
 const bimViewer = {
-    // Viewer container element
+    containerId: null,
     container: null,
+    scene: null,
+    camera: null,
+    renderer: null,
+    controls: null,
+    building: null,
+    isFullView: false,
     
-    // Canvas context
-    canvas: null,
-    ctx: null,
-    
-    // Viewer state
-    state: {
-        initialized: false,
-        dataLoaded: false,
-        cameraPosition: { x: 0, y: 0, z: -10 },
-        cameraTarget: { x: 0, y: 0, z: 0 },
-        rotating: false,
-        autoRotate: false,
-        showWireframe: false,
-        defaultColor: '#4CAF50',
-        highlightColor: '#FF4081',
-        currentFloor: 1,
-        totalFloors: 3,
-    },
-    
-    // Mock building data
-    buildingData: {
-        name: "Cosmic Tower",
-        location: "Silicon Valley, CA",
-        floors: 3,
-        yearBuilt: 2024,
-        totalArea: 12500,
-        elements: []
-    },
-    
-    /**
-     * Initialize the BIM viewer
-     * @param {string} containerId - ID of the container element
-     */
-    init(containerId) {
+    // Initialize the viewer
+    init: function(containerId, full = false) {
+        // Store settings
+        this.containerId = containerId;
         this.container = document.getElementById(containerId);
+        this.isFullView = full;
         
         if (!this.container) {
-            console.error('BIM Viewer container not found');
+            console.error(`Viewer container with ID ${containerId} not found`);
             return;
         }
         
-        // Create viewer UI
-        this.createViewerUI();
+        // Initialize three.js components
+        this.initScene();
+        this.initCamera();
+        this.initRenderer();
+        this.initControls();
+        this.initLights();
         
-        // Set up controls
-        this.setupControls();
+        // Add sample building
+        this.createSampleBuilding();
         
-        // Generate mock building data
-        this.generateMockData();
+        // Add event listeners
+        window.addEventListener('resize', () => this.onWindowResize());
         
-        // Start rendering
-        this.startRenderLoop();
+        // Start animation loop
+        this.animate();
         
-        this.state.initialized = true;
-        console.log('BIM Viewer initialized');
+        // Add controls if in full view
+        if (this.isFullView) {
+            this.addViewerControls();
+        }
+        
+        console.log(`BIM Viewer initialized in ${full ? 'full' : 'mini'} mode`);
     },
     
-    /**
-     * Create the viewer UI elements
-     */
-    createViewerUI() {
-        // Create canvas and controls
-        this.container.innerHTML = `
-            <canvas class="bim-viewer-canvas" id="bim-canvas"></canvas>
-            <div class="viewer-controls">
-                <button class="viewer-control-btn" id="btn-rotate" title="Toggle Auto-Rotate">
-                    <i data-feather="refresh-cw"></i>
-                </button>
-                <button class="viewer-control-btn" id="btn-wireframe" title="Toggle Wireframe">
-                    <i data-feather="grid"></i>
-                </button>
-                <button class="viewer-control-btn" id="btn-floor-up" title="Next Floor">
-                    <i data-feather="chevron-up"></i>
-                </button>
-                <button class="viewer-control-btn" id="btn-floor-down" title="Previous Floor">
-                    <i data-feather="chevron-down"></i>
-                </button>
-                <button class="viewer-control-btn" id="btn-reset" title="Reset View">
-                    <i data-feather="home"></i>
-                </button>
-            </div>
+    // Initialize the scene
+    initScene: function() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x050a13);
+        
+        // Add a grid for reference in full view
+        if (this.isFullView) {
+            const grid = new THREE.GridHelper(100, 100, 0x555555, 0x333333);
+            this.scene.add(grid);
+        }
+    },
+    
+    // Initialize the camera
+    initCamera: function() {
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
+        
+        this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        this.camera.position.set(30, 20, 30);
+        this.camera.lookAt(0, 0, 0);
+    },
+    
+    // Initialize the renderer
+    initRenderer: function() {
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.container.appendChild(this.renderer.domElement);
+    },
+    
+    // Initialize the controls
+    initControls: function() {
+        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true;
+        this.controls.dampingFactor = 0.05;
+        this.controls.screenSpacePanning = false;
+        this.controls.minDistance = 10;
+        this.controls.maxDistance = 100;
+        this.controls.maxPolarAngle = Math.PI / 2;
+    },
+    
+    // Initialize the lights
+    initLights: function() {
+        // Ambient light
+        const ambientLight = new THREE.AmbientLight(0x404040, 1);
+        this.scene.add(ambientLight);
+        
+        // Directional light (sun)
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(50, 50, 50);
+        directionalLight.castShadow = true;
+        
+        // Configure shadow properties
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 500;
+        
+        this.scene.add(directionalLight);
+        
+        // Add some colored spotlights for the cosmic theme
+        const spotLight1 = new THREE.SpotLight(0xe00d79, 0.8, 100, Math.PI / 4, 0.3);
+        spotLight1.position.set(20, 40, 20);
+        this.scene.add(spotLight1);
+        
+        const spotLight2 = new THREE.SpotLight(0xb80596, 0.8, 100, Math.PI / 4, 0.3);
+        spotLight2.position.set(-20, 40, -20);
+        this.scene.add(spotLight2);
+    },
+    
+    // Create a sample building
+    createSampleBuilding: function() {
+        const buildingGroup = new THREE.Group();
+        
+        // Base/ground floor
+        const baseGeometry = new THREE.BoxGeometry(30, 1, 30);
+        const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const base = new THREE.Mesh(baseGeometry, baseMaterial);
+        base.position.y = -0.5;
+        base.receiveShadow = true;
+        buildingGroup.add(base);
+        
+        // Main building tower
+        const towerGeometry = new THREE.BoxGeometry(20, 30, 20);
+        const towerMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x555555,
+            transparent: true,
+            opacity: 0.9,
+            metalness: 0.8,
+            roughness: 0.2
+        });
+        const tower = new THREE.Mesh(towerGeometry, towerMaterial);
+        tower.position.y = 15;
+        tower.castShadow = true;
+        tower.receiveShadow = true;
+        buildingGroup.add(tower);
+        
+        // Add floors
+        for (let i = 1; i <= 17; i++) {
+            const floorGeometry = new THREE.BoxGeometry(22, 0.3, 22);
+            const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xe00d79, emissive: 0xe00d79, emissiveIntensity: 0.2 });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.position.y = i * 2 - 0.5;
+            floor.castShadow = true;
+            floor.receiveShadow = true;
+            buildingGroup.add(floor);
+        }
+        
+        // Add windows as a pattern
+        const windowMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x88ccff,
+            transparent: true,
+            opacity: 0.7,
+            metalness: 0.9,
+            roughness: 0.1,
+            emissive: 0x4488aa,
+            emissiveIntensity: 0.2
+        });
+        
+        // Front windows
+        for (let y = 0; y < 15; y++) {
+            for (let x = 0; x < 8; x++) {
+                const windowGeometry = new THREE.BoxGeometry(1.5, 1.5, 0.1);
+                const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                window.position.set(-7 + x * 2, 2 + y * 2, 10.1);
+                buildingGroup.add(window);
+            }
+        }
+        
+        // Back windows
+        for (let y = 0; y < 15; y++) {
+            for (let x = 0; x < 8; x++) {
+                const windowGeometry = new THREE.BoxGeometry(1.5, 1.5, 0.1);
+                const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                window.position.set(-7 + x * 2, 2 + y * 2, -10.1);
+                window.rotation.y = Math.PI;
+                buildingGroup.add(window);
+            }
+        }
+        
+        // Left windows
+        for (let y = 0; y < 15; y++) {
+            for (let z = 0; z < 8; z++) {
+                const windowGeometry = new THREE.BoxGeometry(0.1, 1.5, 1.5);
+                const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                window.position.set(-10.1, 2 + y * 2, -7 + z * 2);
+                buildingGroup.add(window);
+            }
+        }
+        
+        // Right windows
+        for (let y = 0; y < 15; y++) {
+            for (let z = 0; z < 8; z++) {
+                const windowGeometry = new THREE.BoxGeometry(0.1, 1.5, 1.5);
+                const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                window.position.set(10.1, 2 + y * 2, -7 + z * 2);
+                buildingGroup.add(window);
+            }
+        }
+        
+        // Add rooftop features
+        const roofGeometry = new THREE.BoxGeometry(15, 2, 15);
+        const roofMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+        roof.position.y = 31;
+        roof.castShadow = true;
+        roof.receiveShadow = true;
+        buildingGroup.add(roof);
+        
+        // Add antenna/spire
+        const spireGeometry = new THREE.CylinderGeometry(0.2, 0.5, 10, 8);
+        const spireMaterial = new THREE.MeshStandardMaterial({ color: 0xb80596, emissive: 0xb80596, emissiveIntensity: 0.5 });
+        const spire = new THREE.Mesh(spireGeometry, spireMaterial);
+        spire.position.y = 37;
+        spire.castShadow = true;
+        buildingGroup.add(spire);
+        
+        // Add the building to the scene
+        this.scene.add(buildingGroup);
+        this.building = buildingGroup;
+    },
+    
+    // Add viewer controls (for full view)
+    addViewerControls: function() {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'viewer-controls';
+        controlsDiv.innerHTML = `
+            <button class="viewer-control-btn" id="view-front">
+                <i data-feather="arrow-up"></i>
+            </button>
+            <button class="viewer-control-btn" id="view-side">
+                <i data-feather="arrow-right"></i>
+            </button>
+            <button class="viewer-control-btn" id="view-top">
+                <i data-feather="arrow-down"></i>
+            </button>
+            <button class="viewer-control-btn" id="view-3d">
+                <i data-feather="box"></i>
+            </button>
         `;
         
-        // Initialize Feather icons
+        this.container.appendChild(controlsDiv);
+        
+        // Initialize feather icons
         feather.replace();
         
-        // Get canvas
-        this.canvas = document.getElementById('bim-canvas');
-        this.ctx = this.canvas.getContext('2d');
-        
-        // Set canvas size
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-    },
-    
-    /**
-     * Set up viewer controls
-     */
-    setupControls() {
-        // Toggle auto-rotate
-        document.getElementById('btn-rotate').addEventListener('click', () => {
-            this.state.autoRotate = !this.state.autoRotate;
+        // Add event listeners for controls
+        document.getElementById('view-front').addEventListener('click', () => {
+            this.setCameraPosition(0, 15, 50);
         });
         
-        // Toggle wireframe
-        document.getElementById('btn-wireframe').addEventListener('click', () => {
-            this.state.showWireframe = !this.state.showWireframe;
+        document.getElementById('view-side').addEventListener('click', () => {
+            this.setCameraPosition(50, 15, 0);
         });
         
-        // Floor navigation
-        document.getElementById('btn-floor-up').addEventListener('click', () => {
-            if (this.state.currentFloor < this.state.totalFloors) {
-                this.state.currentFloor++;
-            }
+        document.getElementById('view-top').addEventListener('click', () => {
+            this.setCameraPosition(0, 50, 0);
         });
         
-        document.getElementById('btn-floor-down').addEventListener('click', () => {
-            if (this.state.currentFloor > 1) {
-                this.state.currentFloor--;
-            }
-        });
-        
-        // Reset view
-        document.getElementById('btn-reset').addEventListener('click', () => {
-            this.state.cameraPosition = { x: 0, y: 0, z: -10 };
-            this.state.cameraTarget = { x: 0, y: 0, z: 0 };
-            this.state.autoRotate = false;
-            this.state.showWireframe = false;
-            this.state.currentFloor = 1;
-        });
-        
-        // Mouse interaction for rotation
-        this.canvas.addEventListener('mousedown', () => {
-            this.state.rotating = true;
-        });
-        
-        this.canvas.addEventListener('mouseup', () => {
-            this.state.rotating = false;
-        });
-        
-        this.canvas.addEventListener('mousemove', (e) => {
-            if (this.state.rotating) {
-                // Rotate the camera position around the target
-                const deltaX = e.movementX * 0.01;
-                const deltaY = e.movementY * 0.01;
-                
-                // Update camera position
-                const x = this.state.cameraPosition.x;
-                const z = this.state.cameraPosition.z;
-                
-                // Rotate around Y axis (left/right)
-                this.state.cameraPosition.x = x * Math.cos(deltaX) - z * Math.sin(deltaX);
-                this.state.cameraPosition.z = z * Math.cos(deltaX) + x * Math.sin(deltaX);
-                
-                // Limit vertical rotation
-                const y = this.state.cameraPosition.y;
-                this.state.cameraPosition.y = Math.max(-5, Math.min(5, y + deltaY));
-            }
+        document.getElementById('view-3d').addEventListener('click', () => {
+            this.setCameraPosition(30, 20, 30);
         });
     },
     
-    /**
-     * Resize canvas to match container size
-     */
-    resizeCanvas() {
-        if (this.canvas) {
-            this.canvas.width = this.container.clientWidth;
-            this.canvas.height = this.container.clientHeight;
-        }
-    },
-    
-    /**
-     * Generate mock building data for visualization
-     */
-    generateMockData() {
-        // Reset building elements
-        this.buildingData.elements = [];
+    // Set camera position and target
+    setCameraPosition: function(x, y, z) {
+        // Create a tween for smooth camera movement
+        const duration = 1000;
+        const cameraPosition = this.camera.position.clone();
         
-        // Generate mock walls, floors, doors, windows
+        // Simple animation without TWEEN
+        const startTime = Date.now();
         
-        // Floor 1
-        this.buildingData.elements.push(
-            // Floor
-            {
-                type: 'floor',
-                position: { x: 0, y: -2, z: 0 },
-                size: { x: 8, y: 0.2, z: 8 },
-                color: '#78909C',
-                floor: 1,
-            },
-            // Exterior walls
-            {
-                type: 'wall',
-                position: { x: -4, y: -1, z: 0 },
-                size: { x: 0.2, y: 2, z: 8 },
-                color: '#455A64',
-                floor: 1,
-            },
-            {
-                type: 'wall',
-                position: { x: 4, y: -1, z: 0 },
-                size: { x: 0.2, y: 2, z: 8 },
-                color: '#455A64',
-                floor: 1,
-            },
-            {
-                type: 'wall',
-                position: { x: 0, y: -1, z: -4 },
-                size: { x: 8, y: 2, z: 0.2 },
-                color: '#455A64',
-                floor: 1,
-            },
-            {
-                type: 'wall',
-                position: { x: 0, y: -1, z: 4 },
-                size: { x: 8, y: 2, z: 0.2 },
-                color: '#455A64',
-                floor: 1,
-            }
-        );
-        
-        // Floor 2
-        this.buildingData.elements.push(
-            // Floor
-            {
-                type: 'floor',
-                position: { x: 0, y: 0, z: 0 },
-                size: { x: 8, y: 0.2, z: 8 },
-                color: '#78909C',
-                floor: 2,
-            },
-            // Exterior walls
-            {
-                type: 'wall',
-                position: { x: -4, y: 1, z: 0 },
-                size: { x: 0.2, y: 2, z: 8 },
-                color: '#455A64',
-                floor: 2,
-            },
-            {
-                type: 'wall',
-                position: { x: 4, y: 1, z: 0 },
-                size: { x: 0.2, y: 2, z: 8 },
-                color: '#455A64',
-                floor: 2,
-            },
-            {
-                type: 'wall',
-                position: { x: 0, y: 1, z: -4 },
-                size: { x: 8, y: 2, z: 0.2 },
-                color: '#455A64',
-                floor: 2,
-            },
-            {
-                type: 'wall',
-                position: { x: 0, y: 1, z: 4 },
-                size: { x: 8, y: 2, z: 0.2 },
-                color: '#455A64',
-                floor: 2,
-            },
-            // Interior walls floor 2
-            {
-                type: 'wall',
-                position: { x: -2, y: 1, z: 0 },
-                size: { x: 0.2, y: 2, z: 8 },
-                color: '#607D8B',
-                floor: 2,
-            }
-        );
-        
-        // Floor 3
-        this.buildingData.elements.push(
-            // Floor
-            {
-                type: 'floor',
-                position: { x: 0, y: 2, z: 0 },
-                size: { x: 8, y: 0.2, z: 8 },
-                color: '#78909C',
-                floor: 3,
-            },
-            // Exterior walls
-            {
-                type: 'wall',
-                position: { x: -3, y: 3, z: 0 },
-                size: { x: 0.2, y: 2, z: 6 },
-                color: '#455A64',
-                floor: 3,
-            },
-            {
-                type: 'wall',
-                position: { x: 3, y: 3, z: 0 },
-                size: { x: 0.2, y: 2, z: 6 },
-                color: '#455A64',
-                floor: 3,
-            },
-            {
-                type: 'wall',
-                position: { x: 0, y: 3, z: -3 },
-                size: { x: 6, y: 2, z: 0.2 },
-                color: '#455A64',
-                floor: 3,
-            },
-            {
-                type: 'wall',
-                position: { x: 0, y: 3, z: 3 },
-                size: { x: 6, y: 2, z: 0.2 },
-                color: '#455A64',
-                floor: 3,
-            }
-        );
-        
-        // Windows and doors
-        for (let floor = 1; floor <= 3; floor++) {
-            const yPos = (floor - 2) * 2;
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
             
-            // Windows
-            this.buildingData.elements.push(
-                {
-                    type: 'window',
-                    position: { x: -4, y: yPos, z: -2 },
-                    size: { x: 0.3, y: 1, z: 1 },
-                    color: '#BBDEFB',
-                    floor: floor,
-                },
-                {
-                    type: 'window',
-                    position: { x: -4, y: yPos, z: 2 },
-                    size: { x: 0.3, y: 1, z: 1 },
-                    color: '#BBDEFB',
-                    floor: floor,
-                },
-                {
-                    type: 'window',
-                    position: { x: 4, y: yPos, z: -2 },
-                    size: { x: 0.3, y: 1, z: 1 },
-                    color: '#BBDEFB',
-                    floor: floor,
-                },
-                {
-                    type: 'window',
-                    position: { x: 4, y: yPos, z: 2 },
-                    size: { x: 0.3, y: 1, z: 1 },
-                    color: '#BBDEFB',
-                    floor: floor,
-                }
-            );
+            // Ease function (ease-out cubic)
+            const ease = 1 - Math.pow(1 - progress, 3);
             
-            // Door
-            this.buildingData.elements.push({
-                type: 'door',
-                position: { x: 0, y: yPos - 0.5, z: 4 },
-                size: { x: 1.2, y: 1, z: 0.3 },
-                color: '#5D4037',
-                floor: floor,
-            });
-        }
-        
-        this.state.dataLoaded = true;
-    },
-    
-    /**
-     * Start the rendering loop
-     */
-    startRenderLoop() {
-        const render = () => {
-            if (this.state.initialized) {
-                this.render();
+            // Update camera position
+            this.camera.position.x = cameraPosition.x + (x - cameraPosition.x) * ease;
+            this.camera.position.y = cameraPosition.y + (y - cameraPosition.y) * ease;
+            this.camera.position.z = cameraPosition.z + (z - cameraPosition.z) * ease;
+            
+            // Look at center
+            this.camera.lookAt(0, 15, 0);
+            
+            // Continue animation if not complete
+            if (progress < 1) {
+                requestAnimationFrame(animate);
             }
-            requestAnimationFrame(render);
         };
         
-        render();
+        // Start animation
+        animate();
     },
     
-    /**
-     * Render the 3D scene
-     */
-    render() {
-        // Clear canvas
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // Handle window resize
+    onWindowResize: function() {
+        const width = this.container.clientWidth;
+        const height = this.container.clientHeight;
         
-        // Update camera position if auto-rotate is enabled
-        if (this.state.autoRotate) {
-            const x = this.state.cameraPosition.x;
-            const z = this.state.cameraPosition.z;
-            const angle = 0.01;
-            
-            this.state.cameraPosition.x = x * Math.cos(angle) - z * Math.sin(angle);
-            this.state.cameraPosition.z = z * Math.cos(angle) + x * Math.sin(angle);
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
+    },
+    
+    // Animation loop
+    animate: function() {
+        requestAnimationFrame(() => this.animate());
+        
+        // Update controls
+        if (this.controls) {
+            this.controls.update();
         }
         
-        // Draw background grid
-        this.drawGrid();
-        
-        // Get visible elements (for the current floor)
-        const visibleElements = this.buildingData.elements.filter(
-            element => element.floor === this.state.currentFloor
-        );
-        
-        // Sort elements by distance (painter's algorithm)
-        visibleElements.sort((a, b) => {
-            const distA = this.distance(a.position, this.state.cameraPosition);
-            const distB = this.distance(b.position, this.state.cameraPosition);
-            return distB - distA;
-        });
-        
-        // Draw each element
-        visibleElements.forEach(element => {
-            this.drawElement(element);
-        });
-        
-        // Draw floor indicator
-        this.drawFloorIndicator();
-    },
-    
-    /**
-     * Draw the background grid
-     */
-    drawGrid() {
-        const gridSize = 20;
-        const gridSpacing = 50;
-        
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        this.ctx.lineWidth = 1;
-        
-        // Calculate center of canvas
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-        
-        // Draw horizontal grid lines
-        for (let i = -gridSize; i <= gridSize; i++) {
-            const y = centerY + i * gridSpacing;
-            
-            this.ctx.beginPath();
-            this.ctx.moveTo(centerX - gridSize * gridSpacing, y);
-            this.ctx.lineTo(centerX + gridSize * gridSpacing, y);
-            this.ctx.stroke();
-        }
-        
-        // Draw vertical grid lines
-        for (let i = -gridSize; i <= gridSize; i++) {
-            const x = centerX + i * gridSpacing;
-            
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, centerY - gridSize * gridSpacing);
-            this.ctx.lineTo(x, centerY + gridSize * gridSpacing);
-            this.ctx.stroke();
-        }
-    },
-    
-    /**
-     * Draw a 3D element with perspective projection
-     * @param {object} element - The element to draw
-     */
-    drawElement(element) {
-        // Extract element properties
-        const { position, size, color, type } = element;
-        
-        // Define vertices of the cuboid
-        const vertices = [
-            // Front face
-            { x: position.x - size.x/2, y: position.y - size.y/2, z: position.z + size.z/2 },
-            { x: position.x + size.x/2, y: position.y - size.y/2, z: position.z + size.z/2 },
-            { x: position.x + size.x/2, y: position.y + size.y/2, z: position.z + size.z/2 },
-            { x: position.x - size.x/2, y: position.y + size.y/2, z: position.z + size.z/2 },
-            
-            // Back face
-            { x: position.x - size.x/2, y: position.y - size.y/2, z: position.z - size.z/2 },
-            { x: position.x + size.x/2, y: position.y - size.y/2, z: position.z - size.z/2 },
-            { x: position.x + size.x/2, y: position.y + size.y/2, z: position.z - size.z/2 },
-            { x: position.x - size.x/2, y: position.y + size.y/2, z: position.z - size.z/2 },
-        ];
-        
-        // Project vertices to 2D
-        const projectedVertices = vertices.map(vertex => this.projectVertex(vertex));
-        
-        // Define faces (pairs of vertices that form edges)
-        const faces = [
-            // Front face
-            [0, 1, 2, 3],
-            // Back face
-            [4, 5, 6, 7],
-            // Top face
-            [3, 2, 6, 7],
-            // Bottom face
-            [0, 1, 5, 4],
-            // Left face
-            [0, 3, 7, 4],
-            // Right face
-            [1, 2, 6, 5],
-        ];
-        
-        // Draw faces
-        faces.forEach(face => {
-            const points = face.map(index => projectedVertices[index]);
-            
-            // Set fill color based on element type
-            this.ctx.fillStyle = color;
-            
-            // Start path
-            this.ctx.beginPath();
-            this.ctx.moveTo(points[0].x, points[0].y);
-            
-            // Draw lines between vertices
-            for (let i = 1; i < points.length; i++) {
-                this.ctx.lineTo(points[i].x, points[i].y);
-            }
-            
-            // Close path
-            this.ctx.closePath();
-            
-            // Fill or stroke based on wireframe setting
-            if (this.state.showWireframe) {
-                this.ctx.strokeStyle = color;
-                this.ctx.stroke();
-            } else {
-                this.ctx.fill();
-                this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-                this.ctx.stroke();
-            }
-        });
-    },
-    
-    /**
-     * Draw floor indicator
-     */
-    drawFloorIndicator() {
-        const text = `Floor ${this.state.currentFloor} of ${this.state.totalFloors}`;
-        this.ctx.font = '14px Arial';
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        this.ctx.fillText(text, 20, this.canvas.height - 20);
-    },
-    
-    /**
-     * Project a 3D vertex to 2D with perspective
-     * @param {object} vertex - The 3D vertex { x, y, z }
-     * @returns {object} The projected 2D point { x, y }
-     */
-    projectVertex(vertex) {
-        // Translate based on camera position
-        const translated = {
-            x: vertex.x - this.state.cameraPosition.x,
-            y: vertex.y - this.state.cameraPosition.y,
-            z: vertex.z - this.state.cameraPosition.z,
-        };
-        
-        // Apply perspective
-        const focalLength = 1.5;
-        const depth = Math.max(0.1, translated.z + 10);
-        const scale = focalLength / depth;
-        
-        // Project to 2D
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-        
-        return {
-            x: centerX + translated.x * scale * 50,
-            y: centerY - translated.y * scale * 50, // Flip Y for screen coordinates
-        };
-    },
-    
-    /**
-     * Calculate distance between two points
-     * @param {object} p1 - First point { x, y, z }
-     * @param {object} p2 - Second point { x, y, z }
-     * @returns {number} Distance between the points
-     */
-    distance(p1, p2) {
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const dz = p2.z - p1.z;
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        // Render scene
+        this.renderer.render(this.scene, this.camera);
     }
 };
+
+// Make sure Three.js is loaded before using this module
+// This code assumes Three.js and OrbitControls are already loaded in the page

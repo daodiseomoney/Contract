@@ -1,0 +1,47 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="900" fill="#050a13"/>
+  <g opacity="0.3">
+    <circle cx="720" cy="450" r="300" fill="url(#radial1)"/>
+    <circle cx="200" cy="200" r="100" fill="url(#radial2)"/>
+    <circle cx="1200" cy="700" r="150" fill="url(#radial3)"/>
+  </g>
+  <g opacity="0.05">
+    <rect x="0" y="100" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="0" y="200" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="0" y="300" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="0" y="400" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="0" y="500" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="0" y="600" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="0" y="700" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    <rect x="0" y="800" width="1440" height="1" fill="rgba(255,255,255,0.3)"/>
+    
+    <rect x="100" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="200" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="300" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="400" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="500" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="600" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="700" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="800" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="900" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="1000" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="1100" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="1200" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="1300" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+    <rect x="1400" y="0" width="1" height="900" fill="rgba(255,255,255,0.3)"/>
+  </g>
+  <defs>
+    <radialGradient id="radial1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(720 450) rotate(90) scale(300)">
+      <stop stop-color="#e00d79" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#050a13" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="radial2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(200 200) rotate(90) scale(100)">
+      <stop stop-color="#b80596" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#050a13" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="radial3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1200 700) rotate(90) scale(150)">
+      <stop stop-color="#009907" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#050a13" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

@@ -1,308 +1,231 @@
 {% extends "base.html" %}
 
-{% block title %}Contracts - BIM AI Management Dashboard{% endblock %}
-
-{% block page_title %}Smart Contracts Management{% endblock %}
+{% block title %}Smart Contracts - BIM AI Management Dashboard{% endblock %}
+{% block page_title %}Smart Contracts{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <!-- Smart Contracts List -->
-        <div class="col-md-7 mb-4">
-            <div class="cosmic-card glassmorphism panel panel-success">
-                <div class="card-title">Active Smart Contracts</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i data-feather="file-text" class="icon-inline"></i>
+                    Property Smart Contracts
+                </h5>
+                <div class="card-actions">
+                    <button class="btn btn-sm btn-outline-info">
+                        <i data-feather="plus" class="icon-inline-sm"></i>
+                        New Contract
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-dark" id="contracts-table">
+                    <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th width="5%"></th>
-                                <th>Contract Name</th>
+                                <th>Contract ID</th>
                                 <th>Property</th>
-                                <th>Type</th>
-                                <th>Created</th>
+                                <th>Token Symbol</th>
+                                <th>Value (USD)</th>
                                 <th>Status</th>
-                                <th width="10%">Actions</th>
+                                <th>Created</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="contract-row" data-contract-id="1">
-                                <td><i data-feather="file-text" class="feather-sm"></i></td>
-                                <td>Cosmic Tower Ownership</td>
-                                <td>Cosmic Tower</td>
-                                <td>Ownership</td>
-                                <td>Apr 01, 2025</td>
-                                <td><span class="badge bg-success">Active</span></td>
+                            <tr>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
+                                    <span class="d-block">CO-2025-001</span>
+                                    <small class="text-muted">0x71C...9E3f</small>
+                                </td>
+                                <td>Cosmic Tower Project</td>
+                                <td>CSMC</td>
+                                <td>$15,811,040</td>
+                                <td><span class="contract-status status-active">Active</span></td>
+                                <td>Apr 3, 2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i data-feather="eye" class="icon-inline-sm"></i>
+                                    </button>
                                 </td>
                             </tr>
-                            <tr class="contract-row" data-contract-id="2">
-                                <td><i data-feather="file-text" class="feather-sm"></i></td>
-                                <td>Tenant Agreement #104</td>
-                                <td>Cosmic Tower</td>
-                                <td>Lease</td>
-                                <td>Apr 02, 2025</td>
-                                <td><span class="badge bg-success">Active</span></td>
+                            <tr>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
+                                    <span class="d-block">CO-2025-002</span>
+                                    <small class="text-muted">0x31F...7A2c</small>
+                                </td>
+                                <td>Nexus Apartments</td>
+                                <td>NXAP</td>
+                                <td>$8,250,000</td>
+                                <td><span class="contract-status status-active">Active</span></td>
+                                <td>Mar 21, 2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i data-feather="eye" class="icon-inline-sm"></i>
+                                    </button>
                                 </td>
                             </tr>
-                            <tr class="contract-row" data-contract-id="3">
-                                <td><i data-feather="file-text" class="feather-sm"></i></td>
-                                <td>Maintenance Service Contract</td>
-                                <td>Cosmic Tower</td>
-                                <td>Service</td>
-                                <td>Apr 03, 2025</td>
-                                <td><span class="badge bg-success">Active</span></td>
+                            <tr>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
+                                    <span class="d-block">CO-2025-003</span>
+                                    <small class="text-muted">0x94B...2D5a</small>
+                                </td>
+                                <td>Horizon Office Complex</td>
+                                <td>HZOC</td>
+                                <td>$12,500,000</td>
+                                <td><span class="contract-status status-pending">Pending</span></td>
+                                <td>Mar 15, 2025</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i data-feather="eye" class="icon-inline-sm"></i>
+                                    </button>
                                 </td>
                             </tr>
-                            <tr class="contract-row" data-contract-id="4">
-                                <td><i data-feather="file-text" class="feather-sm"></i></td>
-                                <td>Token Distribution</td>
-                                <td>Cosmic Tower</td>
-                                <td>Tokenization</td>
-                                <td>Apr 05, 2025</td>
-                                <td><span class="badge bg-warning">Pending</span></td>
+                            <tr>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-info view-contract-btn">View</button>
+                                    <span class="d-block">CO-2024-015</span>
+                                    <small class="text-muted">0x67D...3F1b</small>
+                                </td>
+                                <td>Summit Residential Tower</td>
+                                <td>SMRT</td>
+                                <td>$9,750,000</td>
+                                <td><span class="contract-status status-completed">Completed</span></td>
+                                <td>Dec 10, 2024</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i data-feather="eye" class="icon-inline-sm"></i>
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                
-                <!-- Contract Actions -->
-                <div class="contract-actions d-flex justify-content-between mt-3">
-                    <button class="btn btn-outline-info" id="create-contract-btn">
-                        <i data-feather="plus"></i> New Contract
-                    </button>
-                    <div>
-                        <button class="btn btn-outline-secondary" id="export-contracts-btn">
-                            <i data-feather="download"></i> Export
-                        </button>
-                        <button class="btn btn-outline-secondary" id="refresh-contracts-btn">
-                            <i data-feather="refresh-cw"></i> Refresh
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Contract Details Panel -->
-        <div class="col-md-5 mb-4">
-            <div class="cosmic-card glassmorphism panel panel-secondary" id="contract-details-panel">
-                <div class="card-title">Contract Details</div>
-                
-                <!-- No Contract Selected State -->
-                <div id="no-contract-selected" class="text-center p-5">
-                    <i data-feather="file-text" style="width: 64px; height: 64px; opacity: 0.7;"></i>
-                    <h4 class="mt-3">No Contract Selected</h4>
-                    <p class="text-muted">Select a contract from the list to view details</p>
-                </div>
-                
-                <!-- Contract Details Content -->
-                <div id="contract-details-content" style="display: none;">
-                    <h4 class="cosmic-text" id="contract-title">Cosmic Tower Ownership</h4>
-                    
-                    <!-- Contract Info -->
-                    <div class="contract-info mb-4">
-                        <table class="table table-dark">
-                            <tbody>
-                                <tr>
-                                    <th width="40%">Contract ID</th>
-                                    <td id="contract-id">COSMOS-CONTRACT-0001</td>
-                                </tr>
-                                <tr>
-                                    <th>Contract Type</th>
-                                    <td id="contract-type">Ownership</td>
-                                </tr>
-                                <tr>
-                                    <th>Property</th>
-                                    <td id="contract-property">Cosmic Tower</td>
-                                </tr>
-                                <tr>
-                                    <th>Blockchain Address</th>
-                                    <td id="contract-address" class="text-truncate">cosmos1abcdefghijklmnopqrstuvwxyz</td>
-                                </tr>
-                                <tr>
-                                    <th>Created Date</th>
-                                    <td id="contract-date">April 1, 2025</td>
-                                </tr>
-                                <tr>
-                                    <th>Status</th>
-                                    <td id="contract-status"><span class="badge bg-success">Active</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Stakeholders -->
-                    <div class="contract-stakeholders mb-4">
-                        <h5>Contract Stakeholders</h5>
-                        <div class="glassmorphism p-3">
-                            <div class="stakeholder d-flex justify-content-between mb-2">
-                                <div>
-                                    <strong>Property Owner</strong>
-                                    <div class="text-muted small">Cosmic Real Estate LLC</div>
-                                </div>
-                                <span class="badge bg-info">Signatory</span>
-                            </div>
-                            <div class="stakeholder d-flex justify-content-between mb-2">
-                                <div>
-                                    <strong>Investor Group</strong>
-                                    <div class="text-muted small">Galactic Investments Inc.</div>
-                                </div>
-                                <span class="badge bg-info">Signatory</span>
-                            </div>
-                            <div class="stakeholder d-flex justify-content-between">
-                                <div>
-                                    <strong>Property Manager</strong>
-                                    <div class="text-muted small">Nova Management Services</div>
-                                </div>
-                                <span class="badge bg-secondary">Observer</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Contract Actions -->
-                    <div class="contract-detail-actions mb-3">
-                        <div class="d-flex flex-wrap gap-2">
-                            <button class="btn btn-sm btn-outline-info" id="view-on-chain-btn">
-                                <i data-feather="link"></i> View On Chain
-                            </button>
-                            <button class="btn btn-sm btn-outline-info" id="download-contract-btn">
-                                <i data-feather="download"></i> Download
-                            </button>
-                            <button class="btn btn-sm btn-outline-warning" id="sign-contract-btn">
-                                <i data-feather="edit"></i> Sign
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" id="terminate-contract-btn">
-                                <i data-feather="x-circle"></i> Terminate
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Transaction History -->
-                    <div class="contract-transactions">
-                        <h5>Recent Transactions</h5>
-                        <div class="glassmorphism p-3">
-                            <div class="transaction mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <strong>Contract Creation</strong>
-                                    <span class="text-muted small">Apr 01, 2025</span>
-                                </div>
-                                <div class="text-truncate text-muted small">Tx: cosmos1txn2345678abcdef...</div>
-                            </div>
-                            <div class="transaction mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <strong>Property Owner Signature</strong>
-                                    <span class="text-muted small">Apr 01, 2025</span>
-                                </div>
-                                <div class="text-truncate text-muted small">Tx: cosmos1txn3456789abcdef...</div>
-                            </div>
-                            <div class="transaction">
-                                <div class="d-flex justify-content-between">
-                                    <strong>Investor Group Signature</strong>
-                                    <span class="text-muted small">Apr 02, 2025</span>
-                                </div>
-                                <div class="text-truncate text-muted small">Tx: cosmos1txn4567890abcdef...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Create Contract Modal -->
-    <div class="modal fade" id="create-contract-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glassmorphism">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title">Create New Smart Contract</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <!-- Contract Details Panel -->
+        <div class="contract-details">
+            <div class="contract-header">
+                <div>
+                    <h5 class="contract-title">Cosmic Tower Project</h5>
+                    <div class="contract-id">Contract ID: CO-2025-001 (0x71C...9E3f)</div>
                 </div>
-                <div class="modal-body">
-                    <form id="create-contract-form">
-                        <div class="mb-3">
-                            <label class="form-label">Contract Name</label>
-                            <input type="text" class="form-control bg-dark text-light" required>
+                <div>
+                    <span class="contract-status status-active">Active</span>
+                </div>
+            </div>
+            
+            <div class="contract-meta">
+                <div class="contract-meta-item">
+                    <div class="meta-label">Token Symbol</div>
+                    <div class="meta-value">CSMC</div>
+                </div>
+                <div class="contract-meta-item">
+                    <div class="meta-label">Total Value</div>
+                    <div class="meta-value">$15,811,040</div>
+                </div>
+                <div class="contract-meta-item">
+                    <div class="meta-label">Token Supply</div>
+                    <div class="meta-value">1,000,000 CSMC</div>
+                </div>
+                <div class="contract-meta-item">
+                    <div class="meta-label">Current Token Price</div>
+                    <div class="meta-value">$15.81</div>
+                </div>
+                <div class="contract-meta-item">
+                    <div class="meta-label">Creation Date</div>
+                    <div class="meta-value">April 3, 2025</div>
+                </div>
+                <div class="contract-meta-item">
+                    <div class="meta-label">Blockchain</div>
+                    <div class="meta-value">Odiseo Testnet</div>
+                </div>
+            </div>
+            
+            <div class="contract-content">
+                <div class="row">
+                    <div class="col-md-7">
+                        <h6 class="mb-3">Contract Description</h6>
+                        <p>This smart contract represents the tokenized ownership of the Cosmic Tower Project, a 17-story commercial high-rise located in Future City. The property has been divided into 1,000,000 tokens, each representing a fractional ownership stake. Token holders are entitled to proportional distribution of rental income and appreciation in property value.</p>
+                        
+                        <h6 class="mt-4 mb-3">Token Distribution</h6>
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="distribution-chart"></canvas>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Property</label>
-                            <select class="form-select bg-dark text-light" required>
-                                <option value="">Select Property</option>
-                                <option value="1">Cosmic Tower</option>
-                                <option value="2">Galactic Plaza</option>
-                                <option value="3">Nova Heights</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Contract Type</label>
-                            <select class="form-select bg-dark text-light" required>
-                                <option value="">Select Type</option>
-                                <option value="ownership">Ownership</option>
-                                <option value="lease">Lease</option>
-                                <option value="service">Service</option>
-                                <option value="tokenization">Tokenization</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Stakeholders</label>
-                            <div class="glassmorphism p-3">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="stakeholderOwner" checked>
-                                    <label class="form-check-label" for="stakeholderOwner">Property Owner</label>
+                    </div>
+                    
+                    <div class="col-md-5">
+                        <h6 class="mb-3">Recent Transactions</h6>
+                        <div class="transaction-list">
+                            <div class="transaction-item">
+                                <div class="transaction-icon success">
+                                    <i data-feather="check-circle"></i>
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="stakeholderInvestor">
-                                    <label class="form-check-label" for="stakeholderInvestor">Investor Group</label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="stakeholderManager">
-                                    <label class="form-check-label" for="stakeholderManager">Property Manager</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="stakeholderTenant">
-                                    <label class="form-check-label" for="stakeholderTenant">Tenant</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Contract Description</label>
-                            <textarea class="form-control bg-dark text-light" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0">Blockchain Wallet</label>
-                                <button type="button" class="btn btn-sm btn-outline-info" id="modal-connect-wallet-btn">Connect Wallet</button>
-                            </div>
-                            <div class="wallet-status glassmorphism p-3">
-                                <div class="text-center" id="modal-wallet-not-connected">
-                                    <p class="text-muted">No wallet connected</p>
-                                    <p class="small">Connect your wallet to create and sign contracts</p>
-                                </div>
-                                <div id="modal-wallet-connected" style="display: none;">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="mb-1"><strong>Wallet Connected</strong></p>
-                                            <p class="wallet-address text-truncate mb-1" id="modal-wallet-address">cosmos1abcdef...</p>
-                                            <p class="small text-muted mb-0">Blockchain: <span id="modal-blockchain-name">Cosmos (Odiseo Testnet)</span></p>
-                                        </div>
-                                        <div>
-                                            <span class="badge bg-success">Connected</span>
-                                        </div>
+                                <div class="transaction-details">
+                                    <div class="transaction-title">Token Transfer</div>
+                                    <div class="transaction-meta">
+                                        <span class="transaction-time">2 hours ago</span>
                                     </div>
                                 </div>
+                                <div class="transaction-value success">+1250 CSMC</div>
+                            </div>
+                            <div class="transaction-item">
+                                <div class="transaction-icon info">
+                                    <i data-feather="file-text"></i>
+                                </div>
+                                <div class="transaction-details">
+                                    <div class="transaction-title">Contract Update</div>
+                                    <div class="transaction-meta">
+                                        <span class="transaction-time">2 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="transaction-value">0 CSMC</div>
+                            </div>
+                            <div class="transaction-item">
+                                <div class="transaction-icon warning">
+                                    <i data-feather="refresh-cw"></i>
+                                </div>
+                                <div class="transaction-details">
+                                    <div class="transaction-title">Dividend Distribution</div>
+                                    <div class="transaction-meta">
+                                        <span class="transaction-time">1 week ago</span>
+                                    </div>
+                                </div>
+                                <div class="transaction-value warning">-350 CSMC</div>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-info" id="submit-contract-btn">Create Contract</button>
+                
+                <div class="signature-section">
+                    <h6 class="mb-3">Contract Signatures</h6>
+                    <div class="signature-list">
+                        <div class="signature-item">
+                            <div class="signature-name">John Doe</div>
+                            <div class="signature-wallet">0x71C...9E3f</div>
+                            <div class="signature-timestamp">Signed on Apr 3, 2025 - 14:32:45 UTC</div>
+                        </div>
+                        <div class="signature-item">
+                            <div class="signature-name">Jane Smith</div>
+                            <div class="signature-wallet">0x94B...2D5a</div>
+                            <div class="signature-timestamp">Signed on Apr 3, 2025 - 15:05:12 UTC</div>
+                        </div>
+                        <div class="signature-item">
+                            <div class="signature-name">Future City Properties LLC</div>
+                            <div class="signature-wallet">0x31F...7A2c</div>
+                            <div class="signature-timestamp">Signed on Apr 3, 2025 - 16:17:33 UTC</div>
+                        </div>
+                        <div class="signature-item">
+                            <div class="signature-name">Global Real Estate Ventures</div>
+                            <div class="signature-wallet">0x67D...3F1b</div>
+                            <div class="signature-timestamp">Signed on Apr 3, 2025 - 18:45:09 UTC</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -311,184 +234,44 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Elements
-        const contractsTable = document.getElementById('contracts-table');
-        const noContractSelected = document.getElementById('no-contract-selected');
-        const contractDetailsContent = document.getElementById('contract-details-content');
-        const createContractBtn = document.getElementById('create-contract-btn');
-        const createContractModal = new bootstrap.Modal(document.getElementById('create-contract-modal'));
-        
-        // Contract details elements
-        const contractTitle = document.getElementById('contract-title');
-        const contractId = document.getElementById('contract-id');
-        const contractType = document.getElementById('contract-type');
-        const contractProperty = document.getElementById('contract-property');
-        const contractAddress = document.getElementById('contract-address');
-        const contractDate = document.getElementById('contract-date');
-        const contractStatus = document.getElementById('contract-status');
-        
-        // Modal elements
-        const modalConnectWalletBtn = document.getElementById('modal-connect-wallet-btn');
-        const modalWalletNotConnected = document.getElementById('modal-wallet-not-connected');
-        const modalWalletConnected = document.getElementById('modal-wallet-connected');
-        const modalWalletAddress = document.getElementById('modal-wallet-address');
-        const submitContractBtn = document.getElementById('submit-contract-btn');
-        
-        // Mock contract data
-        const contracts = [
-            {
-                id: 1,
-                title: 'Cosmic Tower Ownership',
-                contractId: 'COSMOS-CONTRACT-0001',
-                type: 'Ownership',
-                property: 'Cosmic Tower',
-                address: 'cosmos1abcdefghijklmnopqrstuvwxyz',
-                date: 'April 1, 2025',
-                status: 'Active'
+        // Initialize distribution chart
+        const ctx = document.getElementById('distribution-chart').getContext('2d');
+        const distributionChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Institutional Investors', 'Private Investors', 'Developer Equity', 'Reserved Pool'],
+                datasets: [{
+                    data: [45, 25, 20, 10],
+                    backgroundColor: [
+                        'rgba(224, 13, 121, 0.7)',  // info
+                        'rgba(184, 5, 150, 0.7)',   // secondary
+                        'rgba(0, 153, 7, 0.7)',     // success
+                        'rgba(243, 192, 0, 0.7)'    // warning
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1
+                }]
             },
-            {
-                id: 2,
-                title: 'Tenant Agreement #104',
-                contractId: 'COSMOS-CONTRACT-0002',
-                type: 'Lease',
-                property: 'Cosmic Tower',
-                address: 'cosmos2abcdefghijklmnopqrstuvwxyz',
-                date: 'April 2, 2025',
-                status: 'Active'
-            },
-            {
-                id: 3,
-                title: 'Maintenance Service Contract',
-                contractId: 'COSMOS-CONTRACT-0003',
-                type: 'Service',
-                property: 'Cosmic Tower',
-                address: 'cosmos3abcdefghijklmnopqrstuvwxyz',
-                date: 'April 3, 2025',
-                status: 'Active'
-            },
-            {
-                id: 4,
-                title: 'Token Distribution',
-                contractId: 'COSMOS-CONTRACT-0004',
-                type: 'Tokenization',
-                property: 'Cosmic Tower',
-                address: 'cosmos4abcdefghijklmnopqrstuvwxyz',
-                date: 'April 5, 2025',
-                status: 'Pending'
-            }
-        ];
-        
-        // Initialize event listeners
-        function init() {
-            // Contract row click
-            document.querySelectorAll('.contract-row').forEach(row => {
-                row.addEventListener('click', function() {
-                    const contractId = this.getAttribute('data-contract-id');
-                    showContractDetails(parseInt(contractId));
-                    
-                    // Highlight selected row
-                    document.querySelectorAll('.contract-row').forEach(r => r.classList.remove('selected-row'));
-                    this.classList.add('selected-row');
-                });
-            });
-            
-            // View contract buttons
-            document.querySelectorAll('.view-contract-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const contractId = this.closest('.contract-row').getAttribute('data-contract-id');
-                    showContractDetails(parseInt(contractId));
-                    
-                    // Highlight selected row
-                    document.querySelectorAll('.contract-row').forEach(r => r.classList.remove('selected-row'));
-                    this.closest('.contract-row').classList.add('selected-row');
-                });
-            });
-            
-            // Create contract button
-            createContractBtn.addEventListener('click', () => {
-                createContractModal.show();
-            });
-            
-            // Modal connect wallet button
-            modalConnectWalletBtn.addEventListener('click', async () => {
-                try {
-                    // Simulate connecting to wallet
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    // Update UI
-                    modalWalletNotConnected.style.display = 'none';
-                    modalWalletConnected.style.display = 'block';
-                    modalWalletAddress.textContent = 'cosmos1abcdefghijklmnopqrstuvwxyz123456789';
-                    modalConnectWalletBtn.textContent = 'Disconnect';
-                } catch (error) {
-                    console.error('Error connecting wallet:', error);
-                    alert('Failed to connect wallet. Please try again.');
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
                 }
-            });
-            
-            // Submit contract button
-            submitContractBtn.addEventListener('click', () => {
-                createContractModal.hide();
-                alert('Contract created successfully!');
-            });
-            
-            // Contract detail buttons
-            document.getElementById('view-on-chain-btn').addEventListener('click', () => {
-                alert('Opening blockchain explorer in a new tab...');
-            });
-            
-            document.getElementById('download-contract-btn').addEventListener('click', () => {
-                alert('Downloading contract...');
-            });
-            
-            document.getElementById('sign-contract-btn').addEventListener('click', () => {
-                alert('Please connect your wallet to sign this contract.');
-            });
-            
-            document.getElementById('terminate-contract-btn').addEventListener('click', () => {
-                if (confirm('Are you sure you want to terminate this contract? This action cannot be undone.')) {
-                    alert('Contract termination initiated. All stakeholders will be notified.');
-                }
-            });
-        }
-        
-        // Show contract details
-        function showContractDetails(id) {
-            // Find contract data
-            const contract = contracts.find(c => c.id === id);
-            
-            if (!contract) {
-                noContractSelected.style.display = 'block';
-                contractDetailsContent.style.display = 'none';
-                return;
             }
-            
-            // Update UI
-            noContractSelected.style.display = 'none';
-            contractDetailsContent.style.display = 'block';
-            
-            // Populate contract details
-            contractTitle.textContent = contract.title;
-            contractId.textContent = contract.contractId;
-            contractType.textContent = contract.type;
-            contractProperty.textContent = contract.property;
-            contractAddress.textContent = contract.address;
-            contractDate.textContent = contract.date;
-            
-            if (contract.status === 'Active') {
-                contractStatus.innerHTML = '<span class="badge bg-success">Active</span>';
-            } else if (contract.status === 'Pending') {
-                contractStatus.innerHTML = '<span class="badge bg-warning">Pending</span>';
-            } else {
-                contractStatus.innerHTML = '<span class="badge bg-danger">Terminated</span>';
-            }
-        }
+        });
         
-        // Initialize
-        init();
+        // Update feather icons
+        feather.replace();
     });
 </script>
 {% endblock %}

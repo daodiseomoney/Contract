@@ -1,123 +1,246 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - BIM AI Management Dashboard{% endblock %}
+{% block title %}BIM AI Management Dashboard{% endblock %}
 
-{% block page_title %}Dashboard{% endblock %}
+{% block extra_css %}
+<!-- Enhanced Chat CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat-enhanced.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Stats overview row -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="cosmic-card glassmorphism stat-card">
-                <div class="stat-label">Properties</div>
-                <div class="stat-value">12</div>
+<div class="dashboard">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mb-4">
+        <!-- Dashboard Cards -->
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">15,811.04</div>
+                    <div class="card-title">Token Value</div>
+                    <div class="wave-visual"></div>
+                    <div class="card-icon info">
+                        <i data-feather="dollar-sign"></i>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="cosmic-card glassmorphism stat-card">
-                <div class="stat-label">Total Value</div>
-                <div class="stat-value">$24.5M</div>
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">$8,126.50</div>
+                    <div class="card-title">Total Investment</div>
+                    <div class="wave-visual"></div>
+                    <div class="card-icon secondary">
+                        <i data-feather="trending-up"></i>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="cosmic-card glassmorphism stat-card">
-                <div class="stat-label">Investors</div>
-                <div class="stat-value">47</div>
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">$37.40</div>
+                    <div class="card-title">Token Price</div>
+                    <div class="wave-visual"></div>
+                    <div class="card-icon warning">
+                        <i data-feather="activity"></i>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="cosmic-card glassmorphism stat-card">
-                <div class="stat-label">Contracts</div>
-                <div class="stat-value">8</div>
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">0.318</div>
+                    <div class="card-title">Staking Rewards</div>
+                    <div class="wave-visual"></div>
+                    <div class="card-icon success">
+                        <i data-feather="award"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Main content row -->
-    <div class="row">
-        <!-- AI Chat panel -->
-        <div class="col-md-6 mb-4">
-            <div class="cosmic-card glassmorphism panel panel-info">
-                <div class="card-title">BIM AI Assistant</div>
-                <div class="chat-container" id="ai-chat-container"></div>
-            </div>
-        </div>
-
-        <!-- Building overview panel -->
-        <div class="col-md-6 mb-4">
-            <div class="cosmic-card glassmorphism panel panel-secondary">
-                <div class="card-title">Building Overview</div>
-                <div class="building-overview">
-                    <!-- Current Building Info -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h5 class="cosmic-text">Cosmic Tower</h5>
-                            <p><i data-feather="map-pin" class="feather-sm"></i> Silicon Valley, CA</p>
-                            <p><i data-feather="calendar" class="feather-sm"></i> Built in 2024</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><i data-feather="layers" class="feather-sm"></i> 3 Floors</p>
-                            <p><i data-feather="square" class="feather-sm"></i> 12,500 sq ft</p>
-                            <p><i data-feather="users" class="feather-sm"></i> 45 Occupants</p>
+    <div class="row g-4">
+        <!-- BIM Viewer Panel -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i data-feather="box" class="icon-inline"></i>
+                        3D Building Model
+                    </h5>
+                    <div class="card-actions">
+                        <a href="/viewer" class="btn btn-sm btn-outline-info">
+                            <i data-feather="maximize-2" class="icon-inline-sm"></i>
+                            Full View
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="mini-viewer-container" class="bim-viewer-mini"></div>
+                </div>
+                <div class="card-footer">
+                    <div class="model-info">
+                        <div class="model-name">Cosmic Tower Project</div>
+                        <div class="model-meta">
+                            <span class="model-meta-item">
+                                <i data-feather="layers" class="icon-inline-sm"></i>
+                                17 Stories
+                            </span>
+                            <span class="model-meta-item">
+                                <i data-feather="square" class="icon-inline-sm"></i>
+                                25,000 m²
+                            </span>
+                            <span class="model-meta-item text-success">
+                                <i data-feather="check-circle" class="icon-inline-sm"></i>
+                                Verified
+                            </span>
                         </div>
                     </div>
-                    
-                    <!-- Building Mini Viewer -->
-                    <div class="bim-mini-viewer" id="mini-viewer-container" style="height: 200px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Chat Panel -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i data-feather="message-circle" class="icon-inline"></i>
+                        BIM AI Assistant
+                    </h5>
+                    <div class="card-subtitle">Stakeholder-aware building insights</div>
+                </div>
+                <div class="card-body">
+                    <div id="ai-chat-container" class="chat-container"></div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Bottom row -->
-    <div class="row">
-        <!-- Transaction History panel -->
-        <div class="col-md-6 mb-4">
-            <div class="cosmic-card glassmorphism panel panel-success">
-                <div class="card-title">Recent Blockchain Transactions</div>
-                <div class="transaction-list">
-                    <table class="table table-dark table-hover">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Transaction</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Apr 05, 2025</td>
-                                <td>Property Tokenization #125</td>
-                                <td><span class="badge bg-success">Confirmed</span></td>
-                            </tr>
-                            <tr>
-                                <td>Apr 03, 2025</td>
-                                <td>Investor Share Transfer</td>
-                                <td><span class="badge bg-success">Confirmed</span></td>
-                            </tr>
-                            <tr>
-                                <td>Apr 01, 2025</td>
-                                <td>Smart Contract Deployment</td>
-                                <td><span class="badge bg-success">Confirmed</span></td>
-                            </tr>
-                            <tr>
-                                <td>Mar 28, 2025</td>
-                                <td>Property Valuation Update</td>
-                                <td><span class="badge bg-warning">Pending</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+    
+    <div class="row g-4 mt-4">
+        <!-- Recent Transactions Panel -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i data-feather="list" class="icon-inline"></i>
+                        Recent Transactions
+                    </h5>
+                    <div class="card-actions">
+                        <a href="/contracts" class="btn btn-sm btn-outline-info">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="transaction-list">
+                        <div class="transaction-item">
+                            <div class="transaction-icon success">
+                                <i data-feather="check-circle"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Property Tokenization</div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x71C...9E3f</span>
+                                    <span class="transaction-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value success">+1250 ODIS</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon info">
+                                <i data-feather="file-text"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Contract Signature</div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x31F...7A2c</span>
+                                    <span class="transaction-time">5 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value">0 ODIS</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon warning">
+                                <i data-feather="refresh-cw"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Token Transfer</div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x94B...2D5a</span>
+                                    <span class="transaction-time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value warning">-350 ODIS</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon secondary">
+                                <i data-feather="upload"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Document Upload</div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x67D...3F1b</span>
+                                    <span class="transaction-time">2 days ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value">0 ODIS</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- Stakeholder panel -->
-        <div class="col-md-6 mb-4">
-            <div class="cosmic-card glassmorphism panel panel-primary">
-                <div class="card-title">Stakeholder Distribution</div>
-                <div class="stakeholder-chart-container">
-                    <canvas id="stakeholder-chart"></canvas>
+        
+        <!-- Stakeholder Distribution Chart -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i data-feather="pie-chart" class="icon-inline"></i>
+                        Stakeholder Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="stakeholder-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tokens Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i data-feather="disc" class="icon-inline"></i>
+                        Popular Tokens
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="token-list">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="token-circle blue">M</div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">MBIA Fractals</div>
+                                <div class="small text-muted">Connetoc Aerodiscogray</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="token-circle pink">B</div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">BDR RUh Testspin</div>
+                                <div class="small text-muted">NTlu Cbspicma</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="token-circle yellow">D</div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">DIG feint EGS</div>
+                                <div class="small text-muted">Dit Nercsem</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -129,7 +252,7 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Custom Scripts -->
-<script src="{{ url_for('static', filename='js/ai-chat.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ai-chat-enhanced.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bim-viewer.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -149,12 +272,12 @@
                     data: [20, 5, 10, 8, 7, 5, 45],
                     backgroundColor: [
                         'rgba(0, 153, 7, 0.7)',    // success
-                        'rgba(176, 5, 150, 0.7)',  // secondary
+                        'rgba(184, 5, 150, 0.7)',  // secondary
                         'rgba(224, 13, 121, 0.7)', // info
                         'rgba(0, 30, 0, 0.7)',     // primary
                         'rgba(243, 192, 0, 0.7)',  // warning
                         'rgba(237, 0, 72, 0.7)',   // danger
-                        'rgba(176, 5, 150, 0.7)'   // secondary
+                        'rgba(184, 5, 150, 0.7)'   // secondary
                     ],
                     borderColor: 'rgba(255, 255, 255, 0.1)',
                     borderWidth: 1
