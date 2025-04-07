@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-9">
+        <div class="card cosmic-panel">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="cosmic-text"><i class="bi bi-building"></i> BIM Model Viewer</h4>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-secondary" id="resetView"><i class="bi bi-arrow-clockwise"></i> Reset View</button>
+                    <button class="btn btn-sm btn-outline-info" id="takeScreenshot"><i class="bi bi-camera"></i> Screenshot</button>
+                    <button class="btn btn-sm btn-outline-success" id="toggleWireframe"><i class="bi bi-grid-3x3"></i> Wireframe</button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="bimViewerContainer" class="bim-viewer-container">
+                    <model-viewer id="modelViewer" 
+                        camera-controls 
+                        auto-rotate
+                        shadow-intensity="1"
+                        exposure="0.75"
+                        environment-image="neutral"
+                        style="width: 100%; height: 500px;">
+                    </model-viewer>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card cosmic-panel mb-4">
+            <div class="card-header">
+                <h5 class="cosmic-text"><i class="bi bi-list-nested"></i> Model Structure</h5>
+            </div>
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="structureSearch" placeholder="Search components...">
+                </div>
+                <div id="objectTree" class="model-structure-tree">
+                    <div class="tree-loading">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading model structure...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card cosmic-panel">
+            <div class="card-header">
+                <h5 class="cosmic-text"><i class="bi bi-info-circle"></i> Element Properties</h5>
+            </div>
+            <div class="card-body">
+                <div id="elementProperties">
+                    <p class="text-muted">Select an element to view its properties</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card cosmic-panel">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="cosmic-text"><i class="bi bi-robot"></i> AI Assistant</h4>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-secondary" id="clearChat"><i class="bi bi-trash"></i> Clear Chat</button>
+                    <button class="btn btn-sm btn-outline-info" id="exportChat"><i class="bi bi-download"></i> Export</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="ai-chat-container">
+                    <div id="chatMessages" class="ai-chat-messages">
+                        <div class="message system-message">
+                            <div class="message-content">
+                                <p>👋 I'm your BIM AI Assistant. I can answer questions about this building model, help you find components, or explain technical details. What would you like to know?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-chat-input">
+                        <div class="input-group">
+                            <input type="text" id="userMessage" class="form-control" placeholder="Ask about the building model...">
+                            <button class="btn btn-info" id="sendMessage">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Viewer Script -->
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<!-- BIM Viewer and AI Chat Scripts -->
+<script src="/static/js/bim-viewer.js"></script>
+<script src="/static/js/ai-chat.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize BIM Viewer
+        const bimViewer = new BIMViewer();
+        bimViewer.initialize(document.getElementById('modelViewer'));
+        
+        // Load a sample model
+        const sampleModelUrl = "/static/models/sample_building.glb";
+        bimViewer.loadModel(sampleModelUrl);
+        
+        // Initialize AI Chat Interface
+        const aiChat = new AIChatInterface();
+        aiChat.initialize();
+        
+        // Connect BIM Viewer and AI Chat
+        aiChat.setBimViewer(bimViewer);
+        
+        // Setup UI event listeners
+        document.getElementById('resetView')?.addEventListener('click', () => {
+            bimViewer.resetView();
+        });
+        
+        document.getElementById('takeScreenshot')?.addEventListener('click', () => {
+            bimViewer.takeScreenshot();
+        });
+        
+        document.getElementById('toggleWireframe')?.addEventListener('click', () => {
+            bimViewer.toggleWireframe();
+        });
+        
+        document.getElementById('clearChat')?.addEventListener('click', () => {
+            aiChat.clearMessages();
+        });
+        
+        document.getElementById('exportChat')?.addEventListener('click', () => {
+            aiChat.exportChat();
+        });
+    });
+</script>
+{% endblock %}

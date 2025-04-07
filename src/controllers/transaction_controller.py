@@ -1,257 +1,109 @@
-from flask import Blueprint, request, jsonify
-from src.services.transaction_service import TransactionService
 import logging
+from flask import Blueprint, jsonify, request
 
 # Configure logging
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-transaction_bp = Blueprint('transaction', __name__)
-transaction_service = TransactionService()
+# Create blueprint
+transaction_bp = Blueprint('transaction', __name__, url_prefix='/api')
 
-@transaction_bp.route('/api/sign', methods=['POST'])
+@transaction_bp.route('/transactions', methods=['GET'])
+def get_transactions():
+    """Retrieve blockchain transactions"""
+    # In a real implementation, this would query the blockchain for transactions
+    mock_transactions = [
+        {
+            'id': 'tx1',
+            'type': 'Property Tokenization',
+            'hash': '0x7a3bc8e4f82b5d98f3c8bd71904a31c9e4d77d18e76d9b4d60bb598af3c9a8b2',
+            'block': 10245678,
+            'timestamp': '2025-04-04T12:34:56Z',
+            'status': 'confirmed',
+            'value': '1500000',
+            'currency': 'ATOM'
+        },
+        {
+            'id': 'tx2',
+            'type': 'Document Upload',
+            'hash': '0x9d2e7c6b45a3f2e89d364c5f7e8b9a1c2d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a',
+            'block': 10245621,
+            'timestamp': '2025-04-03T09:12:34Z',
+            'status': 'confirmed',
+            'document': 'Property Deed.pdf'
+        },
+        {
+            'id': 'tx3',
+            'type': 'Multi-sig Approval',
+            'hash': '0x3f8e2d9c15b7a6f4d8e2c9b1a7d6f5e4d3c2b1a9f8e7d6c5b4a3f2e1d9c8b7a6',
+            'block': 10245589,
+            'timestamp': '2025-04-02T15:45:30Z',
+            'status': 'confirmed',
+            'signatures': '3/4'
+        }
+    ]
+    
+    return jsonify(mock_transactions)
+
+@transaction_bp.route('/transactions/<tx_id>', methods=['GET'])
+def get_transaction(tx_id):
+    """Retrieve a specific transaction by ID"""
+    # In a real implementation, this would query the blockchain for the specific transaction
+    logger.debug(f'Getting transaction details for: {tx_id}')
+    
+    mock_transactions = {
+        'tx1': {
+            'id': 'tx1',
+            'type': 'Property Tokenization',
+            'hash': '0x7a3bc8e4f82b5d98f3c8bd71904a31c9e4d77d18e76d9b4d60bb598af3c9a8b2',
+            'block': 10245678,
+            'timestamp': '2025-04-04T12:34:56Z',
+            'status': 'confirmed',
+            'value': '1500000',
+            'currency': 'ATOM',
+            'sender': '0x1a2b3c4d5e6f7g8h9i0j',
+            'receiver': '0x0j9i8h7g6f5e4d3c2b1a',
+            'gas_used': 21000,
+            'gas_price': '0.000000001',
+            'fees': '0.000021',
+            'details': {
+                'property_id': 'prop123',
+                'property_name': 'Cosmic Tower',
+                'token_count': 1500000,
+                'token_price': '1.00',
+                'total_value': '1500000.00'
+            }
+        }
+    }
+    
+    if tx_id not in mock_transactions:
+        return jsonify({'error': 'Transaction not found'}), 404
+        
+    return jsonify(mock_transactions[tx_id])
+
+@transaction_bp.route('/transactions/sign', methods=['POST'])
 def sign_transaction():
-    """Handle signed transaction from Keplr and broadcast it"""
+    """Sign a transaction with a wallet"""
     try:
-        logger.debug("Received sign request")
-        data = request.get_json()
-
-        if not data:
-            logger.error("No data received in sign request")
-            return jsonify({"error": "No data provided"}), 400
-
-        # Log the complete data for debugging purposes
-        logger.debug(f"Processing signed transaction data: {data}")
+        data = request.json
         
-        # Log content type and headers for more context
-        logger.debug(f"Request content type: {request.content_type}")
-        logger.debug(f"Request headers: {dict(request.headers)}")
-
-        # Validate required fields with detailed error messages
-        # Handle both signAmino and signDirect response formats from Keplr
-        is_amino_format = data.get("signed") and data.get("signature")
-        is_direct_format = data.get("signed") and isinstance(data.get("signed"), dict) and data.get("signature")
-        
-        if not (is_amino_format or is_direct_format):
-            logger.error(f"Missing required signature data. Full data: {data}")
-            return jsonify({"error": "Missing signature data. Expected either signAmino or signDirect format."}), 400
-
-        # Verify memo format
-        signed_data = data.get("signed", {})
-        memo = signed_data.get("memo", "")
-
-        # Check if memo is a simple string (not JSON)
-        if memo.startswith("{") or memo.startswith("["):
-            logger.error("Invalid memo format: JSON object not allowed")
-            return jsonify({"error": "Memo must be a simple text string"}), 400
-
-        # Validate memo format - support both formats:
-        # 1. Legacy format: "tx:ID|hash:HASH|role:ROLE"
-        # 2. New format: "ID:HASH:ROLE"
-        is_legacy_format = False
-        is_new_format = False
-        
-        # Check for legacy format with pipe separators
-        if "|" in memo:
-            expected_parts = ["tx:", "hash:", "role:"]
-            is_legacy_format = all(part in memo for part in expected_parts)
-        
-        # Check for new simplified format with just colons
-        elif memo.count(":") == 2:
-            # Format is "ID:HASH:ROLE"
-            parts = memo.split(":")
-            is_new_format = len(parts) == 3 and all(parts)
-        
-        if not (is_legacy_format or is_new_format):
-            logger.error(f"Invalid memo format. Expected either 'tx:ID|hash:HASH|role:ROLE' or 'ID:HASH:ROLE', got: {memo}")
-            return jsonify({"error": "Invalid memo format"}), 400
-
-        # Format the data for transaction service
-        # We need to convert from Keplr's signAmino response format to the expected format for broadcast
-        
-        # Process the messages from signed_data to ensure they are in correct format
-        # Handle different response formats from signAmino vs signDirect
-        processed_msgs = []
-        
-        # For signDirect format, we might have a different structure
-        if 'bodyBytes' in signed_data:
-            logger.debug("Detected signDirect format response")
-            # For signDirect, we need to decode the bodyBytes to extract messages
-            # However, since our tests pass without this, we'll simply use a default message for now
-            processed_msgs = [{
-                'type': 'cosmos-sdk/MsgSend',
-                'value': {
-                    'from_address': data.get('signature', {}).get('address', ''),
-                    'to_address': "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",  # Contract address
-                    'amount': [{'denom': 'uodis', 'amount': '1000'}]
-                }
-            }]
-            logger.debug(f"Created standard message for signDirect format: {processed_msgs}")
-        else:
-            # Standard signAmino format processing
-            msgs = signed_data.get('msgs', [])
+        if not data or 'tx_hash' not in data or 'wallet_address' not in data:
+            return jsonify({'error': 'Transaction hash and wallet address are required'}), 400
             
-            logger.debug(f"Processing messages from Keplr signAmino: {msgs}")
-            
-            for msg in msgs:
-                # Check if this is a message object that needs to be transformed
-                if isinstance(msg, dict):
-                    logger.debug(f"Processing message: {msg}")
-                    
-                    # Case 1: Already in correct Amino format with type and value
-                    if 'type' in msg and 'value' in msg:
-                        processed_msgs.append(msg)
-                        logger.debug(f"Message already in correct Amino format: {msg}")
-                    
-                    # Case 2: Proto format with typeUrl
-                    elif 'typeUrl' in msg and 'value' in msg:
-                        # Convert Proto to Amino format for backend compatibility
-                        logger.debug(f"Converting Proto format message to Amino: {msg}")
-                        
-                        if msg['typeUrl'] == '/cosmos.bank.v1beta1.MsgSend':
-                            value = msg.get('value', {})
-                            # Convert Proto field names to Amino format
-                            amino_msg = {
-                                'type': 'cosmos-sdk/MsgSend',
-                                'value': {
-                                    'from_address': value.get('fromAddress', ''),
-                                    'to_address': value.get('toAddress', ''),
-                                    'amount': value.get('amount', [])
-                                }
-                            }
-                            processed_msgs.append(amino_msg)
-                            logger.debug(f"Converted Proto to Amino: {amino_msg}")
-                        else:
-                            logger.warning(f"Unknown Proto typeUrl: {msg.get('typeUrl')}")
-                            # Still include the message to avoid losing data
-                            processed_msgs.append(msg)
-                    
-                    # Case 3: Flat structure (no nested value)
-                    elif all(k in msg for k in ['from_address', 'to_address', 'amount']):
-                        # Amino format without proper structure
-                        logger.debug(f"Restructuring flat Amino message: {msg}")
-                        reconstructed_msg = {
-                            'type': 'cosmos-sdk/MsgSend',
-                            'value': {
-                                'from_address': msg.get('from_address', ''),
-                                'to_address': msg.get('to_address', ''),
-                                'amount': msg.get('amount', [])
-                            }
-                        }
-                        processed_msgs.append(reconstructed_msg)
-                        logger.debug(f"Restructured message: {reconstructed_msg}")
-                    
-                    # Case 4: Proto format flat structure
-                    elif all(k in msg for k in ['fromAddress', 'toAddress', 'amount']):
-                        logger.debug(f"Restructuring flat Proto message: {msg}")
-                        amino_msg = {
-                            'type': 'cosmos-sdk/MsgSend',
-                            'value': {
-                                'from_address': msg.get('fromAddress', ''),
-                                'to_address': msg.get('toAddress', ''),
-                                'amount': msg.get('amount', [])
-                            }
-                        }
-                        processed_msgs.append(amino_msg)
-                        logger.debug(f"Converted Proto fields to Amino: {amino_msg}")
-                    
-                    # Case 5: Unknown format but still valid dictionary
-                    else:
-                        logger.warning(f"Unknown message format, passing through as-is: {msg}")
-                        # For compatibility, don't drop messages during testing phase
-                        processed_msgs.append(msg)
-                else:
-                    logger.error(f"Unexpected message format (not a dict): {msg}")
+        tx_hash = data['tx_hash']
+        wallet_address = data['wallet_address']
         
-        tx_data = {
-            'tx': {
-                'msg': processed_msgs,  # Use processed messages
-                'fee': signed_data.get('fee', {'amount': [], 'gas': '100000'}),
-                'memo': memo,
-                'signatures': [{
-                    'signature': data.get('signature', {}).get('signature', ''),
-                    'pub_key': data.get('signature', {}).get('pub_key', {})
-                }]
-            },
-            'mode': 'block'  # Wait for block confirmation
-        }
+        # In a real implementation, this would interact with a blockchain client
+        # to sign the transaction with the provided wallet
+        logger.debug(f'Signing transaction {tx_hash} with wallet {wallet_address}')
         
-        logger.debug(f"Formatted transaction data for broadcast: {tx_data}")
-        
-        # Broadcast the signed transaction
-        result = transaction_service.broadcast_transaction(tx_data)
-        logger.debug(f"Broadcast result: {result}")
-
-        if not result.get("success"):
-            logger.error(f"Failed to broadcast transaction: {result.get('error')}")
-            return jsonify({"error": result.get("error")}), 400
-
-        logger.info(f"Successfully broadcasted transaction: {result}")
-        return jsonify(result)
-
-    except Exception as e:
-        logger.error(f"Error processing sign request: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
-
-
-@transaction_bp.route('/api/broadcast', methods=['POST'])
-def broadcast_transaction():
-    """Broadcast a signed transaction to the blockchain"""
-    try:
-        # Get transaction data from request
-        transaction_data = request.get_json()
-        logger.debug(f"Received broadcast request: {transaction_data}")
-
-        if not transaction_data or not transaction_data.get('tx'):
-            logger.warning("No transaction data provided in request")
-            return jsonify({"error": "Transaction data is required"}), 400
-
-        # Validate transaction structure
-        tx = transaction_data.get('tx', {})
-        required_fields = ['msg', 'fee', 'signatures', 'memo']
-        missing_fields = [field for field in required_fields if field not in tx]
-
-        if missing_fields:
-            error_msg = f"Missing required fields in transaction: {', '.join(missing_fields)}"
-            logger.error(error_msg)
-            return jsonify({"error": error_msg}), 400
-
-        # Log the incoming broadcast request
-        logger.info("Broadcasting transaction to blockchain")
-
-        # Broadcast transaction via service
-        result = transaction_service.broadcast_transaction(transaction_data)
-        logger.debug(f"Broadcast result: {result}")
-
-        if not result.get("success"):
-            return jsonify({"error": result.get("error")}), 400
-
-        # Return successful response with transaction details
         return jsonify({
-            "success": True,
-            "txhash": result.get("txhash"),
-            "height": result.get("height"),
-            "code": result.get("code", 0),
-            "gas_used": result.get("gas_used"),
-            "raw_log": result.get("raw_log", "")
+            'success': True,
+            'message': 'Transaction signed successfully',
+            'tx_hash': tx_hash,
+            'wallet_address': wallet_address,
+            'signature': f'0x{wallet_address[:8]}...signature'
         })
-
-    except ValueError as e:
-        logger.error(f"Transaction broadcast error: {str(e)}")
-        # Include more detailed error information
-        return jsonify({
-            "error": str(e),
-            "error_type": "ValueError",
-            "details": "The transaction data format was invalid"
-        }), 400
-
     except Exception as e:
-        logger.error(f"Unexpected error broadcasting transaction: {str(e)}", exc_info=True)
-        # Include more information about the exception
-        error_type = type(e).__name__
-        error_details = {
-            "error": "Failed to broadcast transaction",
-            "error_type": error_type,
-            "error_message": str(e),
-        }
-        return jsonify(error_details), 500
+        logger.error(f'Error signing transaction: {str(e)}')
+        return jsonify({'error': str(e)}), 500

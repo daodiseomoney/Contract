@@ -1,0 +1,42 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="#001e00" stroke="url(#paint0_linear)" stroke-width="5"/>
+  
+  <!-- Building/Property Icon -->
+  <path d="M100 35L40 75V165H160V75L100 35Z" fill="none" stroke="url(#paint1_linear)" stroke-width="5" stroke-linejoin="round"/>
+  
+  <!-- Windows -->
+  <rect x="60" y="95" width="15" height="15" rx="2" fill="#e00d79"/>
+  <rect x="85" y="95" width="15" height="15" rx="2" fill="#e00d79"/>
+  <rect x="110" y="95" width="15" height="15" rx="2" fill="#e00d79"/>
+  <rect x="135" y="95" width="15" height="15" rx="2" fill="#e00d79"/>
+  
+  <rect x="60" y="120" width="15" height="15" rx="2" fill="#e00d79"/>
+  <rect x="85" y="120" width="15" height="15" rx="2" fill="#e00d79"/>
+  <rect x="110" y="120" width="15" height="15" rx="2" fill="#e00d79"/>
+  <rect x="135" y="120" width="15" height="15" rx="2" fill="#e00d79"/>
+  
+  <!-- Door -->
+  <rect x="90" y="145" width="30" height="20" rx="2" fill="#b80596"/>
+  
+  <!-- Blockchain elements -->
+  <circle cx="60" cy="60" r="10" fill="none" stroke="#009907" stroke-width="3"/>
+  <circle cx="100" cy="70" r="10" fill="none" stroke="#009907" stroke-width="3"/>
+  <circle cx="140" cy="60" r="10" fill="none" stroke="#009907" stroke-width="3"/>
+  
+  <!-- Connecting lines -->
+  <line x1="68" y1="64" x2="92" y2="70" stroke="#009907" stroke-width="2"/>
+  <line x1="108" y1="70" x2="132" y2="64" stroke="#009907" stroke-width="2"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b80596"/>
+      <stop offset="1" stop-color="#e00d79"/>
+    </linearGradient>
+    <linearGradient id="paint1_linear" x1="40" y1="35" x2="160" y2="165" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#009907"/>
+      <stop offset="1" stop-color="#b80596"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.wget
     pkgs.zlib
     pkgs.pkg-config
     pkgs.grpc
