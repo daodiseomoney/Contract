@@ -57,6 +57,18 @@
         #profileDropdown {
             animation: dropIn 0.3s ease forwards;
         }
+        
+        /* Highlight pulse animation for recommended actions */
+        @keyframes highlightPulse {
+            0% { box-shadow: 0 0 0 0 rgba(224, 13, 121, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(224, 13, 121, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(224, 13, 121, 0); }
+        }
+        
+        .highlight-pulse {
+            animation: highlightPulse 1.5s ease-out infinite;
+            border: 2px solid rgba(224, 13, 121, 0.7) !important;
+        }
     </style>
     
     <!-- THREE.js for 3D visualization -->
@@ -274,6 +286,67 @@
             // Global wallet connection state
             let walletConnected = false;
             let userWalletAddress = '';
+            
+            // Function to highlight a dashboard section
+            function highlightDashboardSection(selector) {
+                // First, remove existing highlights
+                document.querySelectorAll('.highlight-pulse').forEach(el => {
+                    el.classList.remove('highlight-pulse');
+                });
+                
+                // Find the target element
+                let targetElement;
+                
+                // Map selector strings to actual elements
+                if (selector === '.hot-asset') {
+                    // Find card with "Hot Asset" label
+                    const cardHeaders = document.querySelectorAll('.card .card-header');
+                    for (const header of cardHeaders) {
+                        if (header.querySelector('.text-warning') || 
+                            header.textContent.includes('Idaka Project') ||
+                            header.textContent.includes('Hot Asset')) {
+                            targetElement = header.closest('.card');
+                            break;
+                        }
+                    }
+                } else if (selector === '.asset-distribution') {
+                    // Find card with pie chart icon or title
+                    const cards = document.querySelectorAll('.card');
+                    for (const card of cards) {
+                        if (card.textContent.includes('Asset Distribution') || 
+                            card.querySelector('[data-feather="pie-chart"]')) {
+                            targetElement = card;
+                            break;
+                        }
+                    }
+                } else if (selector === '.staking-apy') {
+                    // Find card with Staking APY title
+                    const statsCards = document.querySelectorAll('.stats-card, .card');
+                    for (const card of statsCards) {
+                        if (card.textContent.includes('Staking APY') || 
+                            card.textContent.includes('APY')) {
+                            targetElement = card;
+                            break;
+                        }
+                    }
+                } else {
+                    // Try direct selector
+                    targetElement = document.querySelector(selector);
+                }
+                
+                if (targetElement) {
+                    // Add highlight class
+                    targetElement.classList.add('highlight-pulse');
+                    
+                    // Scroll to the element
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Remove the highlight after a delay
+                    setTimeout(() => {
+                        targetElement.classList.remove('highlight-pulse');
+                    }, 3000);
+                }
+            }
             
             // Function to connect Keplr wallet
             function connectKeplrWallet() {
@@ -576,14 +649,57 @@
                         // Generate action buttons
                         actionsEl.innerHTML = '';
                         actions.forEach(action => {
-                            const item = document.createElement('a');
-                            item.href = action.link;
+                            const item = document.createElement('button');
+                            item.dataset.actionLink = action.link;
                             item.className = 'list-group-item bg-dark text-light border-secondary d-flex align-items-center';
+                            item.style.width = '100%';
+                            item.style.textAlign = 'left';
+                            item.style.cursor = 'pointer';
+                            item.style.border = 'none';
+                            item.style.padding = '10px 15px';
                             item.innerHTML = `
                                 <i data-feather="${action.icon}" class="icon-inline-sm text-info me-2"></i>
                                 <span>${action.text}</span>
                                 <i data-feather="chevron-right" class="ms-auto"></i>
                             `;
+                            
+                            // Add click handler
+                            item.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                
+                                // Close the onboarding modal
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('onboardingModal'));
+                                if (modal) {
+                                    modal.hide();
+                                }
+                                
+                                // Handle the action based on the link without page reload
+                                const actionLink = this.dataset.actionLink;
+                                console.log(`Handling action: ${action.text} for link ${actionLink}`);
+                                
+                                // Highlight the relevant section based on the action
+                                switch (action.text) {
+                                    case 'Explore the Idaka Project featured on the dashboard':
+                                        // Scroll to and highlight the Hot Asset section
+                                        highlightDashboardSection('.hot-asset');
+                                        break;
+                                    case 'Review asset distribution metrics':
+                                        // Highlight the asset distribution chart
+                                        highlightDashboardSection('.asset-distribution');
+                                        break;
+                                    case 'Check current staking APY (9.5%)':
+                                        // Highlight the staking APY card
+                                        highlightDashboardSection('.staking-apy');
+                                        break;
+                                    default:
+                                        // If it's not a special action, navigate to the link
+                                        // but use history.pushState to avoid full page reload
+                                        if (actionLink && actionLink !== '/') {
+                                            window.location.href = actionLink;
+                                        }
+                                }
+                            });
+                            
                             actionsEl.appendChild(item);
                         });
                         
