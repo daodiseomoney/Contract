@@ -138,19 +138,59 @@ class OpenAIBIMAgent:
             logger.error(f"Error identifying stakeholder: {e}")
             return None
     
+    # Define regex patterns for inappropriate content
+    INAPPROPRIATE_PATTERNS = [
+        r'(?i)(hack|exploit|bypass|crack|steal|illegal|injection|attack)',
+        r'(?i)(passport|ssn|social security|credit.?card|bank.?account)',
+        r'(?i)(phish|malware|ransomware|rootkit|spyware|trojan)',
+        r'(?i)(profanity|obscenity|explicit content|nsfw|porn)',
+        r'(?i)(gambling|betting|casino|lottery|slots)',
+        r'(?i)(drug|narcotic|cocaine|heroin|meth)'
+    ]
+    
     def _check_message_appropriateness(self, message: str) -> bool:
         """
-        Check if the user message is appropriate for the BIM AI assistant context.
+        Check if the user message is appropriate for the BIM AI assistant context
+        using multiple layers of filtering.
         Returns True if appropriate, False if inappropriate.
         """
+        import re
+        
+        # 1. First check - reject empty or extremely short messages
+        if not message or len(message.strip()) < 2:
+            logger.warning("Rejected empty or too short message")
+            return False
+            
+        # 2. Second check - reject obviously inappropriate content via regex
+        for pattern in self.INAPPROPRIATE_PATTERNS:
+            if re.search(pattern, message):
+                logger.warning(f"Message rejected by regex pattern: {pattern}")
+                return False
+        
         try:
-            # Get a quick assessment from the model
+            # 3. Third check - use OpenAI's moderation endpoint
+            moderation = self.client.moderations.create(input=message)
+            if moderation.results[0].flagged:
+                # Log which categories were flagged
+                flagged_categories = []
+                categories = moderation.results[0].categories
+                for category, flagged in categories.items():
+                    if flagged:
+                        flagged_categories.append(category)
+                
+                logger.warning(f"Message flagged by OpenAI moderation API: {flagged_categories}")
+                return False
+                
+            # 4. Fourth check - more nuanced appropriateness check
+            # Only perform if message passes the first three layers
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are a content filter for a professional real estate platform. "
-                     "Assess if the following message is appropriate for a professional context related to buildings, "
-                     "real estate, and property investments. Respond with only 'APPROPRIATE' or 'INAPPROPRIATE'."},
+                    {"role": "system", "content": "You are a strict content filter for a professional real estate platform. "
+                     "Assess if the following message is appropriate and related to buildings, real estate, property investments, "
+                     "construction, architecture, or blockchain tokenization. "
+                     "Respond with only 'APPROPRIATE' or 'INAPPROPRIATE'. "
+                     "Be conservative - if there's any doubt, classify as INAPPROPRIATE."},
                     {"role": "user", "content": message}
                 ],
                 max_tokens=10,
@@ -158,11 +198,18 @@ class OpenAIBIMAgent:
             )
             
             result = response.choices[0].message.content.strip().upper()
-            return "APPROPRIATE" in result
+            appropriate = "APPROPRIATE" in result
+            
+            if not appropriate:
+                logger.warning("Message rejected by GPT content filter")
+                
+            return appropriate
+            
         except Exception as e:
             logger.error(f"Error checking message appropriateness: {e}")
-            # Default to allowing the message if the check fails
-            return True
+            # Default to rejecting the message if any error occurs during checks
+            # This is safer than allowing potentially harmful content
+            return False
     
     def process_message(self, message: str, bim_data: Optional[Dict] = None) -> Tuple[str, Dict]:
         """
