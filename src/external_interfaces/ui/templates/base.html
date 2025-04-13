@@ -283,9 +283,29 @@
                 });
             }
             
-            // Global wallet connection state
-            let walletConnected = false;
-            let userWalletAddress = '';
+            // Global wallet connection state - load from localStorage if available
+            let walletConnected = localStorage.getItem('walletConnected') === 'true';
+            let userWalletAddress = localStorage.getItem('userWalletAddress') || '';
+            
+            // Update UI based on stored connection state
+            if (walletConnected && userWalletAddress) {
+                // Update wallet button in sidebar
+                const walletBtn = document.getElementById('connectKeplrBtn');
+                if (walletBtn) {
+                    walletBtn.innerHTML = '<i data-feather="check-circle" class="icon-inline-sm"></i> Connected';
+                    walletBtn.classList.remove('btn-outline-info');
+                    walletBtn.classList.add('btn-success');
+                }
+                
+                // Update user profile in header
+                const userProfile = document.getElementById('userProfileBtn');
+                if (userProfile) {
+                    userProfile.querySelector('span').textContent = userWalletAddress;
+                }
+                
+                // Update feather icons
+                feather.replace();
+            }
             
             // Function to highlight a dashboard section
             function highlightDashboardSection(selector) {
@@ -429,6 +449,10 @@
                         // Set global wallet connection state
                         walletConnected = true;
                         userWalletAddress = 'odis...f34a';
+                        
+                        // Save connection state to localStorage
+                        localStorage.setItem('walletConnected', 'true');
+                        localStorage.setItem('userWalletAddress', userWalletAddress);
                         
                         // Update UI to show connected state
                         const walletBtn = document.getElementById('connectKeplrBtn');
@@ -800,6 +824,10 @@
                     // Reset wallet state
                     walletConnected = false;
                     userWalletAddress = '';
+                    
+                    // Clear localStorage items
+                    localStorage.removeItem('walletConnected');
+                    localStorage.removeItem('userWalletAddress');
                     
                     // Update UI
                     const walletBtn = document.getElementById('connectKeplrBtn');
