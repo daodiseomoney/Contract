@@ -606,7 +606,23 @@ Jurisdiction: Delaware, USA</textarea>
         
         // New Contract button click
         document.getElementById('newContractBtn').addEventListener('click', function() {
-            alert('Creating a new contract from scratch. You will need to connect your wallet to proceed.');
+            // Check if wallet is connected already
+            const walletConnected = localStorage.getItem('walletConnected') === 'true';
+            const walletAddress = localStorage.getItem('userWalletAddress');
+            
+            if (walletConnected && walletAddress) {
+                // Proceed with contract creation since wallet is already connected
+                alert('Creating a new contract from scratch using wallet address: ' + walletAddress);
+                // In a real implementation, this would navigate to a contract creation page/form
+            } else {
+                // Prompt to connect wallet first
+                alert('Creating a new contract from scratch. You will need to connect your wallet to proceed.');
+                
+                // Try to connect the wallet
+                if (typeof connectKeplrWallet === 'function') {
+                    connectKeplrWallet();
+                }
+            }
         });
         
         // Contract wallet connect button
