@@ -13,11 +13,11 @@
                     Real Estate Smart Contracts
                 </h5>
                 <div class="card-actions">
-                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#aiAssistantModal">
+                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#aiAssistantModal" title="Guided contract creation with AI assistance">
                         <i data-feather="cpu" class="icon-inline-sm"></i>
                         AI Contract Wizard
                     </button>
-                    <button class="btn btn-sm btn-info">
+                    <button class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Create a contract from scratch" id="newContractBtn">
                         <i data-feather="plus" class="icon-inline-sm"></i>
                         New Contract
                     </button>
@@ -514,15 +514,19 @@ Jurisdiction: Delaware, USA</textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Validator Wallet Addresses</label>
-                                    <textarea class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
+                                    <textarea class="form-control bg-dark text-light border-secondary" rows="3" id="validatorWalletAddresses"></textarea>
                                 </div>
                                 <div class="alert alert-info">
                                     <i data-feather="info" class="icon-inline-sm"></i>
                                     Validator approval is required to ensure legitimacy of the asset and comply with governance rules.
                                 </div>
-                                <button class="btn btn-info mt-3">
+                                <button class="btn btn-info mt-3" id="contractWalletConnectBtn">
                                     <i data-feather="link" class="icon-inline-sm"></i>
                                     Connect Keplr for Signing
+                                </button>
+                                <button class="btn btn-success mt-3 d-none" id="contractSignBtn">
+                                    <i data-feather="check-circle" class="icon-inline-sm"></i>
+                                    Sign Contract
                                 </button>
                             </div>
                         </div>
@@ -594,6 +598,73 @@ Jurisdiction: Delaware, USA</textarea>
             // In a real implementation, this would generate the smart contract
             alert('Generating smart contract and preparing for validator approval...');
         });
+        
+        // Check wallet connection when AI Contract Wizard modal is opened
+        document.getElementById('aiAssistantModal').addEventListener('show.bs.modal', function() {
+            checkWalletConnection();
+        });
+        
+        // New Contract button click
+        document.getElementById('newContractBtn').addEventListener('click', function() {
+            alert('Creating a new contract from scratch. You will need to connect your wallet to proceed.');
+        });
+        
+        // Contract wallet connect button
+        document.getElementById('contractWalletConnectBtn').addEventListener('click', function() {
+            // Call the global wallet connection function from base.html
+            if (typeof connectKeplrWallet === 'function') {
+                connectKeplrWallet();
+                
+                // We'll check the connection status after a short delay
+                setTimeout(checkWalletConnection, 500);
+            } else {
+                console.error('connectKeplrWallet function not found');
+                alert('Wallet connection function not available. Please make sure you are using the latest version.');
+            }
+        });
+        
+        // Contract sign button
+        document.getElementById('contractSignBtn').addEventListener('click', function() {
+            alert('Signing contract with your Keplr wallet...');
+            // In a real implementation, this would call the blockchain to sign the contract
+        });
+        
+        // Check if the wallet is already connected
+        function checkWalletConnection() {
+            // Check localStorage for wallet connection status
+            const walletConnected = localStorage.getItem('walletConnected') === 'true';
+            const walletAddress = localStorage.getItem('userWalletAddress');
+            
+            if (walletConnected && walletAddress) {
+                // Show the wallet address in the input field if it exists
+                const walletAddressInput = document.getElementById('validatorWalletAddresses');
+                if (walletAddressInput) {
+                    // Add this wallet as the first validator if the field is empty
+                    if (!walletAddressInput.value) {
+                        walletAddressInput.value = walletAddress;
+                    }
+                }
+                
+                // Update the UI to show the connected state
+                if (document.getElementById('contractWalletConnectBtn')) {
+                    document.getElementById('contractWalletConnectBtn').classList.add('d-none');
+                }
+                if (document.getElementById('contractSignBtn')) {
+                    document.getElementById('contractSignBtn').classList.remove('d-none');
+                }
+            } else {
+                // Show the connect button, hide the sign button
+                if (document.getElementById('contractWalletConnectBtn')) {
+                    document.getElementById('contractWalletConnectBtn').classList.remove('d-none');
+                }
+                if (document.getElementById('contractSignBtn')) {
+                    document.getElementById('contractSignBtn').classList.add('d-none');
+                }
+            }
+        }
+        
+        // Run wallet check on page load
+        checkWalletConnection();
         
         // Update feather icons
         feather.replace();
