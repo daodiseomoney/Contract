@@ -247,16 +247,48 @@ const aiChat = {
         if (metadata && metadata.filtered) {
             messageElement.className += ' message-filtered';
             
-            // Create an icon for filtered content
+            // Create warning icon container
             const warningIcon = document.createElement('div');
             warningIcon.className = 'filter-icon';
-            warningIcon.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 9V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 21.41H5.94C2.47 21.41 1.02 18.93 2.7 15.9L5.82 10.28L8.76 5.00999C10.54 1.79999 13.46 1.79999 15.24 5.00999L18.18 10.29L21.3 15.91C22.98 18.94 21.52 21.42 18.06 21.42H12V21.41Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M11.995 17H12.005" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            `;
+            
+            // Create SVG element
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", "16");
+            svg.setAttribute("height", "16");
+            svg.setAttribute("viewBox", "0 0 24 24");
+            svg.setAttribute("fill", "none");
+            
+            // Create paths
+            const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path1.setAttribute("d", "M12 9V14");
+            path1.setAttribute("stroke", "currentColor");
+            path1.setAttribute("stroke-width", "1.5");
+            path1.setAttribute("stroke-linecap", "round");
+            path1.setAttribute("stroke-linejoin", "round");
+            
+            const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path2.setAttribute("d", "M12 21.41H5.94C2.47 21.41 1.02 18.93 2.7 15.9L5.82 10.28L8.76 5.00999C10.54 1.79999 13.46 1.79999 15.24 5.00999L18.18 10.29L21.3 15.91C22.98 18.94 21.52 21.42 18.06 21.42H12V21.41Z");
+            path2.setAttribute("stroke", "currentColor");
+            path2.setAttribute("stroke-width", "1.5");
+            path2.setAttribute("stroke-linecap", "round");
+            path2.setAttribute("stroke-linejoin", "round");
+            
+            const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path3.setAttribute("d", "M11.995 17H12.005");
+            path3.setAttribute("stroke", "currentColor");
+            path3.setAttribute("stroke-width", "2");
+            path3.setAttribute("stroke-linecap", "round");
+            path3.setAttribute("stroke-linejoin", "round");
+            
+            // Append paths to SVG
+            svg.appendChild(path1);
+            svg.appendChild(path2);
+            svg.appendChild(path3);
+            
+            // Append SVG to icon container
+            warningIcon.appendChild(svg);
+            
+            // Append icon to message
             messageElement.appendChild(warningIcon);
         }
         
@@ -283,15 +315,56 @@ const aiChat = {
             if (metadata.enhanced_mode) {
                 const enhancedTag = document.createElement('span');
                 enhancedTag.className = 'enhanced-tag';
-                enhancedTag.innerHTML = `
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 12.59V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7V8.14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M8 2V22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M14.75 15L17.5 12L14.75 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                        <path d="M17.5 12H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                    Enhanced
-                `;
+                
+                // Create SVG element
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("width", "14");
+                svg.setAttribute("height", "14");
+                svg.setAttribute("viewBox", "0 0 24 24");
+                svg.setAttribute("fill", "none");
+                
+                // Create paths
+                const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path1.setAttribute("d", "M21 12.59V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7V8.14");
+                path1.setAttribute("stroke", "currentColor");
+                path1.setAttribute("stroke-width", "1.5");
+                path1.setAttribute("stroke-linecap", "round");
+                path1.setAttribute("stroke-linejoin", "round");
+                
+                const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path2.setAttribute("d", "M8 2V22");
+                path2.setAttribute("stroke", "currentColor");
+                path2.setAttribute("stroke-width", "1.5");
+                path2.setAttribute("stroke-linecap", "round");
+                path2.setAttribute("stroke-linejoin", "round");
+                
+                const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path3.setAttribute("d", "M14.75 15L17.5 12L14.75 9");
+                path3.setAttribute("stroke", "currentColor");
+                path3.setAttribute("stroke-width", "1.5");
+                path3.setAttribute("stroke-linecap", "round");
+                path3.setAttribute("stroke-linejoin", "round");
+                
+                const path4 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path4.setAttribute("d", "M17.5 12H11");
+                path4.setAttribute("stroke", "currentColor");
+                path4.setAttribute("stroke-width", "1.5");
+                path4.setAttribute("stroke-linecap", "round");
+                path4.setAttribute("stroke-linejoin", "round");
+                
+                // Append paths to SVG
+                svg.appendChild(path1);
+                svg.appendChild(path2);
+                svg.appendChild(path3);
+                svg.appendChild(path4);
+                
+                // Append SVG to tag
+                enhancedTag.appendChild(svg);
+                
+                // Add text node with a space
+                enhancedTag.appendChild(document.createTextNode(" Enhanced"));
+                
+                // Add to metadata element
                 metaElement.appendChild(enhancedTag);
             }
             
