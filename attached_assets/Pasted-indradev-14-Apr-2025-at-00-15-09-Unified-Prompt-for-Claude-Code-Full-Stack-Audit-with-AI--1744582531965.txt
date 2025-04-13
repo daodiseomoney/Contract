@@ -1,0 +1,121 @@
+indradev_, [14 Apr 2025 at 00:15:09]:
+### Unified Prompt for Claude Code: Full-Stack Audit with AI & UI/UX Focus  
+Core Insight:  
+*"Users want frictionless, trustworthy real estate transactions (Human Truth), but manual due diligence, fragmented workflows, and opaque asset verification slow progress (Tension). Daodiseo resolves this by automating due diligence via AI, enforcing transparency through blockchain, and unifying contracts/NFTs into a single interface (Resolution)."*  
+
+---
+
+### Audit Requirements  
+#### 1. UI/UX & Workflow Integrity  
+- Buttons & State Management:  
+  - Test all buttons (e.g., "Stake," "Connect Keplr") for correct enabled/disabled states.  
+  - Ensure "Mint NFT" is disabled unless spv_kyc === true and AI validation passes.  
+- Real-Time Data Sync:  
+  - Confirm dashboard updates reflect live blockchain data:  
+    - ODIS_REWARD post-staking.  
+    - Pie chart adjusts to verified/unverified asset ratios.  
+  - Check for placeholder values (e.g., NaN in APY).  
+
+#### 2. Agentic AI Functionality  
+- Proactive Automation:  
+  - Does the AI agent auto-suggest liquidity thresholds based on user_history and market data?  
+  - Verify it auto-generates contract templates from IFC metadata (stakeholders, asset value).  
+- Transparency & Control:  
+  - Are AI decisions (e.g., blocking NFT minting) logged on-chain with risk_score and market_volatility?  
+  - Can users override AI suggestions (e.g., adjust liquidity) with changes saved to user_history?  
+
+#### 3. Backend-BIM-AI Integration  
+- Automated Due Diligence:  
+  - When an IFC file is uploaded, does the AI:  
+    1. Extract metadata (asset value, stakeholders)?  
+    2. Cross-check with BIM server for consistency?  
+    3. Auto-trigger ODIS rewards if validated?  
+   // AI-triggered reward release (CosmWasm)  
+  fn execute_auto_reward(ifc_hash: String) -> Result<Response, ContractError> {  
+      let metadata = ai_agent::analyze_ifc(ifc_hash)?;  
+      if metadata.risk_score < 0.3 { // AI decision  
+          release_odis(metadata.liquidity)?;  
+      }  
+  }  
+    
+- NFT Legitimacy:  
+  - Block NFT minting if spv_kyc === false or due diligence is pending.  
+
+#### 4. Full-Stack Testing  
+- User Journeys:  
+  1. Upload IFC → AI validates → Stake liquidity → Earn ODIS → Verify dashboard updates.  
+  2. Attempt NFT minting with incomplete KYC → AI blocks and explains via modal.  
+- Edge Cases:  
+  - Invalid IFC files → AI rejects and provides error details.  
+  - Validator rejects AI-generated proposal → AI retries with adjusted terms.  
+
+#### 5. Architecture & Fairness  
+- Modularity:  
+  - Is the AI agent a standalone service (e.g., `ai-service:5000`) or embedded in UI?  
+  - Can PieChart.jsx be reused for other dashboards?  
+- Bias Checks:  
+  - Test if suggest_liquidity() favors institutional users (e.g., dummy user_history with small stakes).  
+
+---
+
+### Test Cases & Code Snippets  
+1. UI/AI Integration (Cypress)  // Test AI error feedback  
+cy.uploadIFC('invalid.ifc');  
+cy.get('[data-testid="ai-error"]').should('contain', 'Missing stakeholder data');  
+
+// Test override functionality  
+cy.get('[data-testid="liquidity-input"]').type('2000');  
+cy.get('[data-testid="override-ai"]').click();  
+cy.assertLocalStorage('user_history', '[500, 2000]');  
+  
+
+2. Backend Validation (Rust)  #[test]  
+fn test_ai_block_unverified_nft() {  
+    let res = mint_nft(deps, spv_kyc: false, ai_approved: false);  
+    assert_eq!(res.unwrap_err(), ContractError::Unauthorized {});  
+}  
+  
+
+3. Real-Time Sync (React)  // Dashboard auto-refresh  
+useEffect(() => {  
+  fetchReserves();  
+  fetchODISReward();  
+}, [liquidity, odisReward]);  
+  
+
+---
+
+### Expected Output  
+1. Comprehensive Report:  
+   - UI/UX Issues: Broken buttons, data mismatches (e.g., totalReserves ≠ blockchain).  
+   - AI Flaws: Passive behavior, opaque decisions, bias in suggestions.  
+   - Architecture Violations: AI logic in React, non-reusable components.  
+2. Prioritized Fixes:  
+   - Critical: Transactions failing silently; AI allowing unverified NFTs.  
+   - High: Incorrect ODIS calculations; pie chart static updates.
+
+indradev_, [14 Apr 2025 at 00:15:09]:
+- Medium: Missing user override logs.  
+3. Code Patches:  
+   - Fix spv_kyc validation in minting module.  
+   - Optimize websocket logic for real-time data.  
+
+---
+
+### Final Prompt for Claude  
+"Audit Daodiseo’s codebase end-to-end. Verify:  
+1. UI/UX: Buttons, real-time data, Keplr integration.  
+2. AI Autonomy: Proactive suggestions, metadata validation, transparency.  
+3. Backend Sync: BIM-blockchain-AI consistency, NFT legitimacy.  
+4. Architecture: Modularity, decoupled services, bias checks.  
+Return a prioritized report with code fixes to achieve frictionless, AI-driven real estate automation."  
+
+--- 
+
+Why This Works:  
+This unified prompt forces Claude to:  
+1. Validate workflows (e.g., "Does the NFT button disable without KYC?").  
+2. Stress-test AI autonomy (e.g., "Does the AI auto-reject bad IFC files?").  
+3. Enforce architectural integrity (e.g., "Is the AI service decoupled?").  
+
+Next: Run this audit, then refine the AI’s decision engine and UI state management! 🚀

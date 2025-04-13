@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}BIM AI Management Dashboard{% endblock %}</title>
+    <title>{% block title %}Daodiseo Real Estate Tokenization{% endblock %}</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +20,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-theme.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    
+    <!-- THREE.js for 3D visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -69,9 +74,9 @@
                     <span>Odiseo Testnet</span>
                 </div>
                 <div class="wallet-connect">
-                    <button class="btn btn-sm btn-outline-info">
+                    <button class="btn btn-sm btn-outline-info" id="connectKeplrBtn">
                         <i data-feather="link" class="icon-inline-sm"></i>
-                        Connect Wallet
+                        Connect Keplr Wallet
                     </button>
                 </div>
             </div>
@@ -115,6 +120,18 @@
     <!-- Initialize Feather Icons -->
     <script>
         feather.replace();
+        
+        // Initialize Keplr wallet connection
+        document.addEventListener('DOMContentLoaded', function() {
+            const connectKeplrBtn = document.getElementById('connectKeplrBtn');
+            if (connectKeplrBtn) {
+                connectKeplrBtn.addEventListener('click', function() {
+                    // Simulate Keplr wallet connection in development environment
+                    console.log('Connecting to Keplr wallet...');
+                    alert('This would connect to Keplr wallet in a production environment.');
+                });
+            }
+        });
     </script>
     
     {% block extra_js %}{% endblock %}
