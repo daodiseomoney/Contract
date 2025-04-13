@@ -329,9 +329,13 @@
             </div>
             <div class="modal-footer border-info">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-info" id="connectKeplrBtn">
+                <button type="button" class="btn btn-info" id="investModalConnectBtn">
                     <i data-feather="link" class="icon-inline-sm"></i>
                     Connect Keplr Wallet
+                </button>
+                <button type="button" class="btn btn-success d-none" id="investModalProceedBtn">
+                    <i data-feather="check-circle" class="icon-inline-sm"></i>
+                    Proceed with Investment
                 </button>
             </div>
         </div>
@@ -509,11 +513,63 @@
             }
         });
         
-        // Initialize Keplr wallet connection
-        document.getElementById('connectKeplrBtn').addEventListener('click', function() {
-            // Simulate Keplr wallet connection
-            alert('Connecting to Keplr wallet...');
-            // In a real implementation, this would connect to the Keplr wallet
+        // Check wallet connection when investment modal is opened
+        document.getElementById('investModal').addEventListener('show.bs.modal', function() {
+            // Check if wallet is connected (using localStorage)
+            const walletConnected = localStorage.getItem('walletConnected') === 'true';
+            const userWalletAddress = localStorage.getItem('userWalletAddress');
+            
+            // Update wallet address field if available
+            if (walletConnected && userWalletAddress) {
+                document.getElementById('walletAddress').value = userWalletAddress;
+                
+                // Show the proceed button, hide the connect button
+                document.getElementById('investModalConnectBtn').classList.add('d-none');
+                document.getElementById('investModalProceedBtn').classList.remove('d-none');
+            } else {
+                // Show the connect button, hide the proceed button
+                document.getElementById('investModalConnectBtn').classList.remove('d-none');
+                document.getElementById('investModalProceedBtn').classList.add('d-none');
+            }
+        });
+        
+        // Invest modal wallet connection button
+        document.getElementById('investModalConnectBtn').addEventListener('click', function() {
+            // Access the main wallet connection function from base.html
+            connectKeplrWallet();
+            
+            // Close the investment modal
+            const investModal = bootstrap.Modal.getInstance(document.getElementById('investModal'));
+            if (investModal) {
+                investModal.hide();
+            }
+        });
+        
+        // Proceed with investment button
+        document.getElementById('investModalProceedBtn').addEventListener('click', function() {
+            // Get investment amount
+            const amount = document.getElementById('investmentAmount').value;
+            
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                alert('Please enter a valid investment amount.');
+                return;
+            }
+            
+            // Check if SPV/KYC confirmation is checked
+            const spvKycChecked = document.getElementById('spvKycCheck').checked;
+            if (!spvKycChecked) {
+                alert('Please confirm SPV/KYC verification.');
+                return;
+            }
+            
+            // Process investment
+            alert(`Processing investment of ${amount} ODIS. Transaction will be signed with your Keplr wallet.`);
+            
+            // Close modal after successful transaction
+            const investModal = bootstrap.Modal.getInstance(document.getElementById('investModal'));
+            if (investModal) {
+                investModal.hide();
+            }
         });
         
         // Open AI Assistant modal button
