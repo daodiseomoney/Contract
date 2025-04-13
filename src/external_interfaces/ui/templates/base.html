@@ -95,11 +95,11 @@
                         <i data-feather="search"></i>
                     </div>
                     <div class="user-menu">
-                        <div class="notifications">
+                        <div class="notifications" id="notificationBtn">
                             <i data-feather="bell"></i>
                             <span class="badge">3</span>
                         </div>
-                        <div class="user-profile">
+                        <div class="user-profile" id="userProfileBtn">
                             <img src="{{ url_for('static', filename='img/avatar.svg') }}" alt="User">
                             <span>John Doe</span>
                         </div>
@@ -121,14 +121,213 @@
     <script>
         feather.replace();
         
-        // Initialize Keplr wallet connection
+        // Initialize Keplr wallet connection and header buttons
         document.addEventListener('DOMContentLoaded', function() {
+            // Wallet connect button in sidebar
             const connectKeplrBtn = document.getElementById('connectKeplrBtn');
             if (connectKeplrBtn) {
                 connectKeplrBtn.addEventListener('click', function() {
-                    // Simulate Keplr wallet connection in development environment
+                    connectKeplrWallet();
+                });
+            }
+            
+            // User profile button in header
+            const userProfileBtn = document.getElementById('userProfileBtn');
+            if (userProfileBtn) {
+                userProfileBtn.addEventListener('click', function() {
+                    connectKeplrWallet();
+                });
+            }
+            
+            // Notification button in header
+            const notificationBtn = document.getElementById('notificationBtn');
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', function() {
+                    showNotifications();
+                });
+            }
+            
+            // Search functionality
+            const searchBox = document.querySelector('.search-box input');
+            if (searchBox) {
+                searchBox.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        console.log('Searching for:', this.value);
+                        // Implement search functionality
+                    }
+                });
+            }
+            
+            // Function to show notifications
+            function showNotifications() {
+                // Create notification modal
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.id = 'notificationModal';
+                modal.setAttribute('tabindex', '-1');
+                modal.setAttribute('aria-labelledby', 'notificationModalLabel');
+                modal.setAttribute('aria-hidden', 'true');
+                
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content bg-dark text-light border-info">
+                            <div class="modal-header border-info">
+                                <h5 class="modal-title" id="notificationModalLabel">
+                                    <i data-feather="bell" class="icon-inline text-info"></i>
+                                    Notifications
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="notification-item d-flex align-items-start mb-3">
+                                    <div class="notification-icon me-3 text-success">
+                                        <i data-feather="check-circle"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">Due Diligence Complete</div>
+                                        <div class="notification-text">Cosmic Tower Project has passed due diligence.</div>
+                                        <div class="notification-time text-muted small">2 hours ago</div>
+                                    </div>
+                                </div>
+                                <div class="notification-item d-flex align-items-start mb-3">
+                                    <div class="notification-icon me-3 text-info">
+                                        <i data-feather="upload"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">New IFC File Uploaded</div>
+                                        <div class="notification-text">Horizon Office Complex.ifc has been uploaded.</div>
+                                        <div class="notification-time text-muted small">5 hours ago</div>
+                                    </div>
+                                </div>
+                                <div class="notification-item d-flex align-items-start">
+                                    <div class="notification-icon me-3 text-warning">
+                                        <i data-feather="alert-circle"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">Validator Request</div>
+                                        <div class="notification-text">New proposal requires validator approval.</div>
+                                        <div class="notification-time text-muted small">1 day ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-info">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-info">View All</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Initialize modal and show it
+                const notificationModal = new bootstrap.Modal(document.getElementById('notificationModal'));
+                notificationModal.show();
+                
+                // Update feather icons inside modal
+                feather.replace();
+                
+                // Remove modal from DOM when hidden
+                document.getElementById('notificationModal').addEventListener('hidden.bs.modal', function() {
+                    document.body.removeChild(modal);
+                });
+            }
+            
+            // Function to connect Keplr wallet
+            function connectKeplrWallet() {
+                // Create wallet modal
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.id = 'keplrModal';
+                modal.setAttribute('tabindex', '-1');
+                modal.setAttribute('aria-labelledby', 'keplrModalLabel');
+                modal.setAttribute('aria-hidden', 'true');
+                
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content bg-dark text-light border-info">
+                            <div class="modal-header border-info">
+                                <h5 class="modal-title" id="keplrModalLabel">
+                                    <i data-feather="link" class="icon-inline text-info"></i>
+                                    Connect to Keplr Wallet
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Connect your Keplr wallet to access the Daodiseo platform features:</p>
+                                <ul class="list-group list-group-flush bg-transparent mb-3">
+                                    <li class="list-group-item bg-dark text-light border-secondary d-flex align-items-center">
+                                        <i data-feather="check" class="icon-inline-sm text-success me-2"></i>
+                                        <span>Create and sign real estate contracts</span>
+                                    </li>
+                                    <li class="list-group-item bg-dark text-light border-secondary d-flex align-items-center">
+                                        <i data-feather="check" class="icon-inline-sm text-success me-2"></i>
+                                        <span>Stake ODIS tokens for liquid real estate</span>
+                                    </li>
+                                    <li class="list-group-item bg-dark text-light border-secondary d-flex align-items-center">
+                                        <i data-feather="check" class="icon-inline-sm text-success me-2"></i>
+                                        <span>Participate in validator governance</span>
+                                    </li>
+                                    <li class="list-group-item bg-dark text-light border-secondary d-flex align-items-center">
+                                        <i data-feather="check" class="icon-inline-sm text-success me-2"></i>
+                                        <span>Mint property NFTs after due diligence</span>
+                                    </li>
+                                </ul>
+                                <div class="alert alert-info">
+                                    <i data-feather="info" class="icon-inline-sm me-2"></i>
+                                    <span>You'll need the Keplr browser extension installed to proceed.</span>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-info">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-info" id="confirmKeplrConnect">
+                                    <i data-feather="link" class="icon-inline-sm"></i>
+                                    Connect Wallet
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Initialize modal and show it
+                const keplrModal = new bootstrap.Modal(document.getElementById('keplrModal'));
+                keplrModal.show();
+                
+                // Update feather icons inside modal
+                feather.replace();
+                
+                // Confirm button functionality
+                document.getElementById('confirmKeplrConnect').addEventListener('click', function() {
+                    // Here we would connect to Keplr wallet
                     console.log('Connecting to Keplr wallet...');
-                    alert('This would connect to Keplr wallet in a production environment.');
+                    
+                    // Simulate successful connection
+                    setTimeout(() => {
+                        // Update UI to show connected state
+                        const walletBtn = document.getElementById('connectKeplrBtn');
+                        if (walletBtn) {
+                            walletBtn.innerHTML = '<i data-feather="check-circle" class="icon-inline-sm"></i> Connected';
+                            walletBtn.classList.remove('btn-outline-info');
+                            walletBtn.classList.add('btn-success');
+                            feather.replace();
+                        }
+                        
+                        // Update user profile
+                        const userProfile = document.getElementById('userProfileBtn');
+                        if (userProfile) {
+                            userProfile.querySelector('span').textContent = 'odis...f34a';
+                        }
+                        
+                        // Hide modal
+                        keplrModal.hide();
+                    }, 1500);
+                });
+                
+                // Remove modal from DOM when hidden
+                document.getElementById('keplrModal').addEventListener('hidden.bs.modal', function() {
+                    document.body.removeChild(modal);
                 });
             }
         });
