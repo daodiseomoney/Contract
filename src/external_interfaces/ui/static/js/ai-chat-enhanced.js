@@ -192,15 +192,37 @@ const aiChat = {
     addAIMessage: function(message, metadata = {}) {
         const messageElement = document.createElement('div');
         messageElement.className = 'message message-ai';
-        messageElement.textContent = message;
+        
+        // If this is a filtered message, apply special styling
+        if (metadata && metadata.filtered) {
+            messageElement.className += ' message-filtered';
+            
+            // Create an icon for filtered content
+            const warningIcon = document.createElement('div');
+            warningIcon.className = 'filter-icon';
+            warningIcon.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 9V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 21.41H5.94C2.47 21.41 1.02 18.93 2.7 15.9L5.82 10.28L8.76 5.00999C10.54 1.79999 13.46 1.79999 15.24 5.00999L18.18 10.29L21.3 15.91C22.98 18.94 21.52 21.42 18.06 21.42H12V21.41Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M11.995 17H12.005" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            `;
+            messageElement.appendChild(warningIcon);
+        }
+        
+        // Add the message text
+        const messageText = document.createElement('div');
+        messageText.className = 'message-text';
+        messageText.textContent = message;
+        messageElement.appendChild(messageText);
         
         // Add metadata if available
         if (metadata) {
             const metaElement = document.createElement('div');
             metaElement.className = 'message-meta';
             
-            // Add stakeholder tag if available
-            if (metadata.stakeholder && metadata.stakeholder_name) {
+            // Add stakeholder tag if available (and not a filtered message)
+            if (!metadata.filtered && metadata.stakeholder && metadata.stakeholder_name) {
                 const stakeholderTag = document.createElement('span');
                 stakeholderTag.className = `stakeholder-tag stakeholder-${metadata.stakeholder}`;
                 stakeholderTag.textContent = metadata.stakeholder_name;
@@ -221,6 +243,14 @@ const aiChat = {
                     Enhanced
                 `;
                 metaElement.appendChild(enhancedTag);
+            }
+            
+            // Add filter tag if this was a filtered message
+            if (metadata.filtered) {
+                const filteredTag = document.createElement('span');
+                filteredTag.className = 'filtered-tag';
+                filteredTag.textContent = 'Content Filtered';
+                metaElement.appendChild(filteredTag);
             }
             
             messageElement.appendChild(metaElement);

@@ -233,3 +233,32 @@ input:checked + .toggle-slider:before {
     background: rgba(184, 5, 150, 0.2);
     color: var(--secondary-light);
 }
+
+/* Filtered message styles */
+.message-filtered {
+    background: rgba(237, 0, 72, 0.05);
+    position: relative;
+    padding-left: 40px;
+    border-left: 3px solid rgba(237, 0, 72, 0.4);
+}
+
+.filter-icon {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    color: rgba(237, 0, 72, 0.7);
+}
+
+.filtered-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+    background: rgba(237, 0, 72, 0.15);
+    color: rgba(237, 0, 72, 0.8);
+}
+
+.message-text {
+    margin-right: 5px;
+}

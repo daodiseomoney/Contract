@@ -138,6 +138,32 @@ class OpenAIBIMAgent:
             logger.error(f"Error identifying stakeholder: {e}")
             return None
     
+    def _check_message_appropriateness(self, message: str) -> bool:
+        """
+        Check if the user message is appropriate for the BIM AI assistant context.
+        Returns True if appropriate, False if inappropriate.
+        """
+        try:
+            # Get a quick assessment from the model
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a content filter for a professional real estate platform. "
+                     "Assess if the following message is appropriate for a professional context related to buildings, "
+                     "real estate, and property investments. Respond with only 'APPROPRIATE' or 'INAPPROPRIATE'."},
+                    {"role": "user", "content": message}
+                ],
+                max_tokens=10,
+                temperature=0.0
+            )
+            
+            result = response.choices[0].message.content.strip().upper()
+            return "APPROPRIATE" in result
+        except Exception as e:
+            logger.error(f"Error checking message appropriateness: {e}")
+            # Default to allowing the message if the check fails
+            return True
+    
     def process_message(self, message: str, bim_data: Optional[Dict] = None) -> Tuple[str, Dict]:
         """
         Process a user message and return an AI response
@@ -164,6 +190,14 @@ class OpenAIBIMAgent:
             return error_msg, {"error": "api_unavailable"}
         
         try:
+            # Check if the message is appropriate for the BIM AI context
+            is_appropriate = self._check_message_appropriateness(message)
+            
+            if not is_appropriate:
+                response_text = "I'm a BIM AI assistant focused on providing information about buildings, real estate, and property investments. Please ask questions related to these topics so I can help you effectively. For instance, you could ask about building specifications, property valuations, or investment strategies."
+                self.conversation_history.append({"role": "assistant", "content": response_text})
+                return response_text, {"filtered": True}
+            
             # Identify stakeholder if not already identified
             if not self.identified_stakeholder and len(self.conversation_history) >= 1:
                 self.identify_stakeholder(self.conversation_history)
@@ -173,6 +207,17 @@ class OpenAIBIMAgent:
                 system_message = self._get_enhanced_system_message()
             else:
                 system_message = self._get_standard_system_message()
+            
+            # Add content guidelines
+            content_guidelines = (
+                "IMPORTANT: You are a professional BIM AI assistant for real estate. "
+                "Only answer questions related to buildings, real estate, property investments, "
+                "architecture, construction, blockchain tokenization, and related professional topics. "
+                "If asked about inappropriate topics, politely redirect the conversation to "
+                "building information modeling and real estate investment topics. "
+                "Do not engage with or acknowledge inappropriate requests."
+            )
+            system_message = content_guidelines + "\n\n" + system_message
             
             # Add BIM context if available
             if self.bim_data:
