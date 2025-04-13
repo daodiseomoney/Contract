@@ -2,6 +2,60 @@
  * Main JavaScript file for the Real Estate Tokenization Platform
  */
 
+/**
+ * Security utility to sanitize HTML and prevent XSS attacks
+ * @param {string} str - The string to sanitize
+ * @returns {string} - Sanitized HTML-safe string
+ */
+function sanitizeHTML(str) {
+    if (!str) return '';
+    
+    // Create a temporary DOM element
+    const temp = document.createElement('div');
+    
+    // Set the element's text content which automatically encodes HTML entities
+    temp.textContent = str;
+    
+    // Return the safe HTML string
+    return temp.innerHTML;
+}
+
+/**
+ * Creates DOM elements safely by sanitizing all text content
+ * @param {string} tag - HTML tag name
+ * @param {Object} attributes - Element attributes
+ * @param {string|Array} content - Text content or child elements
+ * @returns {HTMLElement} - Safely created DOM element
+ */
+function createSafeElement(tag, attributes = {}, content = '') {
+    const element = document.createElement(tag);
+    
+    // Set attributes safely
+    Object.keys(attributes).forEach(key => {
+        if (key.startsWith('on')) {
+            // Skip event handlers in attributes to prevent injection
+            console.warn('Event handlers should not be passed as attributes');
+        } else {
+            element.setAttribute(key, attributes[key]);
+        }
+    });
+    
+    // Add content
+    if (typeof content === 'string') {
+        // Text content is safe to set directly
+        element.textContent = content;
+    } else if (Array.isArray(content)) {
+        // Add child elements
+        content.forEach(child => {
+            if (child instanceof HTMLElement) {
+                element.appendChild(child);
+            }
+        });
+    }
+    
+    return element;
+}
+
 // Initialize components on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips and popovers
@@ -210,7 +264,18 @@ function initializeFileUpload() {
                     
                     reader.onload = function(e) {
                         if (previewContainer) {
-                            previewContainer.innerHTML = `<img src="${e.target.result}" class="img-fluid preview-image" alt="File Preview">`;
+                            // Clear any existing content
+                            previewContainer.innerHTML = '';
+                            
+                            // Create image element safely
+                            const img = createSafeElement('img', {
+                                'src': e.target.result,
+                                'class': 'img-fluid preview-image',
+                                'alt': 'File Preview'
+                            });
+                            
+                            // Append the safe element
+                            previewContainer.appendChild(img);
                             previewContainer.style.display = 'block';
                         }
                     };
@@ -239,7 +304,16 @@ function initializeFileUpload() {
                             iconClass = 'bi-file-earmark-code';
                         }
                         
-                        previewContainer.innerHTML = `<i class="bi ${iconClass} display-1"></i><p>${fileName}</p>`;
+                        // Clear any existing content
+                        previewContainer.innerHTML = '';
+                        
+                        // Create elements safely
+                        const icon = createSafeElement('i', {'class': `bi ${sanitizeHTML(iconClass)} display-1`});
+                        const fileNamePara = createSafeElement('p', {}, fileName);
+                        
+                        // Append the safe elements
+                        previewContainer.appendChild(icon);
+                        previewContainer.appendChild(fileNamePara);
                         previewContainer.style.display = 'block';
                     }
                 }
@@ -337,13 +411,26 @@ function showAlert(message, type = 'info') {
     const alertContainer = document.getElementById('alertContainer');
     if (!alertContainer) return;
     
-    const alertEl = document.createElement('div');
-    alertEl.className = `alert alert-${type} alert-dismissible fade show`;
-    alertEl.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
+    // Create alert container safely
+    const alertEl = createSafeElement('div', {
+        'class': `alert alert-${sanitizeHTML(type)} alert-dismissible fade show`,
+        'role': 'alert'
+    });
     
+    // Add message text safely
+    const messageText = createSafeElement('span', {}, message);
+    alertEl.appendChild(messageText);
+    
+    // Add dismiss button safely
+    const dismissButton = createSafeElement('button', {
+        'type': 'button',
+        'class': 'btn-close',
+        'data-bs-dismiss': 'alert',
+        'aria-label': 'Close'
+    });
+    alertEl.appendChild(dismissButton);
+    
+    // Add to container
     alertContainer.appendChild(alertEl);
     
     // Auto-dismiss after 5 seconds
@@ -364,7 +451,7 @@ function initializeKeplrWallet() {
         console.log('Please install Keplr extension');
         const keplrButton = document.getElementById('keplrButton');
         if (keplrButton) {
-            keplrButton.innerHTML = 'Install Keplr';
+            keplrButton.textContent = 'Install Keplr';
             keplrButton.addEventListener('click', () => {
                 window.open('https://www.keplr.app/download', '_blank');
             });

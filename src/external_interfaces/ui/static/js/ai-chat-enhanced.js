@@ -31,25 +31,75 @@ const aiChat = {
     
     // Render the chat interface
     render: function() {
-        this.chatContainer.innerHTML = `
-            <div class="chat-header">
-                <div class="chat-title">BIM AI Assistant</div>
-                <div class="chat-mode-toggle">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="enhanced-toggle">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-label">Enhanced AI</span>
-                </div>
-            </div>
-            <div class="chat-messages"></div>
-            <div class="chat-input-container">
-                <input type="text" class="chat-input" placeholder="Ask about the building..." id="chat-input">
-                <button class="chat-send-btn" id="chat-send">Send</button>
-            </div>
-        `;
+        // Clear the container first
+        this.chatContainer.innerHTML = '';
         
-        this.messagesContainer = this.chatContainer.querySelector('.chat-messages');
+        // Create header element
+        const header = document.createElement('div');
+        header.className = 'chat-header';
+        
+        // Create title
+        const title = document.createElement('div');
+        title.className = 'chat-title';
+        title.textContent = 'BIM AI Assistant';
+        header.appendChild(title);
+        
+        // Create mode toggle container
+        const toggleContainer = document.createElement('div');
+        toggleContainer.className = 'chat-mode-toggle';
+        
+        // Create toggle switch
+        const toggleLabel = document.createElement('label');
+        toggleLabel.className = 'toggle-switch';
+        
+        const toggleInput = document.createElement('input');
+        toggleInput.type = 'checkbox';
+        toggleInput.id = 'enhanced-toggle';
+        
+        const toggleSlider = document.createElement('span');
+        toggleSlider.className = 'toggle-slider';
+        
+        toggleLabel.appendChild(toggleInput);
+        toggleLabel.appendChild(toggleSlider);
+        toggleContainer.appendChild(toggleLabel);
+        
+        // Create toggle label
+        const labelText = document.createElement('span');
+        labelText.className = 'toggle-label';
+        labelText.textContent = 'Enhanced AI';
+        toggleContainer.appendChild(labelText);
+        
+        header.appendChild(toggleContainer);
+        this.chatContainer.appendChild(header);
+        
+        // Create messages container
+        const messagesContainer = document.createElement('div');
+        messagesContainer.className = 'chat-messages';
+        this.chatContainer.appendChild(messagesContainer);
+        
+        // Create input container
+        const inputContainer = document.createElement('div');
+        inputContainer.className = 'chat-input-container';
+        
+        // Create input field
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'chat-input';
+        input.placeholder = 'Ask about the building...';
+        input.id = 'chat-input';
+        inputContainer.appendChild(input);
+        
+        // Create send button
+        const sendButton = document.createElement('button');
+        sendButton.className = 'chat-send-btn';
+        sendButton.id = 'chat-send';
+        sendButton.textContent = 'Send';
+        inputContainer.appendChild(sendButton);
+        
+        this.chatContainer.appendChild(inputContainer);
+        
+        // Store reference to messages container
+        this.messagesContainer = messagesContainer;
     },
     
     // Bind event listeners
