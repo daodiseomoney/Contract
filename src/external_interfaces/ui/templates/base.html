@@ -21,6 +21,44 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     
+    <style>
+        /* User profile menu styles */
+        .ai-avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(224, 13, 121, 0.2);
+        }
+        
+        /* Stakeholder button styles */
+        .stakeholder-btn.active {
+            box-shadow: 0 0 0 3px rgba(224, 13, 121, 0.3);
+        }
+        
+        /* Recommended actions list */
+        .recommended-actions .list-group-item {
+            transition: all 0.2s ease;
+        }
+        
+        .recommended-actions .list-group-item:hover {
+            background-color: rgba(224, 13, 121, 0.1) !important;
+            transform: translateX(5px);
+        }
+        
+        /* User profile dropdown animation */
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        #profileDropdown {
+            animation: dropIn 0.3s ease forwards;
+        }
+    </style>
+    
     <!-- THREE.js for 3D visualization -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
@@ -233,8 +271,18 @@
                 });
             }
             
+            // Global wallet connection state
+            let walletConnected = false;
+            let userWalletAddress = '';
+            
             // Function to connect Keplr wallet
             function connectKeplrWallet() {
+                // Don't show connection modal if already connected
+                if (walletConnected) {
+                    showProfileMenu();
+                    return;
+                }
+                
                 // Create wallet modal
                 const modal = document.createElement('div');
                 modal.className = 'modal fade';
@@ -305,6 +353,10 @@
                     
                     // Simulate successful connection
                     setTimeout(() => {
+                        // Set global wallet connection state
+                        walletConnected = true;
+                        userWalletAddress = 'odis...f34a';
+                        
                         // Update UI to show connected state
                         const walletBtn = document.getElementById('connectKeplrBtn');
                         if (walletBtn) {
@@ -317,11 +369,16 @@
                         // Update user profile
                         const userProfile = document.getElementById('userProfileBtn');
                         if (userProfile) {
-                            userProfile.querySelector('span').textContent = 'odis...f34a';
+                            userProfile.querySelector('span').textContent = userWalletAddress;
                         }
                         
                         // Hide modal
                         keplrModal.hide();
+                        
+                        // Show onboarding guide after successful connection
+                        setTimeout(() => {
+                            showOnboardingGuide();
+                        }, 1000);
                     }, 1500);
                 });
                 
@@ -329,6 +386,337 @@
                 document.getElementById('keplrModal').addEventListener('hidden.bs.modal', function() {
                     document.body.removeChild(modal);
                 });
+            }
+            
+            // Function to show onboarding guide
+            function showOnboardingGuide() {
+                // Create onboarding modal
+                const modal = document.createElement('div');
+                modal.className = 'modal fade';
+                modal.id = 'onboardingModal';
+                modal.setAttribute('tabindex', '-1');
+                modal.setAttribute('aria-labelledby', 'onboardingModalLabel');
+                modal.setAttribute('aria-hidden', 'true');
+                
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content bg-dark text-light border-info">
+                            <div class="modal-header border-info">
+                                <h5 class="modal-title" id="onboardingModalLabel">
+                                    <i data-feather="cpu" class="icon-inline text-info"></i>
+                                    AI-Guided Onboarding
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="d-flex align-items-start mb-4">
+                                    <div class="ai-avatar me-3">
+                                        <i data-feather="cpu" class="text-info"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1">Welcome to Daodiseo! I'm your AI assistant for real estate tokenization. How would you like to use the platform?</p>
+                                        <div class="d-flex flex-wrap gap-2 mt-3">
+                                            <button class="btn btn-outline-info btn-sm stakeholder-btn" data-stakeholder="investor">
+                                                <i data-feather="dollar-sign" class="icon-inline-sm"></i>
+                                                I'm an Investor
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm stakeholder-btn" data-stakeholder="developer">
+                                                <i data-feather="home" class="icon-inline-sm"></i>
+                                                I'm a Developer
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm stakeholder-btn" data-stakeholder="validator">
+                                                <i data-feather="shield" class="icon-inline-sm"></i>
+                                                I'm a Validator
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm stakeholder-btn" data-stakeholder="architect">
+                                                <i data-feather="compass" class="icon-inline-sm"></i>
+                                                I'm an Architect
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm stakeholder-btn" data-stakeholder="broker">
+                                                <i data-feather="briefcase" class="icon-inline-sm"></i>
+                                                I'm a Broker
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm stakeholder-btn" data-stakeholder="contractor">
+                                                <i data-feather="tool" class="icon-inline-sm"></i>
+                                                I'm a Contractor
+                                            </button>
+                                            <button class="btn btn-outline-info btn-sm stakeholder-btn" data-stakeholder="regulator">
+                                                <i data-feather="clipboard" class="icon-inline-sm"></i>
+                                                I'm a Regulator
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="stakeholderResponse" class="d-none">
+                                    <div class="d-flex align-items-start mb-4">
+                                        <div class="ai-avatar me-3">
+                                            <i data-feather="cpu" class="text-info"></i>
+                                        </div>
+                                        <div>
+                                            <p id="stakeholderMessage"></p>
+                                            <div class="recommended-actions mt-3">
+                                                <h6 class="text-info">Recommended Actions:</h6>
+                                                <div id="recommendedActions" class="list-group list-group-flush bg-transparent"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-info">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Skip Tour</button>
+                                <button type="button" class="btn btn-info" id="continueOnboarding">
+                                    <i data-feather="chevron-right" class="icon-inline-sm"></i>
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Initialize modal and show it
+                const onboardingModal = new bootstrap.Modal(document.getElementById('onboardingModal'));
+                onboardingModal.show();
+                
+                // Update feather icons inside modal
+                feather.replace();
+                
+                // Add event listeners for stakeholder buttons
+                const stakeholderBtns = document.querySelectorAll('.stakeholder-btn');
+                stakeholderBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const stakeholder = this.getAttribute('data-stakeholder');
+                        
+                        // Remove active class from all buttons
+                        stakeholderBtns.forEach(b => b.classList.remove('active', 'btn-info'));
+                        
+                        // Add active class to clicked button
+                        this.classList.add('active', 'btn-info');
+                        
+                        // Show stakeholder response
+                        const responseEl = document.getElementById('stakeholderResponse');
+                        const messageEl = document.getElementById('stakeholderMessage');
+                        const actionsEl = document.getElementById('recommendedActions');
+                        
+                        responseEl.classList.remove('d-none');
+                        
+                        // Set message and actions based on stakeholder type
+                        let message = '';
+                        let actions = [];
+                        
+                        switch(stakeholder) {
+                            case 'investor':
+                                message = 'As an investor, you can explore verified real estate assets, stake ODIS tokens, and gain exposure to tokenized properties with complete due diligence.';
+                                actions = [
+                                    { icon: 'zap', text: 'Explore the Idaka Project featured on the dashboard', link: '/' },
+                                    { icon: 'pie-chart', text: 'Review asset distribution metrics', link: '/' },
+                                    { icon: 'dollar-sign', text: 'Check current staking APY (9.5%)', link: '/' }
+                                ];
+                                break;
+                                
+                            case 'developer':
+                                message = 'As a developer, you can tokenize your real estate projects, manage stakeholder distribution, and access financing through the platform.';
+                                actions = [
+                                    { icon: 'upload', text: 'Upload your BIM/IFC models', link: '/upload' },
+                                    { icon: 'file-text', text: 'Create new property contracts', link: '/contracts' },
+                                    { icon: 'users', text: 'Manage stakeholder distribution', link: '/' }
+                                ];
+                                break;
+                                
+                            case 'validator':
+                                message = 'As a validator, you play a crucial role in governance and proposal verification, ensuring network integrity and proper due diligence.';
+                                actions = [
+                                    { icon: 'shield', text: 'Review pending proposals', link: '/contracts' },
+                                    { icon: 'check-square', text: 'Validate IFC models and due diligence', link: '/upload' },
+                                    { icon: 'award', text: 'Earn validator rewards', link: '/' }
+                                ];
+                                break;
+                                
+                            case 'architect':
+                                message = 'As an architect, you can upload and validate BIM models, improve design integrity, and connect with developers and contractors.';
+                                actions = [
+                                    { icon: 'box', text: 'Explore the 3D BIM Viewer', link: '/viewer' },
+                                    { icon: 'upload', text: 'Upload IFC files for validation', link: '/upload' },
+                                    { icon: 'message-circle', text: 'Use AI to analyze building specifications', link: '/' }
+                                ];
+                                break;
+                                
+                            case 'broker':
+                                message = 'As a broker, you can showcase verified real estate opportunities, connect investors with developers, and track property transactions.';
+                                actions = [
+                                    { icon: 'zap', text: 'Present the Idaka Project to potential investors', link: '/' },
+                                    { icon: 'users', text: 'Analyze stakeholder distribution', link: '/' },
+                                    { icon: 'trending-up', text: 'Track property investment performance', link: '/' }
+                                ];
+                                break;
+                                
+                            case 'contractor':
+                                message = 'As a contractor, you can access detailed BIM models, track project tasks, and participate in contract fulfillment on the blockchain.';
+                                actions = [
+                                    { icon: 'box', text: 'Access project BIM data in the 3D Viewer', link: '/viewer' },
+                                    { icon: 'file-text', text: 'Review and sign contracts', link: '/contracts' },
+                                    { icon: 'list', text: 'View verification status of projects', link: '/' }
+                                ];
+                                break;
+                                
+                            case 'regulator':
+                                message = 'As a regulator, you can verify compliance, ensure proper due diligence, and monitor tokenized asset activities with complete transparency.';
+                                actions = [
+                                    { icon: 'shield', text: 'Review SPV/KYC verification status', link: '/contracts' },
+                                    { icon: 'list', text: 'Monitor blockchain transactions', link: '/' },
+                                    { icon: 'file-text', text: 'Access complete due diligence records', link: '/upload' }
+                                ];
+                                break;
+                        }
+                        
+                        messageEl.textContent = message;
+                        
+                        // Generate action buttons
+                        actionsEl.innerHTML = '';
+                        actions.forEach(action => {
+                            const item = document.createElement('a');
+                            item.href = action.link;
+                            item.className = 'list-group-item bg-dark text-light border-secondary d-flex align-items-center';
+                            item.innerHTML = `
+                                <i data-feather="${action.icon}" class="icon-inline-sm text-info me-2"></i>
+                                <span>${action.text}</span>
+                                <i data-feather="chevron-right" class="ms-auto"></i>
+                            `;
+                            actionsEl.appendChild(item);
+                        });
+                        
+                        // Update feather icons
+                        feather.replace();
+                        
+                        // Store stakeholder preference
+                        localStorage.setItem('userStakeholderType', stakeholder);
+                    });
+                });
+                
+                // Continue button functionality
+                document.getElementById('continueOnboarding').addEventListener('click', function() {
+                    onboardingModal.hide();
+                });
+                
+                // Remove modal from DOM when hidden
+                document.getElementById('onboardingModal').addEventListener('hidden.bs.modal', function() {
+                    document.body.removeChild(modal);
+                });
+            }
+            
+            // Function to show profile menu
+            function showProfileMenu() {
+                // Create profile dropdown
+                const dropdown = document.createElement('div');
+                dropdown.className = 'profile-dropdown';
+                dropdown.id = 'profileDropdown';
+                
+                // Position the dropdown based on user profile button position
+                const userProfileBtn = document.getElementById('userProfileBtn');
+                const rect = userProfileBtn.getBoundingClientRect();
+                
+                dropdown.style.position = 'absolute';
+                dropdown.style.top = (rect.bottom + 10) + 'px';
+                dropdown.style.right = '20px';
+                dropdown.style.width = '280px';
+                dropdown.style.backgroundColor = '#1a1a2e';
+                dropdown.style.border = '1px solid rgba(224, 13, 121, 0.5)';
+                dropdown.style.borderRadius = '8px';
+                dropdown.style.padding = '1rem';
+                dropdown.style.zIndex = '1000';
+                dropdown.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.5)';
+                
+                dropdown.innerHTML = `
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info rounded-circle p-2 me-3">
+                            <i data-feather="user" class="text-dark"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">${userWalletAddress}</div>
+                            <div class="small text-muted">Connected with Keplr</div>
+                        </div>
+                    </div>
+                    <div class="border-top border-secondary my-2"></div>
+                    <div class="wallet-balance mb-3">
+                        <div class="small text-muted mb-1">Your Balance</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-bold">1,245.32 ODIS</div>
+                            <span class="badge bg-success">$3,735.96</span>
+                        </div>
+                    </div>
+                    <div class="border-top border-secondary my-2"></div>
+                    <div class="profile-menu">
+                        <a href="#" class="d-flex align-items-center text-decoration-none text-light py-2">
+                            <i data-feather="box" class="me-2 text-info"></i>
+                            <span>My Properties</span>
+                        </a>
+                        <a href="#" class="d-flex align-items-center text-decoration-none text-light py-2">
+                            <i data-feather="file-text" class="me-2 text-info"></i>
+                            <span>My Contracts</span>
+                        </a>
+                        <a href="#" class="d-flex align-items-center text-decoration-none text-light py-2">
+                            <i data-feather="activity" class="me-2 text-info"></i>
+                            <span>Staking Dashboard</span>
+                        </a>
+                        <a href="#" class="d-flex align-items-center text-decoration-none text-light py-2">
+                            <i data-feather="settings" class="me-2 text-info"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                    <div class="border-top border-secondary my-2"></div>
+                    <div class="d-grid">
+                        <button class="btn btn-outline-danger btn-sm" id="disconnectWalletBtn">
+                            <i data-feather="log-out" class="icon-inline-sm"></i>
+                            Disconnect Wallet
+                        </button>
+                    </div>
+                `;
+                
+                document.body.appendChild(dropdown);
+                
+                // Update feather icons
+                feather.replace();
+                
+                // Add event listener to disconnect button
+                document.getElementById('disconnectWalletBtn').addEventListener('click', function() {
+                    // Reset wallet state
+                    walletConnected = false;
+                    userWalletAddress = '';
+                    
+                    // Update UI
+                    const walletBtn = document.getElementById('connectKeplrBtn');
+                    if (walletBtn) {
+                        walletBtn.innerHTML = '<i data-feather="link" class="icon-inline-sm"></i> Connect Keplr Wallet';
+                        walletBtn.classList.remove('btn-success');
+                        walletBtn.classList.add('btn-outline-info');
+                        feather.replace();
+                    }
+                    
+                    // Update user profile
+                    const userProfile = document.getElementById('userProfileBtn');
+                    if (userProfile) {
+                        userProfile.querySelector('span').textContent = 'John Doe';
+                    }
+                    
+                    // Close dropdown
+                    closeProfileMenu();
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dropdown.contains(e.target) && e.target !== userProfileBtn && !userProfileBtn.contains(e.target)) {
+                        closeProfileMenu();
+                    }
+                });
+                
+                // Function to close profile menu
+                function closeProfileMenu() {
+                    if (document.getElementById('profileDropdown')) {
+                        document.body.removeChild(dropdown);
+                    }
+                }
             }
         });
     </script>
