@@ -1,0 +1,427 @@
+# Информация о встрече
+
+  Meeting started: 09/04/2025, 12:10:49
+  Duration: 49 minutes
+  Participants: Ewa Siwinska, Ilya Znachonok
+
+  [View original transcript](https://app.tactiq.io/api/2/u/m/r/1ImfFx0Be9WEz2rU7hOE?o=txt)
+
+  ## Detailed summary with citation
+
+    # Meeting Summary
+
+## Overview of the Program and Workflow
+- Ilya discussed the integration of AI for writing and transcribing, and how he plans to transform transcriptions into tasks in GitHub for meaningful work. [00:00]
+
+## Dashboard Presentation
+- Ilya presented the main page of the second version of the program, indicating that they would review the interface and its effectiveness in capturing user essence. [00:10]
+
+## Asset Types and Due Diligence
+- Ewa explained the two types of real-world assets: verified assets (those that have undergone due diligence) and unverified assets (early-stage prospects). Verified assets can serve as collateral in the borrowing-lending protocol. [00:30]
+- An example of a verified asset is Idaka, which has been under due diligence for three years. [01:00]
+
+## Verification Process
+- The verification process is lengthy and involves collecting information about the asset and building relationships with asset owners. Ewa emphasized the importance of trust in this process. [01:20]
+
+## User Cabinet and Proposal Process
+- Ilya mentioned the user cabinet feature and proposed that the due diligence process could be integrated into this cabinet. Ewa agreed but noted that the process is informal and requires interaction between parties before sending proposals to governance. [02:00]
+
+## Governance and Validators
+- Ewa explained the role of validators in the proposal process, emphasizing their importance in executing code related to proposals. [03:00]
+
+## Dashboard Features
+- Discussion on the dashboard included showing total reserves, token value in dollars, and the importance of displaying the value of assets in both dollars and the native token. [04:00]
+- Ewa suggested using a pie chart to visualize the distribution of asset values within the reserves. [05:00]
+
+## Staking Rewards and APY
+- Ilya and Ewa discussed the need to present staking rewards and the annual percentage yield (APY) on the dashboard. [06:00]
+
+## Asset Visualization
+- The idea of showcasing a "hot asset" on the landing page was proposed, allowing users to see assets currently seeking liquidity. [07:00]
+
+## AI Agent Functionality
+- Ilya described the AI agent's role in analyzing uploaded files and connecting with specific asset classes. Ewa suggested hardcoding initial connections for demonstration purposes. [08:00]
+
+## NFT Minting Process
+- Ewa clarified that NFTs can only be minted after the asset has passed due diligence, ensuring legitimacy. [09:00]
+- Ilya expressed concerns about simplifying the NFT minting process for users. Ewa reiterated the importance of due diligence before minting. [10:00]
+
+## Contract Management
+- The meeting concluded with discussions on managing contracts and the need for a structured approach to contract signatures and steps involved in the contract process. [11:00]
+
+## Closing Remarks
+- Ewa mentioned the need to send tokens to Ilya for testing and expressed appreciation for the progress made in the meeting. [12:00]
+## Detailed summary
+
+    # Meeting Summary
+
+## Participants
+- Ilya
+- Ewa
+- Greg
+
+## Overview
+The meeting focused on discussing the development of a new version of a program that utilizes AI for transcribing and task management. Key topics included the verification of assets, the dashboard interface, and the proposal process for governance on the blockchain.
+
+## Key Points Discussed
+
+### 1. **AI Transcription and Task Management**
+- Ilya explained the process of using AI for transcribing discussions and converting them into tasks on GitHub.
+- The team is working on a second version of the program, which includes a dashboard interface.
+
+### 2. **Dashboard Interface**
+- Ewa emphasized the importance of the dashboard as the first impression for users.
+- Discussion on displaying total reserves of real-world assets, differentiating between verified and unverified assets.
+  - **Verified Assets**: Assets that have undergone due diligence and are accepted into the protocol.
+  - **Unverified Assets**: Early-stage assets that are not yet qualified but show potential.
+
+### 3. **Asset Verification Process**
+- The verification process is lengthy, often taking weeks or months.
+- Importance of building trust with asset owners and understanding legalities.
+- The dashboard should reflect the status of assets (verified vs. unverified) clearly.
+
+### 4. **User Cabinet and Due Diligence**
+- The idea of creating a user cabinet where users can manage their assets and proposals was discussed.
+- The due diligence process involves interaction between parties and requires a formal agreement before proposals are sent to the blockchain for validation.
+
+### 5. **Proposal Process**
+- Proposals need to be structured correctly and sent to validators for governance.
+- Validators play a crucial role in executing proposals on the blockchain.
+- The need for a template for proposals was highlighted.
+
+### 6. **Token Value and Reserves**
+- The dashboard should display the total reserves in USD and the value of assets in the protocol.
+- A pie chart representation was suggested to show the distribution of asset values.
+- Discussion on the importance of showing the ratio between total assets and minted tokens.
+
+### 7. **Stakeholder Distribution**
+- Each asset has stakeholders, and the blockchain allows for transparency in contracts.
+- A visual representation of stakeholder distribution was proposed.
+
+### 8. **NFTs and Token Structure**
+- The distinction between fungible tokens and non-fungible tokens (NFTs) was clarified.
+- NFTs represent shares of Special Purpose Vehicles (SPVs) and are tied to the equity structure of assets.
+- The process for minting NFTs requires due diligence to ensure legitimacy.
+
+### 9. **Future Steps**
+- The team plans to refine the dashboard and proposal processes.
+- The need for further brainstorming on contract signatures and the management of multiple steps in contracts was acknowledged.
+
+### 10. **Closing Remarks**
+- Ewa expressed appreciation for the progress made and the collaborative effort.
+- Ilya was encouraged to continue refining the concepts discussed.
+- The meeting concluded with plans for future communication and updates on progress.
+
+## Action Items
+- Finalize the dashboard design and functionality.
+- Develop a clear process for asset verification and proposal submission.
+- Create templates for proposals to be used by validators.
+- Continue discussions on the NFT minting process and stakeholder management.
+
+  
+  
+  
+    ## Highlights
+
+    > 00:03 Ilya Znachonok: Yes, so I provide next way to work with this stuff. So as you know every our world writing by AI in transcribing by AI. So when I open, Second version of our program and we will discuss it syncing about your words about what you want. So and we write all this and then I get take this transcription and Transforming it into tasks in Github.
+> 02:24 Ewa Siwinska: So despite you know despite of everything that I'm seeing now let's just conceptually you know review if we are kind of capturing that the essence. Yeah, so the first thing that came to my mind and somehow always is in back of my head. Is the total reserves that we have in the Audi cell. And let me explain what total what I mean by total reserves. So, we will have on our chain, basically two types of real world assets. And contracts. Some of them will be. Qualified already by dial detail.
+> 03:22 Ewa Siwinska: And these basically means that the asset assets went through, due diligence
+> 03:27 Ewa Siwinska: process, and there is an agreement of the value of the asset and And then there was some meaning of the assets, accordingly. yeah, so those assets for us are hard assets, We did a due diligence both on the assets and on the SPV.
+> 04:18 Ewa Siwinska: You know, initaka like we are doing these due diligence for the last three years. Let's say, and by the time, we are going to main at my expectation, is that I will be fully fully went through due to diligence process.
+> 05:11 Ewa Siwinska: And those will be like a new things that are entering into our chain. And definitely these value, the total value of those assets. Estimated value, these value would be kind of estimated value. So these value is important for the overall perception, but it cannot be mixed, you know, with the total value
+> 05:32 Ewa Siwinska: of the reserve because the quality and the trust is at the completely different level. Yeah. Now still they are important because showing the pipeline of new assets coming and new contacts coming. It's still important and it's showing the potential and new assets that will be entering into the daily chance process.
+> 08:05 Ewa Siwinska: other one would have a mark of verified. Yeah. So but the rest of the interface should be very similar in this sense. So so the entire system is coherent. Yeah. Now Remember also that like a process of due diligence, typically is a long process. Don't think about these process as something, which is taking like an hour's, a day, a day, or days, it is, it is most likely process that will take at least some weeks.
+> 09:19 Ewa Siwinska: And we are all also building like relationship with us at owners so we can understand, you know, the legalities and also understand who is behind these. Yes. So, because we need to, we need to build that level of trust. And at some point, you know, these due diligence process will conclude. Yeah,
+> 10:03 Ilya Znachonok: someone upload it's a file in Beam Server. Yeah. What if we create this process of due diligence in this cabinet of persona,
+> 11:52 Ewa Siwinska: Yes, let me clarify this Indra you know because this was something that I was also learning, you know over the last kind of months. How all these work? Yeah. So validators are extremely important and they are also skilled. When it comes
+> 19:03 Ewa Siwinska: Um, then the next one is let me think the next one. So, Once the user realize, you know, because the most important thing for the user
+> 19:27 Ewa Siwinska: You know, and remember that, there is this ongoing conversation. Now, how we are going to tide the emission of all these With the total value of the assets, right? So this ratio this ratio between the assets and the all these total, all these minted on chain is very important and I I think this should be maybe the second
+> 29:02 Ewa Siwinska: Okay, perfect. And then what is what is a below? Because you know, there was some some misunderstanding here about this independent tokens, you know, it's very important so they can't.
+> 34:00 Ewa Siwinska: And Indra India. I think I'm maybe just maybe you are forgetting one detail. Very important. You know, there is there is no way, we are going to allow people to meet and
+> 34:14 Ewa Siwinska: sell on our platform Nfts. Without us. Making due diligence of the asset. That's why, you know, that's why the the asset itself that and don't, don't let,
+> 34:31 Ewa Siwinska: let's not me mix. The contracts. And the asset itself. Let me give you an example like right now, let's assume that the Daca is not yet are did not yet. Pass due diligence process. So, despite of the fact that it didn't pass due diligent process, it is still allowed to create the contract, like the contract between myself Alfredo and
+> 34:56 Ewa Siwinska: Kama. In order to produce EFC files. And this contract is live on chain and it's working and it's fine and it will be cleared and paid and everything. That's a one thing, you know, that's a one thing. The completely different thing is by the time when the SPV needs to mint, they assets. That's a completely different story. And the moment of minting the asset is a moment, very important legally.
+> 35:55 Ewa Siwinska: Yeah, so so I I wanted to make that difference, you know, between contracts and us and assets which goes to our reserve. Because the contracts, you know, the asset which is not due diligence. Yet can
+> 41:32 Ewa Siwinska: to manage this project. So basically there is no other way to manage it, you need to build the company. If no, you know, you, you cannot even go to lender, you know, if you don't have like a company. So At some point. maybe not immediately, but some point of these journey, You need to do that step. and like, once you do this step legally, The only way. Are the only way you could. Issue something as a financial instrument.
+> 42:09 Ewa Siwinska: You have two type of financial instruments. One is equity,
+> 47:55 Ewa Siwinska: Okay. Yeah, this is important because we mean that part, you know, how you how
+
+  ## Transcript
+
+  00:00 Ilya Znachonok: So Greg. Listening.
+00:02 Ewa Siwinska: Yes.
+00:03 Ilya Znachonok: Yes, so I provide next way to work with this stuff. So as you know every our world writing by AI in transcribing by AI. So when I open, Second version of our program and we will discuss it syncing about your words about what you want. So and we write all this and then I get take this transcription and Transforming it into tasks in Github.
+00:37 Ewa Siwinska: Okay. Okay, cool.
+00:37 Ilya Znachonok: And then I can work with it meaningfully. Oh, so I'm open. Open the stuff, one second. So, do you see Dashboard?
+00:58 Ewa Siwinska: Not yet. Yes, now is coming.
+01:02 Ilya Znachonok: No, no. It's I I need to rerun program one minute, please.
+01:06 Ewa Siwinska: Yeah.
+01:42 Ilya Znachonok: So, do you see now? Okay.
+01:52 Ewa Siwinska: Yeah.
+01:54 Ilya Znachonok: So, it is a main page. And now in second version we have made
+01:54 Ewa Siwinska: so, Okay, so now let's think about these first, okay?
+02:03 Ilya Znachonok: Yeah.
+02:04 Ewa Siwinska: so, i, I think you correctly and rightly said, That. These was built as a first impression when the user is coming here. Yeah, he's
+02:21 Ilya Znachonok: Mm-hmm.
+02:21 Ewa Siwinska: coming to to these interface.
+02:24 Ilya Znachonok: Yeah.
+02:24 Ewa Siwinska: So despite you know despite of everything that I'm seeing now let's just conceptually you know review if we are kind of capturing that the essence. Yeah, so the first thing that came to my mind and somehow always is in back of my head. Is the total reserves that we have in the Audi cell. And let me explain what total what I mean by total reserves. So, we will have on our chain, basically two types of real world assets. And contracts. Some of them will be. Qualified already by dial detail.
+03:22 Ewa Siwinska: And these basically means that the asset assets went through, due diligence
+03:27 Ewa Siwinska: process, and there is an agreement of the value of the asset and And then there was some meaning of the assets, accordingly. yeah, so those assets for us are hard assets, We did a due diligence both on the assets and on the SPV.
+03:50 Ewa Siwinska: Who is actually issuing those assets? You know, and they this include like qyc etc, etc. Yeah, so we know that those
+03:56 Ilya Znachonok: I,
+03:58 Ewa Siwinska: assets are, welcome to dial the sale and also they could serve as a collateral. And that means that those assets will enter into the borrowing lending protocol. Yeah.
+04:12 Ilya Znachonok: This is a first type offices assets.
+04:14 Ewa Siwinska: This is a first type of the asset. And the good example is idaka.
+04:18 Ilya Znachonok: Mm-hmm.
+04:18 Ewa Siwinska: You know, initaka like we are doing these due diligence for the last three years. Let's say, and by the time, we are going to main at my expectation, is that I will be fully fully went through due to diligence process.
+04:39 Ewa Siwinska: And, you know, we coordinate the meeting. Yeah, and that would be the first asset that will belong to our reserves.
+04:47 Ilya Znachonok: Okay.
+04:48 Ewa Siwinska: Now. That they will be some assets. And those will not be yet qualified, so those are variety of assets, but think about them as from the very early stage like you could call them prospects.
+05:08 Ilya Znachonok: Yeah.
+05:11 Ewa Siwinska: And those will be like a new things that are entering into our chain. And definitely these value, the total value of those assets. Estimated value, these value would be kind of estimated value. So these value is important for the overall perception, but it cannot be mixed, you know, with the total value
+05:32 Ewa Siwinska: of the reserve because the quality and the trust is at the completely different level. Yeah. Now still they are important because showing the pipeline of new assets coming and new contacts coming. It's still important and it's showing the potential and new assets that will be entering into the daily chance process.
+05:59 Ewa Siwinska: Okay.
+06:00 Ilya Znachonok: Okay.
+06:01 Ewa Siwinska: so now, so while
+06:03 Ilya Znachonok: It's a Oh, I'm correctly. Understand that we have a verified assets and unverified assets.
+06:10 Ewa Siwinska: That's correct.
+06:10 Ilya Znachonok: Okay, so and it's a it's partly a realized now it's like if someone upload like a Building model and building like a this example like a cosmic tower. And well, if this model mmm, Verified by our internal team or even all of participants in blockchain. It can be as a First type of asset. But if someone upload file and this file unverified, it has a label like unverified but if it provides and so and what and verified asset should provide to to be verified,
+07:05 Ewa Siwinska: Yeah. So first of all the verification process by the way, if in terms of interface
+08:01 Ewa Siwinska: I think we should keep it as similar as possible. and only like a small marks, you know, like as you said, I'm verified Mark Maybe we'll be showing to the user that asset was not verified but and then the
+08:04 Ilya Znachonok: And back years.
+08:05 Ewa Siwinska: other one would have a mark of verified. Yeah. So but the rest of the interface should be very similar in this sense. So so the entire system is coherent. Yeah. Now Remember also that like a process of due diligence, typically is a long process. Don't think about these process as something, which is taking like an hour's, a day, a day, or days, it is, it is most likely process that will take at least some weeks.
+08:14 Ewa Siwinska: Sometimes even monks. Yeah. Well, yeah, yes, it would be exaggeration. Yeah, but is also true. It's also true that for instance
+08:18 Ilya Znachonok: Can ask questions.
+08:18 Ewa Siwinska: Sometimes there is a long period of time until the owners of the asset, create the company like, create SPV. So they might have a situation where for some months, they don't have a company yet, but assets are there, and at some point, you know, they will create the company. So, in this sense, it could take some months Yeah, so the entire process is is rather we need to think about this as rather long process.
+08:45 Ewa Siwinska: And this process is supported by information that will be loaded into beam in one hand. So that's our way of collecting information about the asset. Yeah. And and by the way, in many cases, we will be supporting like, that would be supporting asset owners to help them. Like doing that. Yeah. But at the end, that is this process of collecting information and as we are collecting information, we are increasing our understanding of the value of the assets.
+09:19 Ewa Siwinska: And we are all also building like relationship with us at owners so we can understand, you know, the legalities and also understand who is behind these. Yes. So, because we need to, we need to build that level of trust. And at some point, you know, these due diligence process will conclude. Yeah,
+09:41 Ewa Siwinska: with the final acceptation when when the number of people from the Audi 7 doors,
+09:51 Ilya Znachonok: Now in our second version, we have some kind of user cabinet. If you see the right side at the top, like a John Doe. And for example, if
+10:01 Ewa Siwinska: Yeah, it could be, you know, it could be actually is very attractive. Kind of
+10:03 Ilya Znachonok: someone upload it's a file in Beam Server. Yeah. What if we create this process of due diligence in this cabinet of persona,
+10:25 Ewa Siwinska: potential solution yet? I am still, I am still thinking if the final decision
+10:27 Ilya Znachonok: So forth. Yes. And for for realize this functionality, yeah, we need additional
+10:32 Ewa Siwinska: because there is you see that is a unformal process. which is happening like outside of the chain when people are speaking and they are like a fine tuning, the agreements And at the end they are like reaching some agreements and disagreements contain like some wording, maybe some beam files and then some, some type of kind of contract. Yeah. Where there is a commitment from both parties? And once once this is shaped once this is shaped then the the most The best way would be sending this as a proposal to the governance of the chain.
+11:17 Ewa Siwinska: and when the governance of the chain, When the proposal will pass, Then the, you know, then, whatever is inside of the proposal will take place. And the fans will be distributed and basically whatever it was agreed. It will be executed on chain. Yeah.
+11:42 Ilya Znachonok: call with developer who develops this proposals yesterday. I'm listening about it but I don't remember. He was chain tools with we discuss it or yeah.
+11:52 Ewa Siwinska: Yes, let me clarify this Indra you know because this was something that I was also learning, you know over the last kind of months. How all these work? Yeah. So validators are extremely important and they are also skilled. When it comes
+12:10 Ewa Siwinska: to the code related to the proposal. Yeah and because the validating many other
+12:11 Ilya Znachonok: Okay.
+12:17 Ewa Siwinska: chains, they basically learn, you know, with the time they learned how those templates work and what is the structure of the code that we need to have. Yeah.
+12:28 Ilya Znachonok: Yeah.
+12:29 Ewa Siwinska: And as far as I understand, depending on the type of the proposal, because there are several types of proposals, you might have like slightly different template.
+12:39 Ilya Znachonok: Mm-hmm.
+12:39 Ewa Siwinska: so, basically what we need to do is, you know, to kind of figure out with the validators, what the right, template for our proposal would be and then using
+12:50 Ilya Znachonok: Yeah, exactly.
+12:51 Ewa Siwinska: that code, That template and kind of sending that code, you know, from our application to the to the network, which play, which basically in in a, in a sense if you want,
+13:01 Ilya Znachonok: Yeah. Yeah.
+13:07 Ewa Siwinska: is nothing else but executing that caught on shame typically validators, you know, typically validators with the chains that don't have yet. A lot of functionality, what they do, they are taking this code and they are putting it in terminal and they are executing these from terminal. And then the proposal is appealing, starting appealing in the governance, top of our Explorer. Do you remember the explorer that I showed yesterday? Okay, so there is there is a kind of section where the new proposal will show up and then the voting will start.
+13:47 Ilya Znachonok: Okay, so it's not hard so and you correctly said that we need a template with code.
+13:54 Ewa Siwinska: Yes.
+13:54 Ilya Znachonok: so, when I have this template we right now, if you see, at left bottom side, we connect all the cell testnet and we connect with Kepler, and if we ought in our backend this, Code Templates With this proposals. We can do next thing that, for example, you Open this second version, when it will be deployed connect by your Kepler. and create this proposal in your cabinet and this proposal sent to validator and validator, Should see in Explorer, this proposal and validated. And, and if, if this operation but successful, he your transaction will be seeing blockchain and it's all
+14:54 Ewa Siwinska: Yeah, that's correct. That's absolutely correct. And maybe one comment, Let's
+14:56 Ilya Znachonok: No.
+14:58 Ewa Siwinska: just not forget that. Before we are sending these proposal to the network. That
+15:03 Ilya Znachonok: No.
+15:03 Ewa Siwinska: is interaction. Remember that part? And we need to think together, you know, where this interaction should take place because there will be interaction between people who are involved. In these and they will be, there will be kind of back and forth, back and forth, back and forth, until we will write a text. That is meaningful. And only, you know, only after these process that might take actually some time.
+15:30 Ewa Siwinska: And by the way, this process, I would say that should be even signed. By day Kepler's.
+15:39 Ilya Znachonok: Okay. Okay. Okay, I understand this pipeline. Yeah.
+15:39 Ewa Siwinska: Before the proposal is sent to the network for validation. Yeah.
+15:47 Ilya Znachonok: Yeah.
+15:49 Ewa Siwinska: A cool cool. So that that would be a beautiful. So then let's come back to the dashboard for the moment. So from this perspective, if we could come back to the dashboard for the second, Okay, so Token value. So, so what for you is inside of the token value,
+16:14 Ilya Znachonok: I see this in next way is that this is value in dollars of audio token.
+16:24 Ewa Siwinska: ah, yeah, so I think, I think that what we need to show here is our reserve
+16:32 Ilya Znachonok: Okay.
+16:33 Ewa Siwinska: And our reserve. And and by the way another comment is is good that you actually show the value in dollars. This is, this is right to do Even though we were always saying that we also need to show the value in all these because we are making that brand. You know, we are building brand around all these and because we we want to expose all these but the contracts, you know, the majority of the contracts between people when they will be signed, they are typically signed in stable coin even though you show the value also in
+17:06 Ilya Znachonok: Know. Yeah.
+17:09 Ewa Siwinska: all these
+17:10 Ilya Znachonok: No.
+17:10 Ewa Siwinska: Yeah. So I would say that the first one should be like a total reserves. I would
+17:11 Ilya Znachonok: Mm-hmm.
+17:16 Ewa Siwinska: put here Totally reserves.
+17:19 Ilya Znachonok: Okay.
+17:22 Ewa Siwinska: Yeah.
+17:23 Ilya Znachonok: Yeah.
+17:24 Ewa Siwinska: By the way, I have a name for for this concept because there will be inside of something. We call those protocol. Yeah, there's always protocol will be the one that will protect the reserves.
+17:39 Ilya Znachonok: so, okay on in this, Component, we can show. this reserve on these years protocol and if someone click on this company now it's only Get some funny effect. When we move our mouse on this component, but we can do it. Clickable, and when someone click on this component, it can see what happens in their protocol. For example,
+18:13 Ewa Siwinska: Yes, yes, exactly. Exactly. That's the case Indra. And the first thing they should see, Is I will tell you what is a pie chart, you know, the pie chart, right? So the
+18:23 Ilya Znachonok: Okay.
+18:25 Ewa Siwinska: pie chart and the pie chart will show the portion of the value which is directly tied to the assets. And so they clearly will see 50% or let's say. 60% are assets hard assets? Then maybe 30% is a value of all these that are also hold in these reserves. And then some stable coins. That will be also held in these reserves and they will see it in Dubai.
+18:57 Ilya Znachonok: Okay. In Pie Chart.
+19:00 Ewa Siwinska: In Pie Chart.
+19:01 Ilya Znachonok: Okay.
+19:03 Ewa Siwinska: Um, then the next one is let me think the next one. So, Once the user realize, you know, because the most important thing for the user
+19:16 Ewa Siwinska: and for any like, a joiner of the protocol will be to realize that our all these is like, well backed.
+19:26 Ilya Znachonok: Yeah.
+19:27 Ewa Siwinska: You know, and remember that, there is this ongoing conversation. Now, how we are going to tide the emission of all these With the total value of the assets, right? So this ratio this ratio between the assets and the all these total, all these minted on chain is very important and I I think this should be maybe the second
+19:52 Ewa Siwinska: one.
+19:53 Ilya Znachonok: Okay.
+19:56 Ewa Siwinska: Yeah.
+19:57 Ilya Znachonok: Yeah, yeah. So we write all what you say. So okay, everything what you want
+20:00 Ewa Siwinska: That I
+20:02 Ilya Znachonok: because for me, for me, it's okay.
+20:05 Ewa Siwinska: Gain, you know, again you could use the same type of presentation because behind that will be the pie chart.
+20:11 Ilya Znachonok: Yeah, we can input here. Any mechanic. It's it's a, it's a, it's a first my
+20:12 Ewa Siwinska: Be behind again, will be pie chart and the pie chart will be set showing look. Like this is the value of of the assets and this is the whole value of all all these, which were minted. So the current supply Yeah. Then the next one I think Price is okay. I think this is very good. I think price of all these should be definitely here. And then I am also thinking like the next one staking rewards, like, let me think.
+20:52 Ilya Znachonok: idea. What? What should what? Can be here state like a staking of audience. But we can provide any mechanic
+21:01 Ewa Siwinska: yeah, I think you are right in the sense that here we should we should present Like our AP API. So you know because in general, the protocol has some API when
+21:10 Ilya Znachonok: Mm-hmm.
+21:14 Ewa Siwinska: the people are taking to the protocol, they are getting API. So the API we could show
+21:23 Ilya Znachonok: Yeah, it's it's Not hard.
+21:27 Ewa Siwinska: Perfect now. Uh, okay. What else we are seeing? We are seeing on the left. Then these visualizer, right
+21:37 Ilya Znachonok: Yeah.
+21:38 Ewa Siwinska: Like visualize it of the asset. Now, the the question.
+21:41 Ilya Znachonok: Yeah. Yeah. For example, if Human comes to our program and took a nice, it's AFC file it. can be shown in our dashboard for anyone who comes to our program, for example, you upload or you tokenize your plot and When our program will be deployed and I come to our web app. I see that you deploy. You recognize your Plot and I can potentially provide liquidity to your building, you know.
+22:21 Ewa Siwinska: Mm-hmm. Yes, yes, this is beautiful now and try to try to clarify for me one thing because when we are coming to this screen you know this is the letter like landing page. So when we come to the screen we are now seeing only one. Let's
+22:33 Ilya Znachonok: You know.
+22:38 Ewa Siwinska: say one concrete file. Let's say we are pointing out one concrete real word asset, how we are going to select? Which one we are going to present at the beginning.
+22:51 Ilya Znachonok: I think in the future, it will be in. In the in the next way, that for example, you upload this file in 1234, and that, and then another human and Your?
+23:14 Ewa Siwinska: I have an idea, Indra. I have an idea, already. Let's make it very simple. Now, as you as you suggest, Yeah, because we need to kind of show people how these,
+23:23 Ilya Znachonok: You know.
+23:26 Ewa Siwinska: how we are seeing these working. So maybe we we take a easy route.
+23:28 Ilya Znachonok: Yeah.
+23:33 Ewa Siwinska: And we show here hot asset.
+23:35 Ilya Znachonok: Yeah, I'm thinking about it. Yeah. Like this.
+23:39 Ewa Siwinska: Hot Asset. The asset that is now like maybe it is a It is just you know probably it is. Now let's say searching for liquidity. Yeah so these asset that we will
+23:51 Ilya Znachonok: Yeah.
+23:52 Ewa Siwinska: select, you know whatever simple logic. We will put there and then we will show these asset.
+23:59 Ilya Znachonok: Yeah, and we can provide additional advertising logic for People who want promote their assets. so, for example, if someone provides to download the serial additional, $1,000, it can be in in hot assets, for example, No.
+24:19 Ewa Siwinska: Ah okay. That you mean you mean that let's say like a easy for people like the people are saying Okay I want to put 1000 where it will go. It will go to the
+24:24 Ilya Znachonok: Yeah. Yeah.
+24:29 Ewa Siwinska: hot asset.
+24:30 Ilya Znachonok: No it's it's like an idea but it's not final idea, you know? So
+24:33 Ewa Siwinska: Okay, no fine but it's good idea in the I think it is. Good idea because we need
+24:38 Ilya Znachonok: No.
+24:40 Ewa Siwinska: to think about all type of users. So we will have some users that will not think
+24:42 Ilya Znachonok: Yeah.
+24:44 Ewa Siwinska: too much and there are some users that will will want to kind of select exactly what they want to do, right.
+24:51 Ilya Znachonok: Yeah.
+24:52 Ewa Siwinska: Ah, now I understand that on the right side, we have a AI agent and the AIA agent will be connected. In this case with directly, I would say, with this hot asset in principle, you know, I would
+25:06 Ilya Znachonok: We, we can code it but right now it's connected with This concrete class and now instance, of this class is This is Tower Tower. So now we in our program, we have real estate files with this real power but that
+25:33 Ewa Siwinska: Yeah.
+25:35 Ilya Znachonok: tower is not real, but if he's real. So and this agent connected to this,
+25:37 Ewa Siwinska: Yes.
+25:44 Ilya Znachonok: Class and analyze this class instance, and every element in this instance. So so now it connects directly to classes in file. and then,
+25:58 Ewa Siwinska: And that beautiful and Indra. I think that's beautiful. And in our first version we will hard code this and connect these with the asset. That is already kind of unchained, you know, we will connect this with a daca file and we can hardcode it for the moment then then we will think how to, you know how to improve that. But as a starting point because we want to showcase so the showcase should be based on our real files. So the first real files will come from Alfredo.
+26:33 Ewa Siwinska: For the terrain. And then on top of these ones, once we have these changes, you know, the last changes on the design. So then we will construct these new IFC files for our villas.
+26:47 Ilya Znachonok: Yeah. Okay so when we have this ESA files, we can upload in our program in this version too and analyze this file by our beam agent. even without Connected to Blockchain, we want. We can we need first, we need just test this functionality, do this agent correctly, analyzes EFT file, in Beam server. And
+27:14 Ewa Siwinska: Yes.
+27:20 Ilya Znachonok: one more thing that even that we have backend logic for this team server connection, because this Second version. Are prepared to connect to this beam server, but we need credentials. like,
+27:39 Ewa Siwinska: Yes, I know I I owe you credentials, I know this, you know, there's so many things that are happening, but but I think you are doing very well. That right
+27:45 Ilya Znachonok: Spongebob.
+27:48 Ewa Siwinska: now, you are kind of testing concept even with the local file and at some point,
+27:52 Ilya Znachonok: Yeah.
+27:53 Ewa Siwinska: we will kind of connect these with the being server. Yeah. So so I think
+27:56 Ilya Znachonok: so,
+27:56 Ewa Siwinska: everything is perfect. Now if you scroll down, if you scroll down, what you have is, listen, Actions. I think this is perfect and then stakeholder distribution. Tell me about this. This is cool. Like What do you thought here?
+28:15 Ilya Znachonok: in every Asset. We have a stakeholders and Blockchain is a open source entity and we can click on every contract and see every stakeholder in every contract. And for example, you can be a stakeholder in different contracts. You can provide your liquidity, not on only one contract, but maybe one, one buildings in the world.
+28:42 Ewa Siwinska: Perfect. So Yes, yes, perfect. So, so are you imagining here? Are you imagining here in
+28:46 Ilya Znachonok: so, yeah, and we can
+28:50 Ewa Siwinska: these? Quadrant like another pie maybe a pie and then you see distribution.
+28:57 Ilya Znachonok: Yeah, no. Yeah, I can imagine in and if you want it, we can do it.
+29:02 Ewa Siwinska: Okay, perfect. And then what is what is a below? Because you know, there was some some misunderstanding here about this independent tokens, you know, it's very important so they can't.
+29:13 Ilya Znachonok: it's like,
+29:15 Ewa Siwinska: The current, you know, the current structure of the tokens is that we have two type of tokens. You remember? We have like a general, all these fungible and then we have a basically like nfds And the nfds are unique why they are unique, because they are representing shares. Of STDs. So in this sense they are independent, they are non-fangible. And they are always tired to the structure of the equities of the SPV. So, for instance, the Spvs issuing 100 nfts of Class A
+29:52 Ilya Znachonok: Mm-hmm.
+29:53 Ewa Siwinska: And this class has list of rights and obligations. Yeah. And of course because nfds are unique. So in this sense they are unique for this assets and unique for these SPV, then maybe SPV has another asset. And they are meeting another NFTS, which are, you know, different than MPs for different asset. And again, there is a class structure of those equities and then you have like a Second STV completely different project, which is also meeting NFTS, right? So each of those nfds is a specific NFD by nature of the NFD. So NFD is unique.
+30:32 Ewa Siwinska: and what we know about these NFT is that it was minted by SPV But given SPV and, you know, and we need to know it because the SPV needs to be kyc. So We just pv mintet and then which class of the equity it is. And then Like a small place where we can see rights and obligations something very simple text, you know, it could be text.
+31:00 Ewa Siwinska: so I am thinking if these popular tokens concept, Is actually, maybe maybe this. Maybe. Maybe it is like Nfd, should be here.
+31:10 Ilya Znachonok: Yeah. Okay, so for example, I'm an owner of Cosmic Tower I, Can mint. My. class in this year file from this year file as Nft by others, now.
+31:33 Ewa Siwinska: so first of all, the another comment it is related to the general structure, how it work, when someone is actually providing the asset and when the asset is endorsed by governance,
+31:47 Ilya Znachonok: Yeah.
+31:50 Ewa Siwinska: and it is an asset where there is already an agreement on the value and to use it as a collateral in our Reserve. so, By then. The owner is gaining the rights to to mint. Nfts. and also, by that time, he will receive A certain amount of all these and this will be processed by these proposal. So in the proposal you will see that you know outside from these 50 million tokens. He will receive some all these in terms of compensation for parking the asset.
+32:32 Ewa Siwinska: In our reserve, From that moment onward. He's gaining the ability. To start minting nfts, which are equities of this asset.
+32:47 Ilya Znachonok: M. In my vision, I see that this process. of meeting NFT should be a little bit easier because Imagine. For example, first human need to be an owner of land Second. He should create or find or ask someone to create this efc file, it's not easy process, okay? Then even then, Found our platform. Come here uploaded. Okay. And when upload, for example, this cosmic tower here, owner of Cosmic Tower and okay, he Sees this plot of his cosmic tower in our interface and then should be more easier. For example, MMM means this NFC nf there with this 3D model I in in the moment of multi-seagram transaction.
+33:59 Ilya Znachonok: and then,
+34:00 Ewa Siwinska: And Indra India. I think I'm maybe just maybe you are forgetting one detail. Very important. You know, there is there is no way, we are going to allow people to meet and
+34:14 Ewa Siwinska: sell on our platform Nfts. Without us. Making due diligence of the asset. That's why, you know, that's why the the asset itself that and don't, don't let,
+34:23 Ilya Znachonok: Okay.
+34:31 Ewa Siwinska: let's not me mix. The contracts. And the asset itself. Let me give you an example like right now, let's assume that the Daca is not yet are did not yet. Pass due diligence process. So, despite of the fact that it didn't pass due diligent process, it is still allowed to create the contract, like the contract between myself Alfredo and
+34:56 Ewa Siwinska: Kama. In order to produce EFC files. And this contract is live on chain and it's working and it's fine and it will be cleared and paid and everything. That's a one thing, you know, that's a one thing. The completely different thing is by the time when the SPV needs to mint, they assets. That's a completely different story. And the moment of minting the asset is a moment, very important legally.
+35:26 Ewa Siwinska: Because you need to make sure that these SPV exists qyc is there. And the person is typically organization, not the person, typically, it's organization. And that organization is entitled to do that. Yeah. Otherwise we, we might have on chain, not legit assets. Which we don't want to see.
+35:54 Ilya Znachonok: Okay. Continue. Please.
+35:55 Ewa Siwinska: Yeah, so so I I wanted to make that difference, you know, between contracts and us and assets which goes to our reserve. Because the contracts, you know, the asset which is not due diligence. Yet can
+36:11 Ewa Siwinska: perfectly entered into our chain. That's fine. It will it will. It will be living on our chain.
+36:18 Ilya Znachonok: I'm
+36:18 Ewa Siwinska: Even even even I I can give you if you want a credit for is possible even to mean the NFT but then we would need to show that these NFD is not verified. You know, because we don't want this NFT. I'm verified Nfd to be solved. Yeah. Yeah, so so basically, at this stage, when the assets are not very fine, they uses the users can steal interact with with the platform.
+36:52 Ewa Siwinska: In virtue of creating and managing contracts. And that is, okay, that is perfectly, okay. We are just not allowing them yet to meet the equities.
+37:08 Ilya Znachonok: I need to thinking more about it because in, for now, Mmm, for me little bit hard to connect. All our functionality. And Nfts.
+37:25 Ewa Siwinska: And is possible, Indra is possible that, you know, it's possible that we need to kind of mentally fine-tune that. So we need to give us, you know, some hours,
+37:32 Ilya Znachonok: No.
+37:34 Ewa Siwinska: maybe a couple of days and and kind of thinking about these like once and again, and again. So we will find tune that model, you know, at this stage I think between you and
+37:43 Ilya Znachonok: Okay.
+37:46 Ewa Siwinska: me because you are like a key person as well here. So is good that we have this conversation and intellectually we can you know, grasp all the aspects. Yeah. As we are as we are building these um, I see everything. You did. I see perfect. I I don't have any problem with what is done so far. Yeah, then I see that. You have a contract. Also on, on the, on the bottom part. So if we go to contracts, Okay, perfect. So here we are basically seeing the contracts.
+38:27 Ilya Znachonok: Yeah, for example, with property cosmic tower nexus apartments and so on.
+38:30 Ewa Siwinska: Yes. Yes, and then token symbol and when the token symbol you know, token symbol here in reality. Is you know that NFT is NFD. You know we say not that token is you you can't call it like all these all this is a fungible token so you will have basically
+38:48 Ilya Znachonok: Okay.
+38:50 Ewa Siwinska: an NFD which is tired. To this, yeah. Then value value in USD is okay, and maybe value in all these, it will be very nice as well. Just just because we want to promote all these, you know, just remember that. We were saying that This is our brand, we want all these to be promote. All this will be used is a utility token. Yes, so pricing all this is also very welcome.
+39:23 Ewa Siwinska: Then stay to see. It's okay, it's perfect. Created is perfect. And then actions, This is perfect. You know, like you are brilliant. I don't know what to say.
+39:32 Ilya Znachonok: So yeah, and if we choose like a cosmic tower project, we can see details of this code contract.
+39:38 Ewa Siwinska: Oh, beautiful. Beautiful just
+39:39 Ilya Znachonok: no, no, no contract ID and no, you can see all
+39:45 Ewa Siwinska: Yeah. Yeah, let me think about these token symbol how we could because it's cool, you know, it's cool. But it's cool. It's very cool. And look, I have an idea. I have
+39:53 Ilya Znachonok: No.
+39:58 Ewa Siwinska: an idea. Because do you remember that? I said that. The asset. Is tired to the equities and the equities are shares in the SPV, right? And shares are typically of certain class. You know in the traditional world you have a Class A Class B class C. Yeah so in essence for me the token symbol here would be the class Of the equities. So these would be like a shares class A, or a class. Shares.
+40:37 Ilya Znachonok: Mmm, I understand your your position but I think we need little bit brainstorms. This more because token symbol is a like a super advertising thing. And if someone sing okay, I have a building and I can create unique Token of my building. Okay like if you can create NFT okay but if my building been like asset with a talk and is more how to say, more more interesting for landlords,
+41:12 Ewa Siwinska: Yeah, well, well, thank you. You need to remember how this works, how these business works in reality. I don't dream, don't forget the reality or outside in the outside world, you know, reality the outside world is that In order to you to kind of manage these like, you are developer. Yeah, you want
+41:32 Ilya Znachonok: So, and okay. And and we can we see
+41:32 Ewa Siwinska: to manage this project. So basically there is no other way to manage it, you need to build the company. If no, you know, you, you cannot even go to lender, you know, if you don't have like a company. So At some point. maybe not immediately, but some point of these journey, You need to do that step. and like, once you do this step legally, The only way. Are the only way you could. Issue something as a financial instrument.
+42:09 Ewa Siwinska: You have two type of financial instruments. One is equity,
+42:15 Ewa Siwinska: That's the name. Like Remember this name? Because this is the way it is actually called in the traditional, you know, World. And the equities. Are shares in the company. So this is, this is your way, you know, like you are selling shares of these company. So, those shares. In the traditional world, they have structure and we need to replicate somehow the structure. You know, you could assume that the structure is of only one class. Imagine that there is only one class therefore you have only one type of tokens, right? And which by the way, like, long-term never works. There are always different classes of the equities, but let's start with first one, you have this equities and then you need to give the structure of the equities. Meaning how many shares you are issuing? Let's say 100.
+43:10 Ewa Siwinska: so, those are 100 shares and each share is equal to the other but unique So if you think about these in terms of tokens, those necessarily are non-fangible tokens. You can't divide them. There are no known fungible.
+43:38 Ilya Znachonok: This, as total value, provided in this non-fangible token.
+43:44 Ewa Siwinska: Yes. Yes because yes of course of course because you know behind that asset the equities is basically the representation of the rights. Of the asset.
+43:55 Ilya Znachonok: Okay. Well, you know, of course because we have human
+43:55 Ewa Siwinska: Like the person who has equity, is the person who will be, you know, even gaining in the future, when the property will be rented or something. So, equities are typically the rights. To participate in these assets. And that's why I was saying that each class typically is associated with rights. And obligations. Because you always have rights and obligations. Do you understand why? Okay. Okay okay okay cool. So so basically the token symbol, the token symbol could be the symbol, I still don't, you know, I still don't know how we are going to managing those symbols but behind, you know, behind the symbol. At the end, you will have equity structure.
+44:43 Ewa Siwinska: And this equity structure is basically the number of nfts and and you could organize them typically, you would organize them under classes. That's why I would, you know, I would love to see here something like, you know these typically typical mass like class And you see like a class, A or class whatever. You know, we could call them four letters and we could call them token symbol. That's fine, that's fine.
+45:12 Ilya Znachonok: Oh okay, okay okay yeah, yeah. So I get it.
+45:13 Ewa Siwinska: Yeah. Yeah but then but then what you have is like a plus. And then you expect you
+45:16 Ilya Znachonok: oh,
+45:21 Ewa Siwinska: expand the plus and then you will see all the all the nfts that were minted because those are shares.
+45:29 Ilya Znachonok: so,
+45:29 Ewa Siwinska: And they can go, they can go to different people.
+45:34 Ilya Znachonok: Okay, I need to thinking about it, but but I think I should understand this
+45:36 Ewa Siwinska: Okay.
+45:40 Ilya Znachonok: concept.
+45:40 Ewa Siwinska: Okay, perfect, perfect. Uh, token value token value. That's total value. I think that's okay, perfect. Perfect. These token tokens supply. Well we would need to express these token supply, a little bit differently but that's still fine. And then the price of each NFT that's also fine, you know, price of the let's say each token class, that's also fine, creation date. And then the blockchain,
+46:03 Ilya Znachonok: Yeah.
+46:05 Ewa Siwinska: everything is fine. You know, I I'm just surprised like Indra, like how you could do it. That perfect. I just
+46:13 Ilya Znachonok: no, because I spent near 60 hours on this,
+46:18 Ewa Siwinska: By the way, by the way. I, I know Indra that so so far, you know, all these are on the testnet, but we, we want to give them some value when we go to Mainnet. So please give me your address. You all these address on the test, that I will send you some all these tokens
+46:35 Ilya Znachonok: previously someone from our chat from IT development send me 75 tokens of but by
+46:41 Ewa Siwinska: Yeah, but I will send you more.
+46:44 Ilya Znachonok: they don't have
+46:46 Ewa Siwinska: They will they will they will they will because when we are going to go mainnet, Indra the way we are going to do it is we are going to list all the addresses. And you know validators, they will have some tokens and then you know we will have some tokens score, team will have some tokens and for each of those tokens we will give give tokens on Mainnet.
+47:10 Ilya Znachonok: Okay, so okay, of course, thank you, thank you, thank you, Greg. And oh, Thank you. Yeah, so let's continue.
+47:19 Ewa Siwinska: But but of course, I need to send you. Also something for living. Yeah.
+47:23 Ilya Znachonok: Yeah, exactly.
+47:25 Ewa Siwinska: Okay.
+47:26 Ilya Znachonok: Yeah.
+47:27 Ewa Siwinska: so, No, so that's it. I think for today's more than, you know, because I am checking now is one o'clock and I need to run now, I like six hours of driving is in front of me now.
+47:40 Ilya Znachonok: Yeah. Oh So I understand you, okay? So last thing that about contract signatures we can we see? This is a small, DC functionality of
+47:53 Ewa Siwinska: Uh-huh.
+47:54 Ilya Znachonok: so, And we see.
+47:55 Ewa Siwinska: Okay. Yeah, this is important because we mean that part, you know, how you how
+47:59 Ilya Znachonok: Yeah.
+47:59 Ewa Siwinska: you want to manage these, several steps in the contract because in the contract, you will have like a several steps. You know, like a contract half steps.
+48:08 Ilya Znachonok: Yeah, yeah. I I should brainstorming this part.
+48:13 Ewa Siwinska: Okay, cool. Indra.
+48:14 Ilya Znachonok: Because it's a third step in this roadmap.
+48:18 Ewa Siwinska: Okay. Okay cool, let's be in touch. I will write you later when I reach the
+48:18 Ilya Znachonok: because, you know,
+48:23 Ewa Siwinska: news, okay.
+48:24 Ilya Znachonok: Yeah, so maybe I can send you my autumn number or what?
+48:28 Ewa Siwinska: Yes, yes, send me, send me.
+48:31 Ilya Znachonok: Thank you, same business.
+48:32 Ewa Siwinska: Okay. Okay.
+48:33 Ilya Znachonok: so I can have a good trip to to win us to to Bella Rose because it's so extremely way and be aware because much people go to builders and don't return make
+48:50 Ewa Siwinska: No, don't tell me this please. I mean
+48:53 Ilya Znachonok: Means. So, for example, if I'm back to Belarus, I have a death penalty, death penalty, you know,
+48:59 Ewa Siwinska: Yeah, but I am fine. I don't I
+49:02 Ilya Znachonok: Yeah, you're not a political activist.
+49:04 Ewa Siwinska: Okay, cool. Thank you and have a nice day.
+49:07 Ilya Znachonok: And yeah.
+49:10 Ewa Siwinska: Bye-bye.
+49:11 Ilya Znachonok: My.
+  

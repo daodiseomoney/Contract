@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}BIM AI Management Dashboard{% endblock %}
+{% block title %}Daodiseo - Real Estate Tokenization Dashboard{% endblock %}
 
 {% block extra_css %}
 <!-- Enhanced Chat CSS -->
@@ -15,7 +15,7 @@
             <div class="card stats-card">
                 <div class="card-body">
                     <div class="card-value">15,811.04</div>
-                    <div class="card-title">Token Value</div>
+                    <div class="card-title">Token Value <span class="badge bg-info ms-1">ODIS</span></div>
                     <div class="wave-visual"></div>
                     <div class="card-icon info">
                         <i data-feather="dollar-sign"></i>
@@ -26,8 +26,8 @@
         <div class="col">
             <div class="card stats-card">
                 <div class="card-body">
-                    <div class="card-value">$8,126.50</div>
-                    <div class="card-title">Total Investment</div>
+                    <div class="card-value">$38,126.50</div>
+                    <div class="card-title">Total Reserves <span class="badge bg-secondary ms-1">USD</span></div>
                     <div class="wave-visual"></div>
                     <div class="card-icon secondary">
                         <i data-feather="trending-up"></i>
@@ -38,8 +38,8 @@
         <div class="col">
             <div class="card stats-card">
                 <div class="card-body">
-                    <div class="card-value">$37.40</div>
-                    <div class="card-title">Token Price</div>
+                    <div class="card-value">9.5%</div>
+                    <div class="card-title">Staking APY <span class="badge bg-success ms-1">Yearly</span></div>
                     <div class="wave-visual"></div>
                     <div class="card-icon warning">
                         <i data-feather="activity"></i>
@@ -51,7 +51,7 @@
             <div class="card stats-card">
                 <div class="card-body">
                     <div class="card-value">0.318</div>
-                    <div class="card-title">Staking Rewards</div>
+                    <div class="card-title">Daily Rewards <span class="badge bg-info ms-1">ODIS</span></div>
                     <div class="wave-visual"></div>
                     <div class="card-icon success">
                         <i data-feather="award"></i>
@@ -62,49 +62,35 @@
     </div>
 
     <div class="row g-4">
-        <!-- BIM Viewer Panel -->
-        <div class="col-lg-7">
+        <!-- Asset Distribution Panel -->
+        <div class="col-lg-5">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title">
-                        <i data-feather="box" class="icon-inline"></i>
-                        3D Building Model
+                        <i data-feather="pie-chart" class="icon-inline"></i>
+                        Asset Distribution
                     </h5>
-                    <div class="card-actions">
-                        <a href="/viewer" class="btn btn-sm btn-outline-info">
-                            <i data-feather="maximize-2" class="icon-inline-sm"></i>
-                            Full View
-                        </a>
+                    <div class="card-subtitle">Verified vs Unverified Assets</div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="asset-distribution-chart"></canvas>
                     </div>
-                </div>
-                <div class="card-body p-0">
-                    <div id="mini-viewer-container" class="bim-viewer-mini"></div>
-                </div>
-                <div class="card-footer">
-                    <div class="model-info">
-                        <div class="model-name">Cosmic Tower Project</div>
-                        <div class="model-meta">
-                            <span class="model-meta-item">
-                                <i data-feather="layers" class="icon-inline-sm"></i>
-                                17 Stories
-                            </span>
-                            <span class="model-meta-item">
-                                <i data-feather="square" class="icon-inline-sm"></i>
-                                25,000 m²
-                            </span>
-                            <span class="model-meta-item text-success">
-                                <i data-feather="check-circle" class="icon-inline-sm"></i>
-                                Verified
-                            </span>
+                    <div class="d-flex justify-content-between mt-3">
+                        <div class="text-center">
+                            <div class="small text-muted">Verified Assets</div>
+                            <div class="fw-bold text-success">$24,250,000</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="small text-muted">Unverified Assets</div>
+                            <div class="fw-bold text-warning">$13,876,500</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- AI Chat Panel -->
-        <div class="col-lg-5">
-            <div class="card">
+            
+            <!-- AI Assistant Panel -->
+            <div class="card mt-4">
                 <div class="card-header">
                     <h5 class="card-title">
                         <i data-feather="message-circle" class="icon-inline"></i>
@@ -114,6 +100,62 @@
                 </div>
                 <div class="card-body">
                     <div id="ai-chat-container" class="chat-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hot Asset Panel -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">
+                            <i data-feather="zap" class="icon-inline text-warning"></i>
+                            Hot Asset Seeking Liquidity
+                        </h5>
+                        <div class="card-subtitle">Verified Asset with Due Diligence Complete</div>
+                    </div>
+                    <span class="badge bg-success px-3 py-2">VERIFIED</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="mini-viewer-container" class="bim-viewer-mini"></div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="model-info">
+                                <div class="model-name">Cosmic Tower Project</div>
+                                <div class="model-meta">
+                                    <span class="model-meta-item">
+                                        <i data-feather="layers" class="icon-inline-sm"></i>
+                                        17 Stories
+                                    </span>
+                                    <span class="model-meta-item">
+                                        <i data-feather="square" class="icon-inline-sm"></i>
+                                        25,000 m²
+                                    </span>
+                                    <span class="model-meta-item">
+                                        <i data-feather="map-pin" class="icon-inline-sm"></i>
+                                        Future City
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#investModal">
+                                <i data-feather="dollar-sign" class="icon-inline-sm"></i>
+                                Invest Now
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small>Funded: $1,625,000</small>
+                        <small>Target: $2,500,000</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -141,7 +183,7 @@
                                 <i data-feather="check-circle"></i>
                             </div>
                             <div class="transaction-details">
-                                <div class="transaction-title">Property Tokenization</div>
+                                <div class="transaction-title">Property Tokenization <span class="badge bg-success">VERIFIED</span></div>
                                 <div class="transaction-meta">
                                     <span class="transaction-address">0x71C...9E3f</span>
                                     <span class="transaction-time">2 hours ago</span>
@@ -154,7 +196,7 @@
                                 <i data-feather="file-text"></i>
                             </div>
                             <div class="transaction-details">
-                                <div class="transaction-title">Contract Signature</div>
+                                <div class="transaction-title">Contract Signature <span class="badge bg-warning">PENDING</span></div>
                                 <div class="transaction-meta">
                                     <span class="transaction-address">0x31F...7A2c</span>
                                     <span class="transaction-time">5 hours ago</span>
@@ -167,7 +209,7 @@
                                 <i data-feather="refresh-cw"></i>
                             </div>
                             <div class="transaction-details">
-                                <div class="transaction-title">Token Transfer</div>
+                                <div class="transaction-title">Token Transfer <span class="badge bg-success">VERIFIED</span></div>
                                 <div class="transaction-meta">
                                     <span class="transaction-address">0x94B...2D5a</span>
                                     <span class="transaction-time">1 day ago</span>
@@ -180,7 +222,7 @@
                                 <i data-feather="upload"></i>
                             </div>
                             <div class="transaction-details">
-                                <div class="transaction-title">Document Upload</div>
+                                <div class="transaction-title">Document Upload <span class="badge bg-warning">UNVERIFIED</span></div>
                                 <div class="transaction-meta">
                                     <span class="transaction-address">0x67D...3F1b</span>
                                     <span class="transaction-time">2 days ago</span>
@@ -198,7 +240,7 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title">
-                        <i data-feather="pie-chart" class="icon-inline"></i>
+                        <i data-feather="users" class="icon-inline"></i>
                         Stakeholder Distribution
                     </h5>
                 </div>
@@ -209,39 +251,180 @@
                 </div>
             </div>
             
-            <!-- Tokens Section -->
+            <!-- Validators Section -->
             <div class="card mt-4">
                 <div class="card-header">
                     <h5 class="card-title">
-                        <i data-feather="disc" class="icon-inline"></i>
-                        Popular Tokens
+                        <i data-feather="shield" class="icon-inline"></i>
+                        Active Validators
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="token-list">
+                    <div class="validator-list">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="token-circle blue">M</div>
+                            <div class="token-circle info">V</div>
                             <div class="flex-grow-1">
-                                <div class="fw-bold">MBIA Fractals</div>
-                                <div class="small text-muted">Connetoc Aerodiscogray</div>
+                                <div class="fw-bold">Validator Node 1</div>
+                                <div class="small text-muted">5 proposals pending</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-center mb-3">
-                            <div class="token-circle pink">B</div>
+                            <div class="token-circle secondary">V</div>
                             <div class="flex-grow-1">
-                                <div class="fw-bold">BDR RUh Testspin</div>
-                                <div class="small text-muted">NTlu Cbspicma</div>
+                                <div class="fw-bold">Validator Node 2</div>
+                                <div class="small text-muted">3 proposals pending</div>
                             </div>
                         </div>
                         <div class="d-flex align-items-center">
-                            <div class="token-circle yellow">D</div>
+                            <div class="token-circle success">V</div>
                             <div class="flex-grow-1">
-                                <div class="fw-bold">DIG feint EGS</div>
-                                <div class="small text-muted">Dit Nercsem</div>
+                                <div class="fw-bold">Validator Node 3</div>
+                                <div class="small text-muted">1 proposal pending</div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Investment Modal -->
+<div class="modal fade" id="investModal" tabindex="-1" aria-labelledby="investModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-info">
+            <div class="modal-header border-info">
+                <h5 class="modal-title" id="investModalLabel">
+                    <i data-feather="dollar-sign" class="icon-inline text-info"></i>
+                    Invest in Cosmic Tower Project
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="investmentAmount" class="form-label">Investment Amount (ODIS)</label>
+                    <input type="number" class="form-control bg-dark text-light border-info" id="investmentAmount" placeholder="Enter amount">
+                </div>
+                <div class="mb-3">
+                    <label for="walletAddress" class="form-label">Wallet Address</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-dark text-light border-info" id="walletAddress" value="0x71C...9E3f" readonly>
+                        <button class="btn btn-outline-info" type="button">
+                            <i data-feather="copy" class="icon-inline-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i data-feather="info" class="icon-inline-sm"></i>
+                    This investment will be automatically staked, earning 9.5% APY.
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="spvKycCheck">
+                    <label class="form-check-label" for="spvKycCheck">
+                        I confirm this asset has passed SPV/KYC verification
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer border-info">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" id="connectKeplrBtn">
+                    <i data-feather="link" class="icon-inline-sm"></i>
+                    Connect Keplr Wallet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Assistant Modal -->
+<div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-labelledby="aiAssistantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="aiAssistantModalLabel">
+                    <i data-feather="cpu" class="icon-inline text-secondary"></i>
+                    AI Contract Assistant
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="nav flex-column nav-pills" id="contract-steps-tab" role="tablist">
+                            <button class="nav-link active" id="step1-tab" data-bs-toggle="pill" data-bs-target="#step1" type="button" role="tab">1. Asset Information</button>
+                            <button class="nav-link" id="step2-tab" data-bs-toggle="pill" data-bs-target="#step2" type="button" role="tab">2. IFC Validation</button>
+                            <button class="nav-link" id="step3-tab" data-bs-toggle="pill" data-bs-target="#step3" type="button" role="tab">3. Stakeholder Details</button>
+                            <button class="nav-link" id="step4-tab" data-bs-toggle="pill" data-bs-target="#step4" type="button" role="tab">4. Contract Terms</button>
+                            <button class="nav-link" id="step5-tab" data-bs-toggle="pill" data-bs-target="#step5" type="button" role="tab">5. Keplr Signatures</button>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="tab-content p-3" id="contract-steps-content">
+                            <div class="tab-pane fade show active" id="step1" role="tabpanel">
+                                <h6 class="mb-3 text-info">Asset Information</h6>
+                                <p>Enter the core details about your real estate asset. The AI will auto-populate fields from your IFC file once uploaded.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Asset Name</label>
+                                    <input type="text" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step2" role="tabpanel">
+                                <h6 class="mb-3 text-info">IFC Validation</h6>
+                                <p>Upload your IFC file for analysis. Our AI will validate the building information and calculate the estimated asset value.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Upload IFC File</label>
+                                    <input type="file" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step3" role="tabpanel">
+                                <h6 class="mb-3 text-info">Stakeholder Details</h6>
+                                <p>Define the stakeholders for this asset. These will be encoded in the smart contract.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Stakeholder Wallet Addresses</label>
+                                    <textarea class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step4" role="tabpanel">
+                                <h6 class="mb-3 text-info">Contract Terms</h6>
+                                <p>Review and modify the smart contract terms generated by our AI.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Token Name & Symbol</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Name">
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Symbol">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Total Supply</label>
+                                    <input type="number" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step5" role="tabpanel">
+                                <h6 class="mb-3 text-info">Keplr Signatures</h6>
+                                <p>Final step: Collect multisig approvals from all stakeholders using Keplr wallet.</p>
+                                <div class="alert alert-warning">
+                                    <i data-feather="alert-triangle" class="icon-inline-sm"></i>
+                                    Remember: NFTs can only be minted after the asset has passed due diligence.
+                                </div>
+                                <button class="btn btn-info">
+                                    <i data-feather="link" class="icon-inline-sm"></i>
+                                    Connect Keplr for Signing
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-info" id="getAIAdviceBtn">
+                    <i data-feather="cpu" class="icon-inline-sm"></i>
+                    Get AI Advice
+                </button>
             </div>
         </div>
     </div>
@@ -262,22 +445,49 @@
         // Initialize mini BIM viewer
         bimViewer.init('mini-viewer-container');
         
-        // Initialize stakeholder chart
-        const ctx = document.getElementById('stakeholder-chart').getContext('2d');
-        const stakeholderChart = new Chart(ctx, {
+        // Initialize asset distribution chart
+        const assetCtx = document.getElementById('asset-distribution-chart').getContext('2d');
+        const assetChart = new Chart(assetCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Tenants/Buyers', 'Brokers', 'Landlords', 'Property Managers', 'Appraisers', 'Mortgage Brokers', 'Investors'],
+                labels: ['Verified Assets', 'Unverified Assets'],
                 datasets: [{
-                    data: [20, 5, 10, 8, 7, 5, 45],
+                    data: [65, 35],
                     backgroundColor: [
                         'rgba(0, 153, 7, 0.7)',    // success
-                        'rgba(184, 5, 150, 0.7)',  // secondary
-                        'rgba(224, 13, 121, 0.7)', // info
-                        'rgba(0, 30, 0, 0.7)',     // primary
                         'rgba(243, 192, 0, 0.7)',  // warning
-                        'rgba(237, 0, 72, 0.7)',   // danger
-                        'rgba(184, 5, 150, 0.7)'   // secondary
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Initialize stakeholder chart
+        const stakeholderCtx = document.getElementById('stakeholder-chart').getContext('2d');
+        const stakeholderChart = new Chart(stakeholderCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Institutional Investors', 'Private Investors', 'Developer Equity', 'Reserved Pool'],
+                datasets: [{
+                    data: [45, 25, 20, 10],
+                    backgroundColor: [
+                        'rgba(224, 13, 121, 0.7)',  // info
+                        'rgba(184, 5, 150, 0.7)',   // secondary
+                        'rgba(0, 153, 7, 0.7)',     // success
+                        'rgba(243, 192, 0, 0.7)'    // warning
                     ],
                     borderColor: 'rgba(255, 255, 255, 0.1)',
                     borderWidth: 1
@@ -295,6 +505,26 @@
                     }
                 }
             }
+        });
+        
+        // Initialize Keplr wallet connection
+        document.getElementById('connectKeplrBtn').addEventListener('click', function() {
+            // Simulate Keplr wallet connection
+            alert('Connecting to Keplr wallet...');
+            // In a real implementation, this would connect to the Keplr wallet
+        });
+        
+        // Open AI Assistant modal button
+        document.body.addEventListener('click', function(e) {
+            if (e.target.matches('[data-ai-assistant]') || e.target.closest('[data-ai-assistant]')) {
+                new bootstrap.Modal(document.getElementById('aiAssistantModal')).show();
+            }
+        });
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
         });
         
         // Update feather icons

@@ -1,0 +1,127 @@
+indradev_, [13 Apr 2025 at 23:53:32]:
+...## Structured Prompt for Claude Code (Daodiseo Replit Integration)  
+Core Insight:  
+*"Users want frictionless, trustworthy real estate transactions (Human Truth), but manual due diligence, fragmented workflows, and opaque asset verification slow progress (Tension). Daodiseo resolves this by automating due diligence via AI, enforcing transparency through blockchain, and unifying contracts/NFTs into a single interface (Resolution)."*  
+
+---
+
+### Technical Requirements  
+1. UI/UX Overhaul  
+- Dashboard:  
+  - Add real-time displays:  
+    - Total reserves (USD + ODIS).  
+    - APY for staking.  
+    - Pie chart for asset distribution (verified vs. unverified).  
+  - Highlight "Hot Assets" seeking liquidity.  
+  - Integrate <AIAssistant> modal for contract guidance.  
+- Contract Flow:  
+  - Step-by-step AI-guided form with auto-populated fields from IFC files.  
+  - Kepler wallet integration for multisig biometric signing.  
+
+2. Backend Sync  
+- BIM Server Integration:  
+  - Auto-trigger ODIS rewards upon IFC validation:  
+       // CosmWasm contract logic  
+    pub fn execute_staking(  
+        deps: DepsMut,  
+        env: Env,  
+        ifc_hash: String,  
+        liquidity: u128  
+    ) -> Result<Response, ContractError> {  
+        if bim_server::validate_ifc(&ifc_hash) {  
+            let odis = liquidity * 0.05; // Base reward  
+            // Add AI-adjusted bonus based on market volatility  
+            Ok(Response::new().add_attribute("ODIS_REWARD", odis.to_string()))  
+        } else {  
+            Err(ContractError::UnverifiedAsset {})  
+        }  
+    }  
+      
+- Multisig Enforcement:  
+  - Validator templates for proposals (pre-built CosmWasm modules).  
+  - Auto-route signed contracts to validators via governance queue.  
+
+3. AI Agent Detailing  
+- Functionality:  
+  - Parse IFC metadata to auto-suggest liquidity thresholds.  
+  - Flag unverified assets in contracts (prevent NFT minting).  
+  - Generate audit logs hashed to blockchain.  
+- Code Integration:  
+   class AIAgent:  
+      def analyze_ifc(self, file_path: str) -> dict:  
+          # Extract metadata (e.g., asset value, stakeholders)  
+          return {"estimated_value": 1_000_000, "risk_score": 0.2}  
+
+      def suggest_liquidity(self, user_history: list) -> float:  
+          # ML model to recommend staking amounts  
+          return user_history[-1] * 1.1 if user_history else 1000  
+    
+
+4. NFT Minting Constraints  
+- Blockchain Rules:  
+  - Mint NFTs only after governance-approved due diligence:  
+       #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]  
+    pub struct MintNFT {  
+        pub asset_id: String,  
+        pub spv_kyc: bool, // Must be true  
+    }  
+      
+- Frontend Warnings:  
+  - Gray out "Mint NFT" button for unverified assets.  
+
+---
+
+### Contradictions Resolved  
+| Conflict                | Solution                                      |  
+|------------------------------|---------------------------------------------------|  
+| Due diligence vs. speed      | AI pre-validates IFC files; human validators focus on governance. |  
+| NFT legitimacy               | Hardcode SPV/KYC checks in CosmWasm mint function. |  
+| Validator workflow friction  | Pre-built proposal templates + auto-queue for validators. |  
+
+---
+
+### Sample Prompt for Claude Code  **GOAL**: Update Daodiseo’s codebase to align with Insight: "Trust through automation."  
+
+**CONTEXT**:  
+- Users stake liquidity in contracts tied to IFC files (BIM server).  
+- ODIS rewards auto-distribute post-IFC validation.  
+- AI agent guides users but restricts NFT minting to verified assets.  
+
+**TASKS**:  
+1. **Frontend**:  
+   - Create `Dashboard.jsx` with real-time reserves, APY, and pie chart.  
+   - Add `<AIAssistant>` modal for contract step explanations.  
+
+2. **Backend**:  
+   - Implement `execute_staking` in CosmWasm (auto-ODIS on IFC check).  
+   - Enforce SPV/KYC checks in NFT minting module.  
+
+3. **Testing**:  
+   - Simulate IFC validation → ODIS reward flow with Jest.  
+   - Audit AI agent’s liquidity suggestions for bias.
+
+indradev_, [13 Apr 2025 at 23:53:32]:
+**CODE SNIPPETS (Reference)**:  
+// Auto-ODIS reward  
+fn release_rewards(ifc_hash: String) -> Result<(), Error> {  
+    if bim_validate(ifc_hash) {  
+        user.deposit(ODIS, calculate_reward());  
+    }  
+}  
+
+// AI Agent Suggestion  
+def calculate_odis(liquidity):  
+    return liquidity * (0.05 + market_volatility)  
+  
+
+CONSTRAINTS:  
+- NFT minting disabled unless spv_kyc == true.  
+- Multisig contracts require 3/5 validator approvals.  
+
+OUTPUT:  
+Return full React/CosmWasm code with inline documentation.  
+`  
+
+--- 
+
+Next: Run A/B tests on the new dashboard and audit validator proposal queues.

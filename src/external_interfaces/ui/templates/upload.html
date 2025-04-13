@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Upload BIM Models - BIM AI Management Dashboard{% endblock %}
-{% block page_title %}Upload BIM Models{% endblock %}
+{% block title %}Upload BIM Models - Daodiseo Platform{% endblock %}
+{% block page_title %}Upload & Due Diligence Portal{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -13,10 +13,15 @@
                     Upload BIM Models
                 </h5>
                 <div class="card-subtitle">
-                    Import IFC files for tokenization
+                    IFC file validation and asset verification
                 </div>
             </div>
             <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <i data-feather="info" class="icon-inline-sm"></i>
+                    <strong>Due Diligence Process:</strong> Once uploaded, IFC files will be analyzed by our AI system and validators. Only verified assets can mint NFTs.
+                </div>
+                
                 <div class="upload-area" id="drop-area">
                     <div class="upload-icon">
                         <i data-feather="upload-cloud"></i>
@@ -24,34 +29,87 @@
                     <h3 class="upload-title">Drag & Drop Files Here</h3>
                     <p class="upload-subtitle">or click to browse your files</p>
                     <label class="btn btn-outline-info">
-                        <input type="file" id="file-input" multiple style="display: none;">
+                        <input type="file" id="file-input" multiple accept=".ifc,.ifcxml,.ifc4" style="display: none;">
                         Browse Files
                     </label>
                 </div>
                 
                 <div class="file-list">
-                    <h5 class="mb-3">Uploaded Files</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Uploaded Files</h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-info active">All Files</button>
+                            <button type="button" class="btn btn-sm btn-outline-info">Verified</button>
+                            <button type="button" class="btn btn-sm btn-outline-info">Pending</button>
+                        </div>
+                    </div>
+                    
                     <div id="uploaded-files">
-                        <!-- Sample file item -->
+                        <!-- Sample file item with validation status -->
                         <div class="file-item">
                             <div class="file-icon">
                                 <i data-feather="file"></i>
                             </div>
                             <div class="file-details">
-                                <div class="file-name">Cosmic_Tower_Project.ifc</div>
+                                <div class="file-name d-flex align-items-center">
+                                    Cosmic_Tower_Project.ifc
+                                    <span class="badge bg-success ms-2">Verified</span>
+                                </div>
                                 <div class="file-meta">
                                     <span>25.4 MB</span>
                                     <span>•</span>
                                     <span>April 5, 2025</span>
+                                    <span>•</span>
+                                    <span>Hash: 0x71C...9E3f</span>
                                 </div>
                             </div>
                             <div class="file-actions">
-                                <button class="btn btn-sm btn-outline-info">
-                                    <i data-feather="eye" class="icon-inline-sm"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger">
-                                    <i data-feather="trash-2" class="icon-inline-sm"></i>
-                                </button>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-info" title="View file">
+                                        <i data-feather="eye" class="icon-inline-sm"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" title="Create contract">
+                                        <i data-feather="file-plus" class="icon-inline-sm"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete file">
+                                        <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sample file item with pending status -->
+                        <div class="file-item">
+                            <div class="file-icon">
+                                <i data-feather="file"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name d-flex align-items-center">
+                                    Horizon_Office_Complex.ifc
+                                    <span class="badge bg-warning ms-2">Pending</span>
+                                </div>
+                                <div class="file-meta">
+                                    <span>32.7 MB</span>
+                                    <span>•</span>
+                                    <span>April 1, 2025</span>
+                                    <span>•</span>
+                                    <span>Hash: 0x94B...2D5a</span>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <small class="text-warning">Due diligence in progress</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-info" title="View file">
+                                            <i data-feather="eye" class="icon-inline-sm"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning" title="View validation status">
+                                            <i data-feather="clock" class="icon-inline-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -63,99 +121,306 @@
 
 <div class="row mt-4">
     <div class="col-md-7">
-        <!-- Tokenization Configuration -->
+        <!-- Due Diligence Workflow -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title">
-                    <i data-feather="settings" class="icon-inline"></i>
-                    Tokenization Configuration
+                    <i data-feather="shield" class="icon-inline"></i>
+                    Due Diligence Workflow
                 </h5>
             </div>
             <div class="card-body">
-                <form>
-                    <div class="mb-3">
-                        <label for="tokenName" class="form-label">Token Name</label>
-                        <input type="text" class="form-control" id="tokenName" placeholder="Enter token name">
+                <div class="due-diligence-workflow position-relative">
+                    <!-- Vertical progress line -->
+                    <div class="position-absolute" style="top: 0; bottom: 0; left: 24px; width: 2px; background-color: rgba(255,255,255,0.1);"></div>
+                    
+                    <!-- Step 1: IFC Validation -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-success d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="check" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">IFC File Validation</h6>
+                            <p class="text-muted small mb-2">AI analyzes the IFC file for structural completeness and building metrics</p>
+                            <div class="d-flex text-success small">
+                                <i data-feather="check-circle" class="icon-inline-sm me-1"></i>
+                                <span>Completed automatically upon upload</span>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="tokenSymbol" class="form-label">Token Symbol</label>
-                        <input type="text" class="form-control" id="tokenSymbol" placeholder="Enter token symbol">
+                    <!-- Step 2: Legal Document Submission -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-warning d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="file-text" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">Legal Document Submission</h6>
+                            <p class="text-muted small mb-2">Upload property legal documents for verification</p>
+                            <button class="btn btn-sm btn-outline-info">
+                                <i data-feather="upload" class="icon-inline-sm"></i>
+                                Upload Documents
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="totalSupply" class="form-label">Total Supply</label>
-                        <input type="number" class="form-control" id="totalSupply" placeholder="Enter total supply">
+                    <!-- Step 3: SPV Formation -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-dark d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="briefcase" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">SPV Formation</h6>
+                            <p class="text-muted small mb-2">Create a special purpose vehicle for the tokenized asset</p>
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i data-feather="tool" class="icon-inline-sm"></i>
+                                Form SPV
+                            </button>
+                            <small class="d-block text-muted mt-1">Available after legal document verification</small>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="initialPrice" class="form-label">Initial Token Price (USD)</label>
-                        <input type="number" class="form-control" id="initialPrice" placeholder="Enter initial price">
+                    <!-- Step 4: Validator Approval -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-dark d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="users" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">Validator Approval (3/5 Required)</h6>
+                            <p class="text-muted small mb-2">Validators review and approve the asset for tokenization</p>
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i data-feather="send" class="icon-inline-sm"></i>
+                                Submit to Validators
+                            </button>
+                            <small class="d-block text-muted mt-1">Available after SPV formation</small>
+                        </div>
                     </div>
                     
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-info">
-                            <i data-feather="check" class="icon-inline-sm"></i>
-                            Create Tokens
-                        </button>
+                    <!-- Step 5: NFT Minting -->
+                    <div class="workflow-step d-flex">
+                        <div class="workflow-step-icon bg-dark d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="award" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">NFT Minting Eligibility</h6>
+                            <p class="text-muted small mb-2">Asset becomes eligible for NFT minting after all steps complete</p>
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i data-feather="award" class="icon-inline-sm"></i>
+                                Mint NFTs
+                            </button>
+                            <small class="d-block text-muted mt-1">Available after validator approval</small>
+                        </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
     
     <div class="col-md-5">
-        <!-- File Info Panel -->
+        <!-- AI Analysis Panel -->
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title">
-                    <i data-feather="info" class="icon-inline"></i>
-                    File Information
+                    <i data-feather="cpu" class="icon-inline"></i>
+                    AI Analysis
                 </h5>
             </div>
             <div class="card-body">
-                <div class="mb-4">
-                    <h6 class="mb-2">Supported File Types</h6>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-info">IFC</span>
-                        <span class="badge bg-info">IFC4</span>
-                        <span class="badge bg-info">IFCXML</span>
-                        <span class="badge bg-secondary">OBJ</span>
-                        <span class="badge bg-secondary">GLTF</span>
+                <div class="mb-3">
+                    <label class="form-label">Selected File</label>
+                    <select class="form-select bg-dark text-light border-secondary">
+                        <option value="cosmic">Cosmic_Tower_Project.ifc</option>
+                        <option value="horizon">Horizon_Office_Complex.ifc</option>
+                    </select>
+                </div>
+                
+                <div class="card bg-dark mb-3">
+                    <div class="card-header border-secondary">
+                        <h6 class="card-title mb-0">
+                            <i data-feather="bar-chart-2" class="icon-inline-sm"></i>
+                            Building Metrics
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Building Type</small>
+                                <span>Commercial High-Rise</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Total Area</small>
+                                <span>25,000 m²</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Stories</small>
+                                <span>17</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Construction Year</small>
+                                <span>2023</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="mb-4">
-                    <h6 class="mb-2">File Size Limits</h6>
-                    <p class="mb-0">Maximum file size: <strong>100 MB</strong></p>
+                <div class="card bg-dark mb-3">
+                    <div class="card-header border-secondary">
+                        <h6 class="card-title mb-0">
+                            <i data-feather="dollar-sign" class="icon-inline-sm"></i>
+                            Tokenization Recommendations
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Estimated Value</small>
+                                <span class="text-info">$15,811,040</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Suggested Token Symbol</small>
+                                <span class="text-info">CSMC</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Recommended Supply</small>
+                                <span class="text-info">1,000,000</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Initial Token Price</small>
+                                <span class="text-info">$15.81</span>
+                            </div>
+                        </div>
+                        <div class="alert alert-success p-2 mb-0 small">
+                            <i data-feather="check-circle" class="icon-inline-sm"></i>
+                            <strong>ODIS Rewards:</strong> Upon validation, you'll receive 5% of asset value in ODIS tokens.
+                        </div>
+                    </div>
                 </div>
                 
-                <div>
-                    <h6 class="mb-2">Tokenization Process</h6>
-                    <ol class="ps-3">
-                        <li>Upload IFC building model</li>
-                        <li>Configure tokenization parameters</li>
-                        <li>Create smart contract on blockchain</li>
-                        <li>Generate tokens for property shares</li>
-                        <li>Publish to marketplace</li>
-                    </ol>
+                <div class="card bg-dark">
+                    <div class="card-header border-secondary">
+                        <h6 class="card-title mb-0">
+                            <i data-feather="code" class="icon-inline-sm"></i>
+                            CosmWasm Contract Code
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-black text-light p-2 rounded small"><code>pub fn execute_staking(
+  deps: DepsMut,
+  env: Env,
+  ifc_hash: String,
+  liquidity: u128
+) -> Result<Response, ContractError> {
+  if bim_server::validate_ifc(&ifc_hash) {
+      let odis = liquidity * 0.05; // Base reward
+      // Add AI-adjusted bonus
+      Ok(Response::new().add_attribute(
+          "ODIS_REWARD", 
+          odis.to_string())
+      )
+  } else {
+      Err(ContractError::UnverifiedAsset {})
+  }
+}</code></pre>
+                        <button class="btn btn-sm btn-outline-info w-100 mt-2">
+                            <i data-feather="code" class="icon-inline-sm"></i>
+                            Generate Full Contract
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- AI Assistance -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title">
-                    <i data-feather="help-circle" class="icon-inline"></i>
-                    AI Assistance
+    </div>
+</div>
+
+<!-- SPV/KYC Verification Modal -->
+<div class="modal fade" id="spvKycModal" tabindex="-1" aria-labelledby="spvKycModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-light border-info">
+            <div class="modal-header border-info">
+                <h5 class="modal-title" id="spvKycModalLabel">
+                    <i data-feather="shield" class="icon-inline text-info"></i>
+                    SPV & KYC Verification
                 </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="card-body">
-                <p>Need help with tokenization? Our AI assistant can analyze your building model and recommend optimal tokenization settings.</p>
-                <button class="btn btn-outline-secondary w-100">
-                    <i data-feather="message-circle" class="icon-inline-sm"></i>
-                    Get AI Recommendations
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i data-feather="alert-triangle" class="icon-inline-sm"></i>
+                    <strong>Important:</strong> SPV/KYC verification is required before NFT minting. This ensures compliance with regulations.
+                </div>
+                
+                <ul class="nav nav-tabs mb-3" id="spvKycTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="spv-tab" data-bs-toggle="tab" data-bs-target="#spv-tab-pane" type="button" role="tab">SPV Formation</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="kyc-tab" data-bs-toggle="tab" data-bs-target="#kyc-tab-pane" type="button" role="tab">KYC Verification</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="spvKycTabContent">
+                    <div class="tab-pane fade show active" id="spv-tab-pane" role="tabpanel" aria-labelledby="spv-tab" tabindex="0">
+                        <p>Enter Special Purpose Vehicle (SPV) information for this real estate asset.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">SPV Legal Name</label>
+                            <input type="text" class="form-control bg-dark text-light border-info" placeholder="e.g., Cosmic Tower SPV LLC">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Registration Number</label>
+                                <input type="text" class="form-control bg-dark text-light border-info" placeholder="e.g., CT-2025-45678">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jurisdiction</label>
+                                <input type="text" class="form-control bg-dark text-light border-info" placeholder="e.g., Delaware, USA">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Legal Documents</label>
+                            <input type="file" class="form-control bg-dark text-light border-info" multiple>
+                            <small class="text-muted">Upload certificate of incorporation, operating agreement, etc.</small>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="kyc-tab-pane" role="tabpanel" aria-labelledby="kyc-tab" tabindex="0">
+                        <p>Complete Know Your Customer (KYC) verification for all stakeholders.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Primary Contact</label>
+                            <input type="text" class="form-control bg-dark text-light border-info" placeholder="Full legal name">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control bg-dark text-light border-info" placeholder="Email address">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control bg-dark text-light border-info" placeholder="Phone number">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Identification Documents</label>
+                            <input type="file" class="form-control bg-dark text-light border-info" multiple>
+                            <small class="text-muted">Upload passport, driver's license, or other government ID</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Proof of Address</label>
+                            <input type="file" class="form-control bg-dark text-light border-info" multiple>
+                            <small class="text-muted">Upload utility bill, bank statement, etc. (less than 3 months old)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-info">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info">
+                    <i data-feather="upload" class="icon-inline-sm"></i>
+                    Submit for Verification
                 </button>
             </div>
         </div>
@@ -222,32 +487,107 @@
                 // For now, we'll just simulate adding it to the list
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
+                
+                // Generate random hash for demo
+                const hash = '0x' + Math.random().toString(16).substring(2, 6) + '...' + Math.random().toString(16).substring(2, 6);
+                
                 fileItem.innerHTML = `
                     <div class="file-icon">
                         <i data-feather="file"></i>
                     </div>
                     <div class="file-details">
-                        <div class="file-name">${file.name}</div>
+                        <div class="file-name d-flex align-items-center">
+                            ${file.name}
+                            <span class="badge bg-warning ms-2">Validating</span>
+                        </div>
                         <div class="file-meta">
                             <span>${(file.size / (1024 * 1024)).toFixed(2)} MB</span>
                             <span>•</span>
                             <span>Just now</span>
+                            <span>•</span>
+                            <span>Hash: ${hash}</span>
                         </div>
                     </div>
                     <div class="file-actions">
-                        <button class="btn btn-sm btn-outline-info">
-                            <i data-feather="eye" class="icon-inline-sm"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger">
-                            <i data-feather="trash-2" class="icon-inline-sm"></i>
-                        </button>
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <small class="text-warning">Processing...</small>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-info">
+                                    <i data-feather="eye" class="icon-inline-sm"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
-                document.getElementById('uploaded-files').appendChild(fileItem);
+                // Insert the new file at the top of the list
+                const uploadedFiles = document.getElementById('uploaded-files');
+                uploadedFiles.insertBefore(fileItem, uploadedFiles.firstChild);
                 feather.replace();
+                
+                // Simulate validation process
+                setTimeout(() => {
+                    const fileNameEl = fileItem.querySelector('.file-name');
+                    const statusBadge = fileItem.querySelector('.badge');
+                    const actionArea = fileItem.querySelector('.file-actions');
+                    
+                    // Update status to "Validated"
+                    statusBadge.classList.remove('bg-warning');
+                    statusBadge.classList.add('bg-success');
+                    statusBadge.textContent = 'Validated';
+                    
+                    // Update action area
+                    actionArea.innerHTML = `
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-info" title="View file">
+                                <i data-feather="eye" class="icon-inline-sm"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" title="Create contract" onclick="document.getElementById('spvKycModal').classList.add('show'); document.getElementById('spvKycModal').style.display='block';">
+                                <i data-feather="file-plus" class="icon-inline-sm"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" title="Delete file">
+                                <i data-feather="trash-2" class="icon-inline-sm"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    feather.replace();
+                    
+                    // Show ODIS reward notification
+                    const rewardValue = (parseFloat((file.size / (1024 * 1024)).toFixed(2)) * 0.5).toFixed(2);
+                    const notification = document.createElement('div');
+                    notification.className = 'alert alert-success alert-dismissible fade show';
+                    notification.innerHTML = `
+                        <i data-feather="award" class="icon-inline-sm"></i>
+                        <strong>IFC Validation Complete!</strong> You earned ${rewardValue} ODIS tokens as reward.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
+                    feather.replace();
+                    
+                    // Auto-dismiss after 5 seconds
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        setTimeout(() => notification.remove(), 500);
+                    }, 5000);
+                    
+                }, 3000);
             }
         }
+        
+        // Initialize SPV/KYC modal events
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('[title="Create contract"]')) {
+                const spvKycModal = new bootstrap.Modal(document.getElementById('spvKycModal'));
+                spvKycModal.show();
+            }
+        });
         
         // Update feather icons
         feather.replace();
