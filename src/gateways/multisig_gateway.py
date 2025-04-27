@@ -1,4 +1,5 @@
 """MultiSig Gateway for handling blockchain transactions"""
+
 from typing import List, Dict
 from enum import Enum
 from datetime import datetime
@@ -11,15 +12,18 @@ from cosmpy.aerial.wallet import LocalWallet
 from cosmpy.crypto.keypairs import PublicKey
 from cosmpy.protos.cosmos.tx.v1beta1.tx_pb2 import TxBody, AuthInfo, SignDoc
 
+
 class SignatureRole(Enum):
     OWNER = "owner"
     CONTRIBUTOR = "contributor"
     VALIDATOR = "validator"
 
+
 class SignatureStatus(Enum):
     PENDING = "pending"
     SIGNED = "signed"
     REJECTED = "rejected"
+
 
 class MultiSigTransaction:
     def __init__(self, transaction_id: str, content_hash: str, metadata: Dict):
@@ -29,7 +33,7 @@ class MultiSigTransaction:
         self.signatures = {
             SignatureRole.OWNER.value: SignatureStatus.PENDING.value,
             SignatureRole.CONTRIBUTOR.value: SignatureStatus.PENDING.value,
-            SignatureRole.VALIDATOR.value: SignatureStatus.PENDING.value
+            SignatureRole.VALIDATOR.value: SignatureStatus.PENDING.value,
         }
         self.created_at = datetime.utcnow()
         self.blockchain_tx_hash = None
@@ -44,11 +48,13 @@ class MultiSigTransaction:
             "created_at": self.created_at.isoformat(),
             "blockchain_tx_hash": self.blockchain_tx_hash,
             "explorer_url": self.explorer_url,
-            "status": self.get_status()
+            "status": self.get_status(),
         }
 
     def get_status(self) -> str:
-        signed_count = len([s for s in self.signatures.values() if s == SignatureStatus.SIGNED.value])
+        signed_count = len(
+            [s for s in self.signatures.values() if s == SignatureStatus.SIGNED.value]
+        )
         total_count = len(self.signatures)
         if signed_count == total_count:
             return "completed"
@@ -59,7 +65,10 @@ class MultiSigTransaction:
     def update_blockchain_details(self, tx_hash: str):
         """Update transaction with blockchain details"""
         self.blockchain_tx_hash = tx_hash
-        self.explorer_url = f"https://testnet.explorer.nodeshub.online/odiseo/tx/{tx_hash}"
+        self.explorer_url = (
+            f"https://testnet.explorer.nodeshub.online/odiseo/tx/{tx_hash}"
+        )
+
 
 class MultiSigBlockchainGateway:
     def __init__(self, test_mode: bool = True):
@@ -73,7 +82,7 @@ class MultiSigBlockchainGateway:
             url="grpc+https://odiseo.test.rpc.nodeshub.online",
             fee_minimum_gas_price=0.01,
             fee_denomination="uodis",
-            staking_denomination="uodis"
+            staking_denomination="uodis",
         )
         self.client = LedgerClient(self.network_config)
 
@@ -84,13 +93,17 @@ class MultiSigBlockchainGateway:
         self.pending_transactions[transaction_id] = transaction
         return transaction_id
 
-    def sign_transaction(self, transaction_id: str, role: SignatureRole, signature: Dict) -> bool:
+    def sign_transaction(
+        self, transaction_id: str, role: SignatureRole, signature: Dict
+    ) -> bool:
         """Sign a transaction with Keplr signature"""
         if transaction_id not in self.pending_transactions:
             raise ValueError("Transaction not found")
 
         transaction = self.pending_transactions[transaction_id]
-        self.logger.info(f"Processing signature for transaction {transaction_id}, role: {role}")
+        self.logger.info(
+            f"Processing signature for transaction {transaction_id}, role: {role}"
+        )
 
         try:
             # Validate Keplr amino signature
@@ -98,55 +111,65 @@ class MultiSigBlockchainGateway:
                 self.logger.error("Invalid signature data format")
                 raise ValueError("Invalid signature data format")
 
-            signed = signature.get('signed')
+            signed = signature.get("signed")
             if not signed or not isinstance(signed, dict):
                 self.logger.error("Invalid signed data in signature")
                 raise ValueError("Invalid signed data")
 
             # Verify chain ID
-            if signed.get('chain_id') != 'odiseotestnet_1234-1':
+            if signed.get("chain_id") != "odiseotestnet_1234-1":
                 self.logger.error(f"Chain ID mismatch: {signed.get('chain_id')}")
                 raise ValueError("Invalid chain ID in signature")
 
             # Parse and verify memo (supports both new colon-separated and legacy pipe-delimited formats)
             try:
-                memo = signed.get('memo', '')
+                memo = signed.get("memo", "")
                 # Check for JSON format (not allowed)
-                if memo.startswith('{') or memo.startswith('['):
+                if memo.startswith("{") or memo.startswith("["):
                     self.logger.error("Invalid memo format: JSON object not allowed")
                     raise ValueError("Memo must be a simple string format")
-                
+
                 # Parse the memo into a dictionary
                 memo_data = {}
-                
+
                 # Check for new format first: "transactionId:contentHash:role"
-                if memo.count(':') == 2 and '|' not in memo:
-                    self.logger.debug(f"Parsing simplified colon-separated memo format: {memo}")
-                    parts = memo.split(':')
+                if memo.count(":") == 2 and "|" not in memo:
+                    self.logger.debug(
+                        f"Parsing simplified colon-separated memo format: {memo}"
+                    )
+                    parts = memo.split(":")
                     if len(parts) == 3:
-                        memo_data['tx'] = parts[0]
-                        memo_data['hash'] = parts[1]
-                        memo_data['role'] = parts[2]
-                
+                        memo_data["tx"] = parts[0]
+                        memo_data["hash"] = parts[1]
+                        memo_data["role"] = parts[2]
+
                 # Legacy format: "tx:ID|hash:HASH|role:ROLE"
-                elif '|' in memo:
-                    self.logger.debug(f"Parsing legacy pipe-delimited memo format: {memo}")
-                    parts = memo.split('|')
+                elif "|" in memo:
+                    self.logger.debug(
+                        f"Parsing legacy pipe-delimited memo format: {memo}"
+                    )
+                    parts = memo.split("|")
                     for part in parts:
-                        if ':' in part:
-                            key, value = part.split(':', 1)
+                        if ":" in part:
+                            key, value = part.split(":", 1)
                             memo_data[key.strip()] = value.strip()
-                
+
                 # Check for required fields
-                if not all(k in memo_data for k in ['tx', 'hash', 'role']):
+                if not all(k in memo_data for k in ["tx", "hash", "role"]):
                     self.logger.error(f"Missing required fields in memo: {memo}")
-                    raise ValueError("Invalid memo format. Expected either 'txId:contentHash:role' or 'tx:ID|hash:HASH|role:ROLE'")
-                
+                    raise ValueError(
+                        "Invalid memo format. Expected either 'txId:contentHash:role' or 'tx:ID|hash:HASH|role:ROLE'"
+                    )
+
                 # Verify the values match
-                if (memo_data['tx'] != transaction_id or
-                    memo_data['hash'] != transaction.content_hash or
-                    memo_data['role'] != role.value):  # Compare with role.value, not the Enum itself
-                    self.logger.error(f"Memo data mismatch: Expected tx={transaction_id}, hash={transaction.content_hash}, role={role.value}, got {memo_data}")
+                if (
+                    memo_data["tx"] != transaction_id
+                    or memo_data["hash"] != transaction.content_hash
+                    or memo_data["role"] != role.value
+                ):  # Compare with role.value, not the Enum itself
+                    self.logger.error(
+                        f"Memo data mismatch: Expected tx={transaction_id}, hash={transaction.content_hash}, role={role.value}, got {memo_data}"
+                    )
                     raise ValueError("Invalid memo data")
             except Exception as e:
                 self.logger.error(f"Failed to parse memo: {str(e)}")
@@ -154,103 +177,118 @@ class MultiSigBlockchainGateway:
 
             # Create transaction body
             tx_body = TxBody()
-            tx_body.memo = signed.get('memo', '')
+            tx_body.memo = signed.get("memo", "")
 
             # Process messages from signed data
-            msgs = signed.get('msgs', [])
+            msgs = signed.get("msgs", [])
             if not msgs:
                 self.logger.error("No messages found in signed data")
                 raise ValueError("No messages found in signed data")
 
             # Log message details for debugging
             self.logger.debug(f"Processing messages: {msgs}")
-            
+
             processed_msgs = []
             for msg in msgs:
                 self.logger.debug(f"Processing message: {msg}")
-                
+
                 # Check message structure
                 if not isinstance(msg, dict):
                     self.logger.error(f"Invalid message type: {type(msg)}")
                     continue
-                
+
                 # Handle different message formats
-                
+
                 # Proto format (typeUrl)
-                if 'typeUrl' in msg:
-                    self.logger.debug(f"Found Proto format message with typeUrl: {msg.get('typeUrl')}")
-                    
+                if "typeUrl" in msg:
+                    self.logger.debug(
+                        f"Found Proto format message with typeUrl: {msg.get('typeUrl')}"
+                    )
+
                     # Handle MsgSend Proto format
-                    if msg.get('typeUrl') == '/cosmos.bank.v1beta1.MsgSend':
-                        value = msg.get('value', {})
+                    if msg.get("typeUrl") == "/cosmos.bank.v1beta1.MsgSend":
+                        value = msg.get("value", {})
                         # Convert Proto field names to Amino format
                         amino_msg = {
-                            'type': 'cosmos-sdk/MsgSend',
-                            'value': {
-                                'from_address': value.get('fromAddress', ''),
-                                'to_address': value.get('toAddress', ''),
-                                'amount': value.get('amount', [])
-                            }
+                            "type": "cosmos-sdk/MsgSend",
+                            "value": {
+                                "from_address": value.get("fromAddress", ""),
+                                "to_address": value.get("toAddress", ""),
+                                "amount": value.get("amount", []),
+                            },
                         }
                         processed_msgs.append(amino_msg)
                         self.logger.debug(f"Converted Proto to Amino: {amino_msg}")
                     else:
-                        self.logger.warning(f"Unknown Proto typeUrl: {msg.get('typeUrl')}")
-                
+                        self.logger.warning(
+                            f"Unknown Proto typeUrl: {msg.get('typeUrl')}"
+                        )
+
                 # Amino format (type, value)
-                elif 'type' in msg and msg.get('type') == 'cosmos-sdk/MsgSend':
+                elif "type" in msg and msg.get("type") == "cosmos-sdk/MsgSend":
                     # Proper Amino format with type and value
-                    if 'value' in msg and isinstance(msg['value'], dict):
-                        msg_value = msg.get('value', {})
-                        
+                    if "value" in msg and isinstance(msg["value"], dict):
+                        msg_value = msg.get("value", {})
+
                         # Check required fields
-                        if not all(k in msg_value for k in ['from_address', 'to_address', 'amount']):
-                            self.logger.warning(f"Message missing required fields: {msg_value}")
+                        if not all(
+                            k in msg_value
+                            for k in ["from_address", "to_address", "amount"]
+                        ):
+                            self.logger.warning(
+                                f"Message missing required fields: {msg_value}"
+                            )
                             continue
-                        
+
                         # Message is valid, add to processed messages
                         processed_msgs.append(msg)
                         self.logger.debug(f"Added valid Amino message: {msg}")
-                    
+
                     # Flat structure (no nested value)
-                    elif all(k in msg for k in ['from_address', 'to_address', 'amount']):
+                    elif all(
+                        k in msg for k in ["from_address", "to_address", "amount"]
+                    ):
                         # Reconstruct proper message format
                         reconstructed_msg = {
-                            'type': 'cosmos-sdk/MsgSend',
-                            'value': {
-                                'from_address': msg.get('from_address'),
-                                'to_address': msg.get('to_address'),
-                                'amount': msg.get('amount')
-                            }
+                            "type": "cosmos-sdk/MsgSend",
+                            "value": {
+                                "from_address": msg.get("from_address"),
+                                "to_address": msg.get("to_address"),
+                                "amount": msg.get("amount"),
+                            },
                         }
                         processed_msgs.append(reconstructed_msg)
-                        self.logger.debug(f"Reconstructed Amino message: {reconstructed_msg}")
-                    
+                        self.logger.debug(
+                            f"Reconstructed Amino message: {reconstructed_msg}"
+                        )
+
                     else:
                         self.logger.warning(f"Incomplete MsgSend message: {msg}")
-                
+
                 # Try to infer structure based on field names
-                elif all(k in msg for k in ['fromAddress', 'toAddress', 'amount']):
+                elif all(k in msg for k in ["fromAddress", "toAddress", "amount"]):
                     # Looks like Proto format fields but missing typeUrl
                     amino_msg = {
-                        'type': 'cosmos-sdk/MsgSend',
-                        'value': {
-                            'from_address': msg.get('fromAddress', ''),
-                            'to_address': msg.get('toAddress', ''),
-                            'amount': msg.get('amount', [])
-                        }
+                        "type": "cosmos-sdk/MsgSend",
+                        "value": {
+                            "from_address": msg.get("fromAddress", ""),
+                            "to_address": msg.get("toAddress", ""),
+                            "amount": msg.get("amount", []),
+                        },
                     }
                     processed_msgs.append(amino_msg)
-                    self.logger.debug(f"Inferred and converted Proto fields to Amino: {amino_msg}")
-                
+                    self.logger.debug(
+                        f"Inferred and converted Proto fields to Amino: {amino_msg}"
+                    )
+
                 # Unknown message format
                 else:
                     self.logger.warning(f"Unknown message format: {msg}")
-            
+
             # Check if we have any valid messages after processing
             if not processed_msgs:
                 self.logger.error("No valid messages after processing")
-                
+
                 # For now, we'll accept any message format to prevent errors
                 # This is a temporary fallback measure
                 self.logger.debug("Using original messages as fallback")
@@ -262,20 +300,20 @@ class MultiSigBlockchainGateway:
 
             # Create auth info with fee
             auth_info = AuthInfo()
-            if 'fee' in signed:
-                fee = signed['fee']
-                for amt in fee.get('amount', []):
+            if "fee" in signed:
+                fee = signed["fee"]
+                for amt in fee.get("amount", []):
                     auth_info.fee.amount.append(amt)
-                auth_info.fee.gas_limit = int(fee.get('gas', '100000'))
+                auth_info.fee.gas_limit = int(fee.get("gas", "100000"))
 
             # Create signing configuration
             signing_cfg = SigningCfg.direct(
                 public_key=PublicKey(
-                    key_type=signature['pub_key']['type'],
-                    key=base64.b64decode(signature['pub_key']['value'])
+                    key_type=signature["pub_key"]["type"],
+                    key=base64.b64decode(signature["pub_key"]["value"]),
                 ),
-                sequence=int(signed.get('sequence', '0')),
-                account_number=int(signed.get('account_number', '0'))
+                sequence=int(signed.get("sequence", "0")),
+                account_number=int(signed.get("account_number", "0")),
             )
 
             # Create transaction
@@ -295,7 +333,9 @@ class MultiSigBlockchainGateway:
             # Update transaction status
             transaction.signatures[role.value] = SignatureStatus.SIGNED.value
             transaction.update_blockchain_details(result.tx_hash)
-            self.logger.info(f"Transaction broadcast successful. Hash: {result.tx_hash}")
+            self.logger.info(
+                f"Transaction broadcast successful. Hash: {result.tx_hash}"
+            )
 
             return True
 

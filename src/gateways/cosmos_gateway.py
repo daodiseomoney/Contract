@@ -5,6 +5,7 @@ from cosmpy.aerial.tx import Transaction
 from cosmpy.crypto.address import Address
 import json
 
+
 class CosmosBlockchainGateway:
     def __init__(self, mnemonic: str = None):
         # Configure for Odiseo testnet
@@ -13,7 +14,7 @@ class CosmosBlockchainGateway:
             url="https://odiseo.test.rpc.nodeshub.online",
             fee_minimum_gas_price=0.025,
             fee_denomination="uodis",
-            staking_denomination="uodis"
+            staking_denomination="uodis",
         )
 
         self.client = LedgerClient(network_config)
@@ -33,12 +34,14 @@ class CosmosBlockchainGateway:
                     "from_address": self.wallet.address(),
                     "to_address": Address("odiseo1..."),  # Contract address
                     "amount": [{"denom": "uodis", "amount": "1"}],
-                    "memo": json.dumps({
-                        "bim_hash": bim_hash,
-                        "budget_splits": budget_splits,
-                        "type": "property_token"
-                    })
-                }
+                    "memo": json.dumps(
+                        {
+                            "bim_hash": bim_hash,
+                            "budget_splits": budget_splits,
+                            "type": "property_token",
+                        }
+                    ),
+                },
             )
 
             # Sign and broadcast
@@ -53,12 +56,14 @@ class CosmosBlockchainGateway:
             query = self.client.query_bank_balance(self.wallet.address())
             # In real implementation, we would query contract state
             # This is simplified for demo
-            return [{
-                "id": query.tx_hash,
-                "status": "active",
-                "balance": query.balance,
-                "property": "Property Token",
-                "created": "2025-03-17"
-            }]
+            return [
+                {
+                    "id": query.tx_hash,
+                    "status": "active",
+                    "balance": query.balance,
+                    "property": "Property Token",
+                    "created": "2025-03-17",
+                }
+            ]
         except Exception as e:
             raise Exception(f"Failed to fetch contracts: {str(e)}")

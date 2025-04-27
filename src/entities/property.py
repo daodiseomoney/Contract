@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
+
 @dataclass
 class Property:
     id: int
@@ -10,6 +11,7 @@ class Property:
     owner_id: int
     bim_file_hash: Optional[str] = None
     created_at: datetime = datetime.utcnow()
+
 
 @dataclass
 class TokenizedAsset:
@@ -20,6 +22,7 @@ class TokenizedAsset:
     budget_splits: dict
     status: str
     created_at: datetime = datetime.utcnow()
+
 
 @dataclass
 class BudgetAllocation:

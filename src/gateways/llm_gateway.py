@@ -1,22 +1,29 @@
 from typing import Dict, List
 import re
 
+
 class SimpleLLMGateway:
     def __init__(self):
         self.safety_keywords = [
-            "exit", "emergency", "fire", "stairs", "ventilation",
-            "structural", "load-bearing", "foundation"
+            "exit",
+            "emergency",
+            "fire",
+            "stairs",
+            "ventilation",
+            "structural",
+            "load-bearing",
+            "foundation",
         ]
 
     async def analyze_bim_file(self, file_content: str) -> Dict:
         """Simple keyword-based analysis of BIM file content"""
         # Convert bytes to string if needed
         if isinstance(file_content, bytes):
-            file_content = file_content.decode('utf-8')
+            file_content = file_content.decode("utf-8")
 
         # Count safety-related keywords
         keyword_counts = {
-            keyword: len(re.findall(rf'\b{keyword}\b', file_content.lower()))
+            keyword: len(re.findall(rf"\b{keyword}\b", file_content.lower()))
             for keyword in self.safety_keywords
         }
 
@@ -26,7 +33,7 @@ class SimpleLLMGateway:
         return {
             "safety_score": min(safety_score, 1.0),
             "keywords_found": keyword_counts,
-            "recommendations": self._generate_recommendations(keyword_counts)
+            "recommendations": self._generate_recommendations(keyword_counts),
         }
 
     def _generate_recommendations(self, keyword_counts: Dict[str, int]) -> List[str]:
@@ -41,15 +48,13 @@ class SimpleLLMGateway:
             recommendations.append("Add structural integrity information")
 
         return recommendations or ["No specific recommendations"]
+
+
 class SimpleLLMGateway:
     async def analyze_bim_file(self, file_content):
         """Mock LLM analysis of BIM file"""
         return {
             "summary": "BIM file analysis (mock)",
-            "elements": {
-                "walls": 12,
-                "windows": 8,
-                "doors": 4
-            },
-            "estimated_cost": 250000
+            "elements": {"walls": 12, "windows": 8, "doors": 4},
+            "estimated_cost": 250000,
         }

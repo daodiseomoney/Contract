@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.black
     pkgs.wget
     pkgs.zlib
     pkgs.pkg-config

@@ -1,12 +1,14 @@
 from dataclasses import dataclass
 from enum import Enum
 
+
 class RoleType(Enum):
     LANDLORD = "landlord"
     ARCHITECT = "architect"
     CONTRACTOR = "contractor"
     INVESTOR = "investor"
     BROKER = "broker"
+
 
 @dataclass
 class Role:

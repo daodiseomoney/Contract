@@ -3,6 +3,7 @@ Test Keplr Amino format integration for transaction signing.
 These tests verify that our application correctly follows the Keplr documentation
 for the signAmino method format requirements.
 """
+
 import pytest
 import json
 from unittest.mock import MagicMock, patch
@@ -10,39 +11,48 @@ from unittest.mock import MagicMock, patch
 
 class MockKeplrWallet:
     """Mock implementation of Keplr wallet for testing the signAmino method."""
-    
+
     def __init__(self):
         self.sign_calls = []
         self.enabled_chains = set()
-        
+
     async def enable(self, chainId):
         """Mock chain enabling method."""
         self.enabled_chains.add(chainId)
         return True
-        
+
     async def signAmino(self, chainId, signer, signDoc, signOptions=None):
         """
         Mock signAmino method that strictly validates the Amino format
         according to Keplr documentation.
         """
         # Save the call parameters for inspection
-        self.sign_calls.append({
-            "chainId": chainId,
-            "signer": signer,
-            "signDoc": signDoc,
-            "signOptions": signOptions
-        })
-        
+        self.sign_calls.append(
+            {
+                "chainId": chainId,
+                "signer": signer,
+                "signDoc": signDoc,
+                "signOptions": signOptions,
+            }
+        )
+
         # Validate chain ID was enabled
         if chainId not in self.enabled_chains:
             raise ValueError(f"Chain {chainId} was not enabled before signing")
-        
+
         # Validate required fields in signDoc
-        required_fields = ["chain_id", "account_number", "sequence", "fee", "msgs", "memo"]
+        required_fields = [
+            "chain_id",
+            "account_number",
+            "sequence",
+            "fee",
+            "msgs",
+            "memo",
+        ]
         for field in required_fields:
             if field not in signDoc:
                 raise ValueError(f"Missing required field in signDoc: {field}")
-        
+
         # Validate msgs format according to Keplr docs
         for msg in signDoc["msgs"]:
             # Validate proper Amino format with type/value structure
@@ -50,7 +60,7 @@ class MockKeplrWallet:
                 raise ValueError(f"Message missing 'type' field: {msg}")
             if "value" not in msg:
                 raise ValueError(f"Message missing 'value' field: {msg}")
-                
+
             # For MsgSend, validate required fields in value
             if msg["type"] == "cosmos-sdk/MsgSend":
                 value = msg["value"]
@@ -60,70 +70,71 @@ class MockKeplrWallet:
                     raise ValueError(f"MsgSend missing 'to_address': {value}")
                 if "amount" not in value:
                     raise ValueError(f"MsgSend missing 'amount': {value}")
-        
+
         # Mock a successful response
         return {
             "signed": signDoc,
             "signature": {
                 "pub_key": {
                     "type": "tendermint/PubKeySecp256k1",
-                    "value": "A1234567890abcdef"
+                    "value": "A1234567890abcdef",
                 },
-                "signature": "c2lnbmF0dXJl"  # Base64 mock signature
-            }
+                "signature": "c2lnbmF0dXJl",  # Base64 mock signature
+            },
         }
 
 
 class TestKeplrAminoFormatIntegration:
     """Test suite for Keplr Amino format integration."""
-    
+
     @pytest.fixture
     def mock_keplr(self):
         """Create a mock Keplr wallet instance."""
         return MockKeplrWallet()
-    
+
     @pytest.fixture
     def user_address(self):
         """Sample user address for testing."""
         return "odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705"
-    
+
     @pytest.fixture
     def chain_id(self):
         """Sample chain ID for testing."""
         return "odiseotestnet_1234-1"
-    
+
     @pytest.fixture
     def sample_transaction_id(self):
         """Sample transaction ID for testing."""
         return "tx_test_123"
-    
+
     @pytest.fixture
     def sample_content_hash(self):
         """Sample content hash for testing."""
         return "hash_abc123"
-    
+
     @pytest.fixture
-    def sample_amino_sign_doc(self, chain_id, user_address, sample_transaction_id, sample_content_hash):
+    def sample_amino_sign_doc(
+        self, chain_id, user_address, sample_transaction_id, sample_content_hash
+    ):
         """Create a sample sign doc in Amino format as would be used in the app."""
         return {
             "chain_id": chain_id,
             "account_number": "227917",
             "sequence": "84",
-            "fee": {
-                "amount": [{"denom": "uodis", "amount": "2500"}],
-                "gas": "100000"
-            },
-            "msgs": [{
-                "type": "cosmos-sdk/MsgSend",
-                "value": {
-                    "from_address": user_address,
-                    "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                    "amount": [{"denom": "uodis", "amount": "1000"}]
+            "fee": {"amount": [{"denom": "uodis", "amount": "2500"}], "gas": "100000"},
+            "msgs": [
+                {
+                    "type": "cosmos-sdk/MsgSend",
+                    "value": {
+                        "from_address": user_address,
+                        "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                        "amount": [{"denom": "uodis", "amount": "1000"}],
+                    },
                 }
-            }],
-            "memo": f"tx:{sample_transaction_id}|hash:{sample_content_hash}|role:owner"
+            ],
+            "memo": f"tx:{sample_transaction_id}|hash:{sample_content_hash}|role:owner",
         }
-    
+
     @pytest.fixture
     def sample_amino_sign_doc_incorrect(self, chain_id, user_address):
         """Create an incorrect sign doc that doesn't follow Keplr's requirements."""
@@ -131,19 +142,18 @@ class TestKeplrAminoFormatIntegration:
             "chain_id": chain_id,
             "account_number": "227917",
             "sequence": "84",
-            "fee": {
-                "amount": [{"denom": "uodis", "amount": "2500"}],
-                "gas": "100000"
-            },
-            "msgs": [{
-                # Direct format without type/value structure - NOT Amino format
-                "from_address": user_address,
-                "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                "amount": [{"denom": "uodis", "amount": "1000"}]
-            }],
-            "memo": "Test transaction"
+            "fee": {"amount": [{"denom": "uodis", "amount": "2500"}], "gas": "100000"},
+            "msgs": [
+                {
+                    # Direct format without type/value structure - NOT Amino format
+                    "from_address": user_address,
+                    "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                    "amount": [{"denom": "uodis", "amount": "1000"}],
+                }
+            ],
+            "memo": "Test transaction",
         }
-    
+
     @pytest.fixture
     def sample_proto_sign_doc(self, chain_id, user_address):
         """Create a sign doc in Proto format - also incorrect for signAmino."""
@@ -151,48 +161,51 @@ class TestKeplrAminoFormatIntegration:
             "chain_id": chain_id,
             "account_number": "227917",
             "sequence": "84",
-            "fee": {
-                "amount": [{"denom": "uodis", "amount": "2500"}],
-                "gas": "100000"
-            },
-            "msgs": [{
-                "@type": "/cosmos.bank.v1beta1.MsgSend",
-                "from_address": user_address,
-                "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
-                "amount": [{"denom": "uodis", "amount": "1000"}]
-            }],
-            "memo": "Test transaction"
+            "fee": {"amount": [{"denom": "uodis", "amount": "2500"}], "gas": "100000"},
+            "msgs": [
+                {
+                    "@type": "/cosmos.bank.v1beta1.MsgSend",
+                    "from_address": user_address,
+                    "to_address": "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt",
+                    "amount": [{"denom": "uodis", "amount": "1000"}],
+                }
+            ],
+            "memo": "Test transaction",
         }
-    
-    @patch("src.external_interfaces.ui.static.js.transaction.window", new_callable=MagicMock)
-    def test_correct_amino_format(self, mock_window, mock_keplr, sample_amino_sign_doc, chain_id, user_address):
+
+    @patch(
+        "src.external_interfaces.ui.static.js.transaction.window",
+        new_callable=MagicMock,
+    )
+    def test_correct_amino_format(
+        self, mock_window, mock_keplr, sample_amino_sign_doc, chain_id, user_address
+    ):
         """Test that our application is using the correct Amino format for Keplr."""
         # Arrange
         mock_window.keplr = mock_keplr
-        
+
         # Act - Simulate the main.js signAmino call with the correct format
         try:
             # Python version of the JS code
             result = mock_keplr.signAmino(
-                chain_id,
-                user_address,
-                sample_amino_sign_doc,
-                {"preferNoSetFee": True}
+                chain_id, user_address, sample_amino_sign_doc, {"preferNoSetFee": True}
             )
             success = True
         except Exception as e:
             success = False
             error = str(e)
-        
+
         # Assert
-        assert success, f"signAmino call failed: {error if 'error' in locals() else 'unknown error'}"
+        assert (
+            success
+        ), f"signAmino call failed: {error if 'error' in locals() else 'unknown error'}"
         assert len(mock_keplr.sign_calls) == 1, "signAmino was not called exactly once"
-        
+
         # Verify the sign doc format matches Keplr's requirements
         sign_call = mock_keplr.sign_calls[0]
         assert sign_call["chainId"] == chain_id
         assert sign_call["signer"] == user_address
-        
+
         # Check that we're using the correct Amino format with type/value structure
         msgs = sign_call["signDoc"]["msgs"]
         assert len(msgs) == 1, "There should be exactly one message"
@@ -202,13 +215,23 @@ class TestKeplrAminoFormatIntegration:
         assert "from_address" in msgs[0]["value"], "Value missing 'from_address'"
         assert "to_address" in msgs[0]["value"], "Value missing 'to_address'"
         assert "amount" in msgs[0]["value"], "Value missing 'amount'"
-    
-    @patch("src.external_interfaces.ui.static.js.transaction.window", new_callable=MagicMock)
-    def test_incorrect_format_fails(self, mock_window, mock_keplr, sample_amino_sign_doc_incorrect, chain_id, user_address):
+
+    @patch(
+        "src.external_interfaces.ui.static.js.transaction.window",
+        new_callable=MagicMock,
+    )
+    def test_incorrect_format_fails(
+        self,
+        mock_window,
+        mock_keplr,
+        sample_amino_sign_doc_incorrect,
+        chain_id,
+        user_address,
+    ):
         """Test that using an incorrect format (direct object without type/value) fails."""
         # Arrange
         mock_window.keplr = mock_keplr
-        
+
         # Act - Simulate the main.js signAmino call with incorrect format
         try:
             # Python version of the JS code
@@ -216,101 +239,108 @@ class TestKeplrAminoFormatIntegration:
                 chain_id,
                 user_address,
                 sample_amino_sign_doc_incorrect,
-                {"preferNoSetFee": True}
+                {"preferNoSetFee": True},
             )
             success = True
         except Exception as e:
             success = False
             error = str(e)
-        
+
         # Assert
         assert not success, "signAmino should fail with incorrect format"
         assert "Message missing 'type' field" in error
-    
-    @patch("src.external_interfaces.ui.static.js.transaction.window", new_callable=MagicMock)
-    def test_proto_format_fails(self, mock_window, mock_keplr, sample_proto_sign_doc, chain_id, user_address):
+
+    @patch(
+        "src.external_interfaces.ui.static.js.transaction.window",
+        new_callable=MagicMock,
+    )
+    def test_proto_format_fails(
+        self, mock_window, mock_keplr, sample_proto_sign_doc, chain_id, user_address
+    ):
         """Test that using Proto format with @type field fails with signAmino."""
         # Arrange
         mock_window.keplr = mock_keplr
-        
+
         # Act - Simulate the main.js signAmino call with Proto format
         try:
             # Python version of the JS code
             result = mock_keplr.signAmino(
-                chain_id,
-                user_address,
-                sample_proto_sign_doc,
-                {"preferNoSetFee": True}
+                chain_id, user_address, sample_proto_sign_doc, {"preferNoSetFee": True}
             )
             success = True
         except Exception as e:
             success = False
             error = str(e)
-        
+
         # Assert
         assert not success, "signAmino should fail with Proto format"
         assert "Message missing 'type' field" in error
-        
+
     def test_keplr_docs_compliance(self, sample_amino_sign_doc):
         """Test that our sign doc format complies with the official Keplr documentation."""
         # The example from Keplr docs:
         keplr_docs_example = {
             "account_number": "227917",
             "chain_id": "celestia",
-            "fee": {
-                "gas": "96585",
-                "amount": [{"amount": "966", "denom": "utia"}]
-            },
+            "fee": {"gas": "96585", "amount": [{"amount": "966", "denom": "utia"}]},
             "msgs": [
                 {
                     "type": "cosmos-sdk/MsgSend",
                     "value": {
                         # msg value objects here
-                    }
+                    },
                 }
             ],
             "sequence": "84",
             "memo": "Test transaction",
         }
-        
+
         # Verify our sign doc has the same structure as the Keplr docs example
         for field in keplr_docs_example.keys():
-            assert field in sample_amino_sign_doc, f"Our sign doc is missing the '{field}' field from Keplr docs"
-        
+            assert (
+                field in sample_amino_sign_doc
+            ), f"Our sign doc is missing the '{field}' field from Keplr docs"
+
         # Verify the specific structure of msgs
         assert len(sample_amino_sign_doc["msgs"]) > 0, "Our sign doc has no messages"
         msg = sample_amino_sign_doc["msgs"][0]
         assert "type" in msg, "Our message is missing the 'type' field"
         assert "value" in msg, "Our message is missing the 'value' field"
-        
+
         # For MsgSend, verify it has the required fields
         if msg["type"] == "cosmos-sdk/MsgSend":
-            assert "from_address" in msg["value"], "MsgSend value missing 'from_address'"
+            assert (
+                "from_address" in msg["value"]
+            ), "MsgSend value missing 'from_address'"
             assert "to_address" in msg["value"], "MsgSend value missing 'to_address'"
             assert "amount" in msg["value"], "MsgSend value missing 'amount'"
-    
-    @pytest.mark.parametrize("memo_format", [
-        "tx:123|hash:abc|role:owner",
-        "tx:test_tx|hash:content_hash_123|role:validator"
-    ])
-    def test_memo_format(self, memo_format, sample_amino_sign_doc, mock_keplr, chain_id, user_address):
+
+    @pytest.mark.parametrize(
+        "memo_format",
+        [
+            "tx:123|hash:abc|role:owner",
+            "tx:test_tx|hash:content_hash_123|role:validator",
+        ],
+    )
+    def test_memo_format(
+        self, memo_format, sample_amino_sign_doc, mock_keplr, chain_id, user_address
+    ):
         """Test that our memo format works correctly with Keplr."""
         # Arrange
         sample_amino_sign_doc["memo"] = memo_format
-        
+
         # Act
         try:
             result = mock_keplr.signAmino(
-                chain_id,
-                user_address,
-                sample_amino_sign_doc,
-                {"preferNoSetFee": True}
+                chain_id, user_address, sample_amino_sign_doc, {"preferNoSetFee": True}
             )
             success = True
         except Exception as e:
             success = False
             error = str(e)
-        
+
         # Assert
-        assert success, f"signAmino failed with memo format '{memo_format}': {error if 'error' in locals() else 'unknown error'}"
+        assert (
+            success
+        ), f"signAmino failed with memo format '{memo_format}': {error if 'error' in locals() else 'unknown error'}"
         assert mock_keplr.sign_calls[-1]["signDoc"]["memo"] == memo_format
