@@ -1,6 +1,4 @@
 from src.entities.property import Property, TokenizedAsset
-from src.gateways.blockchain_gateway import deploy_contract
-from src.gateways.llm_gateway import validate_compliance
 
 
 class TokenizePropertyUseCase:
