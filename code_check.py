@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Tuple
 
 def run_flake8(path: Optional[str] = None) -> Tuple[int, str]:
     """Run flake8 and return exit code and output."""
-    cmd = ["flake8", "--statistics", "--count"]
+    cmd = ["flake8", "--format=%(path)s:%(row)d:%(col)d: %(code)s %(text)s"]
     if path:
         cmd.append(path)
     
@@ -28,35 +28,40 @@ def run_flake8(path: Optional[str] = None) -> Tuple[int, str]:
 def parse_flake8_output(output: str) -> Dict[str, List[Dict]]:
     """Parse flake8 output and group by file."""
     issues_by_file = defaultdict(list)
+    
     for line in output.strip().split("\n"):
         if ":" not in line or line.strip() == "":
             continue
         
         try:
-            parts = line.split(":", 3)
-            if len(parts) < 3:
+            # Format is: path:line:col: CODE message
+            match = line.split(":", 3)
+            if len(match) < 4:
                 continue
                 
-            filepath = parts[0]
-            line_num = parts[1]
-            rest = parts[2].strip()
+            filepath = match[0]
+            line_num = match[1]
+            col_num = match[2]
             
-            code = None
-            message = rest
+            # Now parse the code and message
+            rest = match[3].strip()
+            parts = rest.split(" ", 1)
             
-            # Extract error code if present
-            if " " in rest:
-                code_part, message = rest.split(" ", 1)
-                if len(code_part) <= 5:  # Code like E501, W123
-                    code = code_part
+            if len(parts) < 2:
+                continue
+                
+            code = parts[0]
+            message = parts[1]
             
             issues_by_file[filepath].append({
                 "line": line_num,
+                "column": col_num,
                 "code": code,
                 "message": message
             })
-        except Exception:
+        except Exception as e:
             # Skip lines that don't match the expected format
+            print(f"Failed to parse line: {line} - {str(e)}")
             continue
     
     return issues_by_file

@@ -5,7 +5,7 @@ This module provides AI capabilities for processing BIM data and interacting wit
 
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict
 
 from src.bim.bim_agent_openai import OpenAIBIMAgent
 from src.bim.mock_ifc import MockIFCData
