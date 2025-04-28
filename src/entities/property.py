@@ -158,8 +158,8 @@ class RealEstateProperty:
         result = {
             "id": self.id,
             "name": self.name,
-            "property_type": str(self.property_type),
-            "status": str(self.status),
+            "property_type": self.property_type.value,
+            "status": self.status.value,
             "location": self.location.to_dict(),
             "details": self.details.to_dict(),
             "financials": self.financials.to_dict(),

@@ -67,7 +67,7 @@ class BIMElement:
         return {
             "id": self.id,
             "global_id": self.global_id,
-            "type": str(self.type),
+            "type": self.type.value,
             "ifc_class": self.ifc_class,
             "name": self.name,
             "level": self.level,
@@ -202,8 +202,8 @@ class BIMModel:
             "building_name": self.building_name,
             "upload_date": self.upload_date.isoformat(),
             "total_elements": self.get_total_element_count(),
-            "element_types": [str(t) for t in self.element_types],
-            "element_counts": {str(k): v for k, v in self.get_element_count().items()},
+            "element_types": [t.value for t in self.element_types],
+            "element_counts": {k.value: v for k, v in self.get_element_count().items()},
             "property_id": self.property_id
         }
         
