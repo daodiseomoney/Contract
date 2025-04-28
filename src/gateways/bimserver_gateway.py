@@ -160,13 +160,17 @@ class BIMServerGateway:
             # If project_id is not provided, create a new project or find existing
             if not project_id and project_name:
                 # Try to find project by name first
-                projects = self.get_projects()
-                for project in projects:
-                    if project["name"] == project_name:
-                        project_id = project["id"]
-                        break
-
-                # If not found, create new project
+                try:
+                    projects = self.get_projects()
+                    # Handle both possible response formats: a list of dicts or a list of strings
+                    for project in projects:
+                        if isinstance(project, dict) and "name" in project and project["name"] == project_name:
+                            project_id = project["id"]
+                            break
+                except Exception as e:
+                    logger.warning(f"Failed to retrieve existing projects: {str(e)}")
+                
+                # If not found or error occurred, create new project
                 if not project_id:
                     project_id = self.create_project(project_name)
             elif not project_id:
