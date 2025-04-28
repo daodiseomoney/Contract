@@ -102,6 +102,42 @@ class KeplerWallet {
     }
 
     updateUI() {
+        // Update connect wallet button in sidebar
+        const connectKeplrBtn = document.getElementById('connectKeplrBtn');
+        if (connectKeplrBtn) {
+            if (this.connected && this.address) {
+                connectKeplrBtn.innerHTML = '<i data-feather="check-circle" class="icon-inline-sm"></i> Connected';
+                connectKeplrBtn.classList.remove('btn-outline-info');
+                connectKeplrBtn.classList.add('btn-success');
+                // Add disconnect option on click
+                connectKeplrBtn.onclick = () => this.disconnect();
+            } else {
+                connectKeplrBtn.innerHTML = '<i data-feather="link" class="icon-inline-sm"></i> Connect Keplr Wallet';
+                connectKeplrBtn.classList.remove('btn-success');
+                connectKeplrBtn.classList.add('btn-outline-info');
+                connectKeplrBtn.onclick = () => this.init();
+            }
+        }
+
+        // Update user profile in header
+        const userProfileBtn = document.getElementById('userProfileBtn');
+        if (userProfileBtn) {
+            if (this.connected && this.address) {
+                const displayAddress = this.address.slice(0, 8) + '...' + this.address.slice(-4);
+                userProfileBtn.querySelector('span').textContent = displayAddress;
+            } else {
+                userProfileBtn.querySelector('span').textContent = 'Connect Wallet';
+            }
+        }
+
+        // Refresh feather icons
+        feather.replace();
+        
+        // Set global window variables for other scripts
+        window.walletConnected = this.connected;
+        window.userWalletAddress = this.address || '';
+
+        // Legacy connect button support
         const connectButton = document.getElementById('connectWallet');
         if (connectButton) {
             if (this.connected && this.address) {
