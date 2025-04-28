@@ -1,7 +1,7 @@
 // Kepler wallet integration
 class KeplerWallet {
     constructor() {
-        this.chainId = 'odiseotestnet_1234-1';
+        this.chainId = 'ithaca-1';
         this.connected = false;
         this.address = null;
         

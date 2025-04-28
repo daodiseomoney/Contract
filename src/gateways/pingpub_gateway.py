@@ -465,10 +465,10 @@ class PingPubGateway:
             return f"{explorer_base.rstrip('/')}/tx/{tx_hash}"
         else:
             # Derive explorer URL from chain ID as fallback (this is less secure)
-            if self.chain_id and "testnet" in self.chain_id.lower():
+            if self.chain_id and self.chain_id == "ithaca-1":
                 logger.warning("Using testnet explorer URL derived from chain ID")
-                return f"https://testnet.explorer.nodeshub.online/odiseo/tx/{tx_hash}"
+                return f"https://testnet.explorer.chaintools.tech/odiseo/tx/{tx_hash}"
             else:
                 # Mainnet URL should be configured explicitly
                 logger.error("EXPLORER_URL environment variable is missing for mainnet")
-                return f"https://explorer.nodeshub.online/odiseo/tx/{tx_hash}"
+                return f"https://explorer.chaintools.tech/odiseo/tx/{tx_hash}"

@@ -15,17 +15,17 @@ class TransactionService:
 
         # Define multiple endpoints with proper protocols for fallback
         self.endpoints = [
-            "rest+https://odiseo.test.api.nodeshub.online",  # REST API endpoint first
-            "http+https://odiseo.test.rpc.nodeshub.online",  # HTTP endpoint as fallback
-            "grpc+https://odiseo.test.rpc.nodeshub.online:443",  # gRPC as last resort
+            "rest+https://testnet-api.daodiseo.chaintools.tech",  # REST API endpoint first
+            "http+https://testnet-rpc.daodiseo.chaintools.tech",  # HTTP endpoint as fallback
+            "grpc+https://testnet-rpc.daodiseo.chaintools.tech:443",  # gRPC as last resort
         ]
 
         # Add specific API and RPC URLs for direct HTTP calls
-        self.api_url = "https://odiseo.test.api.nodeshub.online"
-        self.rpc_url = "https://odiseo.test.rpc.nodeshub.online"
+        self.api_url = "https://testnet-api.daodiseo.chaintools.tech"
+        self.rpc_url = "https://testnet-rpc.daodiseo.chaintools.tech"
 
         self.network = NetworkConfig(
-            chain_id="odiseotestnet_1234-1",
+            chain_id="ithaca-1",
             url=self.endpoints[0],  # Start with REST endpoint
             fee_minimum_gas_price=0.025,
             fee_denomination="uodis",
