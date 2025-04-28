@@ -191,25 +191,41 @@ const aiChat = {
         // Clear input
         inputElement.value = '';
         
-        // Send message to server
+        // Send message to server with the use_agent parameter
         fetch('/api/bim-agent/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: message
+                message: message,
+                use_agent: this.isEnhancedMode
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Create metadata object if not present
+                const metadata = data.metadata || {};
+                
+                // Add agent_type tag if it's from IFC agent
+                if (metadata.agent_type === 'ifc_agent') {
+                    metadata.agent_used = true;
+                    metadata.agent_name = 'IFC Agent';
+                    metadata.enhanced_mode = true;
+                    
+                    // Add tool usage if available
+                    if (metadata.tools_used && metadata.tools_used.length > 0) {
+                        metadata.tools = metadata.tools_used;
+                    }
+                }
+                
                 // Add AI response to UI
-                this.addAIMessage(data.response, data.metadata);
+                this.addAIMessage(data.response, metadata);
                 
                 // Update stakeholder if detected
-                if (data.metadata && data.metadata.stakeholder) {
-                    this.stakeholder = data.metadata.stakeholder;
+                if (metadata.stakeholder) {
+                    this.stakeholder = metadata.stakeholder;
                 }
             } else {
                 // Add error message
@@ -376,7 +392,39 @@ const aiChat = {
                 metaElement.appendChild(filteredTag);
             }
             
+            // Add IFC agent tag if that was used
+            if (metadata.agent_used && metadata.agent_name) {
+                const agentTag = document.createElement('span');
+                agentTag.className = 'agent-tag';
+                agentTag.textContent = metadata.agent_name;
+                metaElement.appendChild(agentTag);
+            }
+            
             messageElement.appendChild(metaElement);
+            
+            // Add tools details if available from IFC agent
+            if (metadata.tools && metadata.tools.length > 0) {
+                const toolsContainer = document.createElement('div');
+                toolsContainer.className = 'tools-container';
+                
+                const toolsHeader = document.createElement('div');
+                toolsHeader.className = 'tools-header';
+                toolsHeader.textContent = 'Building data analyzed:';
+                toolsContainer.appendChild(toolsHeader);
+                
+                const toolsList = document.createElement('ul');
+                toolsList.className = 'tools-list';
+                
+                // Add each tool used
+                metadata.tools.forEach(tool => {
+                    const toolItem = document.createElement('li');
+                    toolItem.textContent = tool;
+                    toolsList.appendChild(toolItem);
+                });
+                
+                toolsContainer.appendChild(toolsList);
+                messageElement.appendChild(toolsContainer);
+            }
         }
         
         this.messagesContainer.appendChild(messageElement);
