@@ -62,12 +62,22 @@ async function createAndSignTransaction(fileData, userAddress, role) {
     }
 
     // Create success response with transaction details
-    return {
+    const result = {
       success: true,
       transaction_id: transactionId,
       blockchain_tx_hash: broadcastResult.txhash,
       explorer_url: `https://testnet.explorer.nodeshub.online/odiseo/tx/${broadcastResult.txhash}`
     };
+    
+    // Trigger transaction submitted event for micro-rewards
+    document.dispatchEvent(new CustomEvent('transactionSubmitted', {
+      detail: { 
+        txHash: broadcastResult.txhash,
+        result: result
+      }
+    }));
+    
+    return result;
   } catch (error) {
     // Enhanced error logging with detailed context
     const errorContext = {
@@ -220,7 +230,17 @@ async function signWithKeplr(chainId, userAddress, signDoc) {
 
 async function signContract(chainId, userAddress, signDoc) {
   console.log("Starting Keplr signing process...");
-  return await signWithKeplr(chainId, userAddress, signDoc);
+  const signResponse = await signWithKeplr(chainId, userAddress, signDoc);
+  
+  // Trigger contract signed event for micro-rewards
+  document.dispatchEvent(new CustomEvent('contractSigned', {
+    detail: { 
+      userAddress: userAddress,
+      chainId: chainId
+    }
+  }));
+  
+  return signResponse;
 }
 
 // Convert Uint8Array to base64 string

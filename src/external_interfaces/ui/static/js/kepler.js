@@ -157,6 +157,12 @@ async function connectKeplrWallet() {
         localStorage.setItem('userWalletAddress', address);
         
         console.log('Keplr wallet connected:', address);
+        
+        // Trigger wallet connected event for micro-rewards
+        document.dispatchEvent(new CustomEvent('keplrConnected', {
+            detail: { address: address }
+        }));
+        
         return address;
     } catch (error) {
         console.error('Failed to connect Keplr wallet:', error);
