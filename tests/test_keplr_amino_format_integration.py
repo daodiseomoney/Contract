@@ -21,10 +21,10 @@ class MockKeplrWallet:
         self.enabled_chains.add(chainId)
         return True
 
-    async def signAmino(self, chainId, signer, signDoc, signOptions=None):
+    def _sync_sign_amino(self, chainId, signer, signDoc, signOptions=None):
         """
-        Mock signAmino method that strictly validates the Amino format
-        according to Keplr documentation.
+        Synchronous version of signAmino for use in synchronous tests
+        This avoids the need for async/await in tests
         """
         # Save the call parameters for inspection
         self.sign_calls.append(
@@ -75,13 +75,21 @@ class MockKeplrWallet:
         return {
             "signed": signDoc,
             "signature": {
+                "signature": "mock-signature",
                 "pub_key": {
                     "type": "tendermint/PubKeySecp256k1",
-                    "value": "A1234567890abcdef",
+                    "value": "mock-pubkey-value",
                 },
-                "signature": "c2lnbmF0dXJl",  # Base64 mock signature
             },
         }
+        
+    async def signAmino(self, chainId, signer, signDoc, signOptions=None):
+        """
+        Mock signAmino method that strictly validates the Amino format
+        according to Keplr documentation.
+        """
+        # Simply delegate to the synchronous version, wrapping it for async compatibility
+        return self._sync_sign_amino(chainId, signer, signDoc, signOptions)
 
 
 class TestKeplrAminoFormatIntegration:
@@ -183,11 +191,13 @@ class TestKeplrAminoFormatIntegration:
         """Test that our application is using the correct Amino format for Keplr."""
         # Arrange
         mock_window.keplr = mock_keplr
+        # Enable the chain first for this test (required for validation)
+        mock_keplr.enabled_chains.add(chain_id)
 
         # Act - Simulate the main.js signAmino call with the correct format
         try:
-            # Python version of the JS code
-            result = mock_keplr.signAmino(
+            # Use the synchronous version directly
+            result = mock_keplr._sync_sign_amino(
                 chain_id, user_address, sample_amino_sign_doc, {"preferNoSetFee": True}
             )
             success = True
@@ -231,11 +241,13 @@ class TestKeplrAminoFormatIntegration:
         """Test that using an incorrect format (direct object without type/value) fails."""
         # Arrange
         mock_window.keplr = mock_keplr
+        # Enable the chain first for validation to occur
+        mock_keplr.enabled_chains.add(chain_id)
 
-        # Act - Simulate the main.js signAmino call with incorrect format
+        # Act - Simulate the call with incorrect format
         try:
-            # Python version of the JS code
-            result = mock_keplr.signAmino(
+            # Use synchronous version directly
+            result = mock_keplr._sync_sign_amino(
                 chain_id,
                 user_address,
                 sample_amino_sign_doc_incorrect,
@@ -260,11 +272,13 @@ class TestKeplrAminoFormatIntegration:
         """Test that using Proto format with @type field fails with signAmino."""
         # Arrange
         mock_window.keplr = mock_keplr
+        # Enable the chain first for validation to occur
+        mock_keplr.enabled_chains.add(chain_id)
 
-        # Act - Simulate the main.js signAmino call with Proto format
+        # Act - Simulate the call with Proto format
         try:
-            # Python version of the JS code
-            result = mock_keplr.signAmino(
+            # Use synchronous version directly
+            result = mock_keplr._sync_sign_amino(
                 chain_id, user_address, sample_proto_sign_doc, {"preferNoSetFee": True}
             )
             success = True
@@ -326,12 +340,16 @@ class TestKeplrAminoFormatIntegration:
         self, memo_format, sample_amino_sign_doc, mock_keplr, chain_id, user_address
     ):
         """Test that our memo format works correctly with Keplr."""
-        # Arrange
+        # Arrange - Enable the chain first for this test
+        mock_keplr.enabled_chains.add(chain_id)
         sample_amino_sign_doc["memo"] = memo_format
 
-        # Act
+        # Make a direct call to signAmino rather than using transaction.py for simplicity
+        # This avoids the async complexities in a synchronous test
         try:
-            result = mock_keplr.signAmino(
+            # Call the signAmino directly on the mock, not through the wrapper
+            # This also adds the call to sign_calls list for validation
+            result = mock_keplr._sync_sign_amino(
                 chain_id, user_address, sample_amino_sign_doc, {"preferNoSetFee": True}
             )
             success = True
@@ -343,4 +361,5 @@ class TestKeplrAminoFormatIntegration:
         assert (
             success
         ), f"signAmino failed with memo format '{memo_format}': {error if 'error' in locals() else 'unknown error'}"
+        assert len(mock_keplr.sign_calls) > 0, "sign_calls list is empty, signAmino was not recorded"
         assert mock_keplr.sign_calls[-1]["signDoc"]["memo"] == memo_format
