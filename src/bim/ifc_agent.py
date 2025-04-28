@@ -127,8 +127,8 @@ class IFCAgent:
             return {
                 "file_name": os.path.basename(self.file_path) if self.file_path else "Unknown",
                 "project_name": project.Name if project and project.Name else "Unknown Project",
-                "building_name": building.Name if building
-                    and building.Name else "Unknown Building",
+                "building_name": (building.Name if building and building.Name
+                                  else "Unknown Building"),
                 "number_of_storeys": len(storeys),
                 "element_count": sum(1 for _ in self.ifc_file.by_type("IfcElement")),
                 "spaces_count": sum(1 for _ in self.ifc_file.by_type("IfcSpace")),
@@ -279,8 +279,10 @@ class IFCAgent:
                             if rel.RelatingObject == element:
                                 for child in rel.RelatedObjects:
                                     result["children"].append(
-                                        process_spatial_element(child,
-                                        level + 1)
+                                        process_spatial_element(
+                                            child,
+                                            level + 1
+                                        )
                                     )
 
                     return result
@@ -389,7 +391,8 @@ class IFCAgent:
         return """
         You are an expert BIM (Building Information Modeling) assistant specialized in
             analyzing IFC (Industry Foundation Classes) files.
-        You help users extract meaningful insights from BIM models through detailed analysis of building elements, spatial structures, and properties.
+        You help users extract meaningful insights from BIM models through detailed analysis
+        of building elements, spatial structures, and properties.
 
         You have access to the following tools:
         - get_building_info: Provides basic information about the building like name,
@@ -400,9 +403,8 @@ class IFCAgent:
 
         Use these tools to answer queries about the building. First,
             determine which tools are needed to answer the user's question.
-        Always provide specific,
-            data-driven responses based on the actual IFC model content. Avoid making assumptions about
-        the building that aren't supported by the data.
+        Always provide specific, data-driven responses based on the actual IFC model content.
+        Avoid making assumptions about the building that aren't supported by the data.
 
         For property analysis, focus on:
         - Spatial relationships and organization
@@ -411,7 +413,7 @@ class IFCAgent:
         - Building code compliance insights
         - Construction quality and specifications
 
-        When responding,
-            organize information clearly with appropriate formatting. If the data reveals issues or opportunities
-        for improvement in the building design, highlight these in your response.
+        When responding, organize information clearly with appropriate formatting. 
+        If the data reveals issues or opportunities for improvement in the building design, 
+        highlight these in your response.
         """
