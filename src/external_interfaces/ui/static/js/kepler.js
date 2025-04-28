@@ -5,11 +5,17 @@ class KeplerWallet {
         this.connected = false;
         this.address = null;
 
-        // Try to restore previous connection
-        const savedAddress = localStorage.getItem('kepler_address');
+        // Try to restore previous connection - use both the legacy and new localStorage keys
+        const savedAddress = localStorage.getItem('kepler_address') || localStorage.getItem('userWalletAddress');
         if (savedAddress) {
             this.address = savedAddress;
             this.connected = true;
+            
+            // Make sure we keep both storage keys in sync
+            localStorage.setItem('kepler_address', savedAddress);
+            localStorage.setItem('userWalletAddress', savedAddress);
+            localStorage.setItem('walletConnected', 'true');
+            
             this.updateUI();
         }
     }
@@ -39,8 +45,10 @@ class KeplerWallet {
             this.address = accounts[0].address;
             this.connected = true;
 
-            // Save connection state
+            // Save connection state to both keys for compatibility
             localStorage.setItem('kepler_address', this.address);
+            localStorage.setItem('userWalletAddress', this.address);
+            localStorage.setItem('walletConnected', 'true');
 
             this.updateUI();
             return this.address;
@@ -54,7 +62,12 @@ class KeplerWallet {
     disconnect() {
         this.connected = false;
         this.address = null;
+        
+        // Clear all wallet related localStorage keys
         localStorage.removeItem('kepler_address');
+        localStorage.removeItem('userWalletAddress');
+        localStorage.setItem('walletConnected', 'false');
+        
         this.updateUI();
     }
 
@@ -134,6 +147,83 @@ class KeplerWallet {
 // Create global wallet instance
 window.keplerWallet = new KeplerWallet();
 
+// Global function for connecting Keplr wallet - can be called from anywhere
+async function connectKeplrWallet() {
+    try {
+        const address = await window.keplerWallet.init();
+        
+        // Store wallet connected status in localStorage for UI components
+        localStorage.setItem('walletConnected', 'true');
+        localStorage.setItem('userWalletAddress', address);
+        
+        console.log('Keplr wallet connected:', address);
+        return address;
+    } catch (error) {
+        console.error('Failed to connect Keplr wallet:', error);
+        alert('Error connecting Keplr wallet: ' + error.message);
+        localStorage.setItem('walletConnected', 'false');
+        localStorage.removeItem('userWalletAddress');
+        return null;
+    }
+}
+
+// Global function for disconnecting Keplr wallet
+function disconnectKeplrWallet() {
+    window.keplerWallet.disconnect();
+    localStorage.setItem('walletConnected', 'false');
+    localStorage.removeItem('userWalletAddress');
+    console.log('Keplr wallet disconnected');
+}
+
+// Global function for signing transactions with Keplr wallet
+async function signTransactionWithKeplr(transactionData) {
+    try {
+        // Check if wallet is connected
+        if (!window.keplerWallet.isConnected()) {
+            await connectKeplrWallet();
+            if (!window.keplerWallet.isConnected()) {
+                throw new Error('Wallet connection required');
+            }
+        }
+        
+        // Add metadata to transaction if needed
+        if (transactionData.metadata && !transactionData.memo) {
+            // Format memo based on transaction metadata
+            const metadata = transactionData.metadata;
+            transactionData.memo = `${metadata.id || ''}:${metadata.hash || ''}:${metadata.role || 'owner'}`;
+        }
+        
+        // Sign the transaction using wallet instance
+        const signature = await window.keplerWallet.signTransaction(transactionData);
+        
+        console.log('Transaction signed successfully:', signature);
+        
+        // If broadcast URL is provided, send to backend for broadcasting
+        if (transactionData.broadcastUrl) {
+            const response = await fetch(transactionData.broadcastUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    signature: signature,
+                    transaction: transactionData
+                })
+            });
+            
+            const result = await response.json();
+            console.log('Transaction broadcast result:', result);
+            return result;
+        }
+        
+        return signature;
+    } catch (error) {
+        console.error('Failed to sign transaction:', error);
+        alert(`Transaction signing failed: ${error.message}`);
+        throw error;
+    }
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Update UI based on saved state
@@ -146,11 +236,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!window.keplerWallet.isConnected()) {
                 e.preventDefault();
                 try {
-                    await window.keplerWallet.init();
+                    await connectKeplrWallet();
                 } catch (error) {
-                    alert('Please connect your Kepler wallet first');
+                    alert('Please connect your Keplr wallet first');
                 }
             }
         });
     });
+    
+    // Add global connect button handler if it exists
+    const globalConnectBtn = document.getElementById('globalConnectWallet');
+    if (globalConnectBtn) {
+        globalConnectBtn.addEventListener('click', connectKeplrWallet);
+    }
 });
