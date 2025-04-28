@@ -297,10 +297,22 @@
                     walletBtn.classList.add('btn-success');
                 }
                 
-                // Update user profile in header
+                // Update user profile in header with shortened wallet address
                 const userProfile = document.getElementById('userProfileBtn');
                 if (userProfile) {
-                    userProfile.querySelector('span').textContent = userWalletAddress;
+                    // Display shortened wallet address (first 6 and last 4 characters)
+                    const shortAddress = userWalletAddress.length > 10 
+                        ? userWalletAddress.substring(0, 6) + '...' + userWalletAddress.substring(userWalletAddress.length - 4) 
+                        : userWalletAddress;
+                    userProfile.querySelector('span').textContent = shortAddress;
+                    
+                    // Add wallet address as title for hover display
+                    userProfile.setAttribute('title', userWalletAddress);
+                    userProfile.setAttribute('data-bs-toggle', 'tooltip');
+                    userProfile.setAttribute('data-bs-placement', 'bottom');
+                    
+                    // Initialize tooltip
+                    new bootstrap.Tooltip(userProfile);
                 }
                 
                 // Update feather icons
@@ -453,13 +465,28 @@
                             </div>
                         `;
                         
-                        // Check if window.keplerWallet exists (from our kepler.js)
-                        if (window.keplerWallet) {
-                            // Use our custom KeplerWallet implementation
+                        // Check if global connectKeplrWallet function exists (from kepler.js)
+                        if (typeof connectKeplrWallet === 'function') {
+                            // Use our global function to connect
+                            const address = await connectKeplrWallet();
+                            
+                            if (address) {
+                                // Get the updated values from localStorage
+                                userWalletAddress = localStorage.getItem('userWalletAddress');
+                                walletConnected = localStorage.getItem('walletConnected') === 'true';
+                            } else {
+                                throw new Error('Failed to connect wallet. Please try again.');
+                            }
+                        } else if (window.keplerWallet) {
+                            // Fallback to our custom KeplerWallet implementation
                             await window.keplerWallet.init();
                             if (window.keplerWallet.isConnected()) {
                                 userWalletAddress = window.keplerWallet.address;
                                 walletConnected = true;
+                                
+                                // Update localStorage for consistency
+                                localStorage.setItem('userWalletAddress', userWalletAddress);
+                                localStorage.setItem('walletConnected', 'true');
                             } else {
                                 throw new Error('Failed to connect wallet. Please try again.');
                             }
@@ -483,6 +510,10 @@
                             const accounts = await offlineSigner.getAccounts();
                             userWalletAddress = accounts[0].address;
                             walletConnected = true;
+                            
+                            // Update localStorage for consistency
+                            localStorage.setItem('userWalletAddress', userWalletAddress);
+                            localStorage.setItem('walletConnected', 'true');
                             
                             // Save address to backend
                             try {
