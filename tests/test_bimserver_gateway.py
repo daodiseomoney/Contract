@@ -120,12 +120,13 @@ class TestBIMServerGateway:
             test_file = io.BytesIO(b"test file content")
             test_file.name = "test.ifc"
 
-            # Set up the mock responses for each API call in the sequence
+            # We need one more response for the extra call to get_projects in the store_file method
             responses = [
+                [],                          # For get_projects
                 {"result": SAMPLE_PROJECT_ID},  # For creating the project
-                {"result": "topic-123"},  # For initiating check-in
-                {"result": "upload-success"},  # For uploading data
-                {"result": SAMPLE_REVISION_ID},  # For finalizing check-in
+                {"result": "topic-123"},     # For initiating check-in
+                {"result": "upload-success"}, # For uploading data
+                {"result": SAMPLE_REVISION_ID}, # For finalizing check-in
             ]
 
             with patch.object(
