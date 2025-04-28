@@ -16,17 +16,21 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-# Create a separate test Flask app instead of importing the main one
-# This prevents the tests from interfering with the running application
 @pytest.fixture
-def test_client():
-    """Create a test Flask app instance for isolated testing."""
+def app():
+    """Create a Flask app fixture for testing"""
     from flask import Flask, jsonify, request
 
     # Create a test Flask app
     test_app = Flask(__name__)
     test_app.config["TESTING"] = True
     test_app.config["SERVER_NAME"] = "localhost"
+    
+    # Configure the app with test settings for BIMServer
+    test_app.config["BIMSERVER_ENABLED"] = True
+    test_app.config["BIMSERVER_URL"] = "http://localhost:8080"
+    test_app.config["BIMSERVER_USERNAME"] = "test@example.com"
+    test_app.config["BIMSERVER_PASSWORD"] = "test-password"
 
     # Simple routes to test with
     @test_app.route("/")
@@ -46,10 +50,20 @@ def test_client():
                 }
             ]
         )
+    
+    return test_app
 
+
+# Create a separate test Flask app instead of importing the main one
+# This prevents the tests from interfering with the running application
+@pytest.fixture
+def test_client(app):
+    """Create a test Flask app instance for isolated testing."""
     # Return the test client
-    with test_app.test_client() as client:
-        yield client
+    with app.test_client() as client:
+        # Create an application context
+        with app.app_context():
+            yield client
 
 
 # Mock data fixtures

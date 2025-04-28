@@ -197,58 +197,41 @@ class TestBIMServerGateway:
 class TestStorageFactory:
     """Test suite for the StorageFactory functionality."""
 
-    def test_create_local_storage_when_bimserver_disabled(self):
+    def test_create_local_storage_when_bimserver_disabled(self, app):
         """Test creating a local storage gateway when BIMserver is disabled."""
-        with patch("flask.current_app.config.get", return_value=False):
+        with app.app_context():
+            # Override the app config for this specific test
+            app.config["BIMSERVER_ENABLED"] = False
+            
             storage = StorageFactory.create_storage_gateway()
-
             assert isinstance(storage, LocalStorageGateway)
 
-    def test_create_bimserver_gateway_when_enabled(self):
+    def test_create_bimserver_gateway_when_enabled(self, app):
         """Test creating a BIMserver gateway when BIMserver is enabled."""
-        config_values = {
-            "BIMSERVER_ENABLED": True,
-            "BIMSERVER_URL": SAMPLE_BASE_URL,
-            "BIMSERVER_USERNAME": SAMPLE_USERNAME,
-            "BIMSERVER_PASSWORD": SAMPLE_PASSWORD,
-        }
-
-        with (
-            patch(
-                "flask.current_app.config.get",
-                side_effect=lambda key, default=None: config_values.get(key, default),
-            ),
-            patch(
+        with app.app_context():
+            # App is already configured with BIMSERVER_ENABLED = True in the fixture
+            
+            with patch(
                 "src.gateways.bimserver_gateway.BIMServerGateway.__init__",
                 return_value=None,
-            ),
-            patch("src.gateways.bimserver_gateway.BIMServerGateway"),
-        ):
+            ) as mock_init, patch("src.gateways.bimserver_gateway.BIMServerGateway") as mock_gateway_class:
+                # Make the mocked class return the instance when called
+                mock_gateway_instance = mock_gateway_class.return_value
+                
+                storage = StorageFactory.create_storage_gateway()
+                
+                # Assert that BIMServerGateway was properly initialized
+                mock_init.assert_called_once()
+                assert storage == mock_gateway_instance
 
-            storage = StorageFactory.create_storage_gateway()
-
-            assert isinstance(storage, BIMServerGateway)
-
-    def test_fallback_to_local_storage_when_bimserver_fails(self):
+    def test_fallback_to_local_storage_when_bimserver_fails(self, app):
         """Test fallback to local storage when BIMserver initialization fails."""
-        config_values = {
-            "BIMSERVER_ENABLED": True,
-            "BIMSERVER_URL": SAMPLE_BASE_URL,
-            "BIMSERVER_USERNAME": SAMPLE_USERNAME,
-            "BIMSERVER_PASSWORD": SAMPLE_PASSWORD,
-        }
-
-        with (
-            patch(
-                "flask.current_app.config.get",
-                side_effect=lambda key, default=None: config_values.get(key, default),
-            ),
-            patch(
+        with app.app_context():
+            # App is already configured with BIMSERVER_ENABLED = True in the fixture
+            
+            with patch(
                 "src.gateways.bimserver_gateway.BIMServerGateway.__init__",
                 side_effect=Exception("BIMserver connection failed"),
-            ),
-        ):
-
-            storage = StorageFactory.create_storage_gateway()
-
-            assert isinstance(storage, LocalStorageGateway)
+            ):
+                storage = StorageFactory.create_storage_gateway()
+                assert isinstance(storage, LocalStorageGateway)
