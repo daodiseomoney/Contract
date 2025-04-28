@@ -1,11 +1,11 @@
-"""
-OpenAI implementation of the BIM Agent for the BIM AI Management Dashboard.
-This module provides OpenAI-based AI capabilities for processing BIM data.
-"""
 import logging
-import re
-from typing import Any, Dict, List, Optional, Tuple
+import os
+from typing import Dict, List, Optional, Tuple
 
+from openai import OpenAI
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +20,6 @@ class StakeholderGroup:
 
     @staticmethod
     def get_all() -> List[str]:
-        """Get all stakeholder group identifiers."""
         return [
             StakeholderGroup.TENANT_BUYER,
             StakeholderGroup.BROKER,
@@ -33,7 +32,6 @@ class StakeholderGroup:
 
     @staticmethod
     def get_name(stakeholder_group: str) -> str:
-        """Get human-readable name for a stakeholder group."""
         mapping = {
             StakeholderGroup.TENANT_BUYER: "Tenant/Buyer",
             StakeholderGroup.BROKER: "Broker",
@@ -53,26 +51,27 @@ class OpenAIBIMAgent:
     """
 
     def __init__(self):
-        """Initialize the OpenAI BIM Agent."""
+        # Initialize OpenAI client
+        try:
+            self.api_key = os.environ.get("OPENAI_API_KEY")
+            if not self.api_key:
+                logger.warning("OPENAI_API_KEY not found in environment variables")
+                self.client = None
+            else:
+                self.client = OpenAI(api_key=self.api_key)
+                logger.debug("OpenAI client initialized successfully")
+        except Exception as e:
+            logger.error(f"Error initializing OpenAI client: {e}")
+            self.client = None
+
         self.enhanced_mode = False
         self.identified_stakeholder = None
         self.conversation_history = []
-        self.bim_data = None
-        self.client = None
-
-        try:
-            import openai
-
-            self.client = openai.OpenAI()
-            logger.debug("OpenAI client initialized successfully")
-        except (ImportError, Exception) as e:
-            logger.error(f"Error initializing OpenAI client: {e}")
-            self.client = None
+        self.bim_data = {}  # Will store BIM data for context
 
     def toggle_enhanced_mode(self, enabled: bool = True) -> bool:
         """Toggle between standard and enhanced AI modes"""
         self.enhanced_mode = enabled
-        logger.info(f"Enhanced mode {'enabled' if enabled else 'disabled'}")
         return self.enhanced_mode
 
     def identify_stakeholder(self, messages: List[Dict]) -> Optional[str]:
@@ -81,15 +80,16 @@ class OpenAIBIMAgent:
         Returns the stakeholder group identifier
         """
         if not self.client:
-            logger.error("Cannot identify stakeholder: OpenAI client not available")
+            logger.error("OpenAI client not initialized, cannot identify stakeholder")
             return None
 
         try:
-            # Extract user messages
+            # Combine messages into a single text for analysis
             user_text = " ".join(
-                [msg["content"] for msg in messages if msg["role"] == "user"]
+                [m.get("content", "") for m in messages if m.get("role") == "user"]
             )
 
+            # If no user messages, can't identify
             if not user_text:
                 return None
 
@@ -255,12 +255,11 @@ class OpenAIBIMAgent:
             is_appropriate = self._check_message_appropriateness(message)
 
             if not is_appropriate:
-                response_text = (
-                    "I'm a BIM AI assistant focused on providing information about buildings, real "
-                    "estate, and property investments. Please ask questions related to these "
-                    "topics so I can help you effectively. For instance, you could ask about "
-                    "building specifications, property valuations, or investment strategies."
-                )
+                response_text = "
+                    I'm a BIM AI assistant focused on providing information about buildings, real" \
+                    estate, and property investments. Please ask questions related to these" \
+                    topics so I can help you effectively. For instance, you could ask about" \
+                    building specifications, property valuations, or investment strategies."
                 self.conversation_history.append(
                     {"role": "assistant", "content": response_text}
                 )
@@ -280,7 +279,8 @@ class OpenAIBIMAgent:
             content_guidelines = (
                 "IMPORTANT: You are a professional BIM AI assistant for real estate. "
                 "Only answer questions related to buildings, real estate, property investments, "
-                "architecture, construction, blockchain tokenization, and related professional topics. "
+                "architecture, construction, blockchain tokenization, and 
+                    related professional topics. "
                 "If asked about inappropriate topics, politely redirect the conversation to "
                 "building information modeling and real estate investment topics. "
                 "Do not engage with or acknowledge inappropriate requests."
@@ -299,10 +299,9 @@ class OpenAIBIMAgent:
                 stakeholder_name = StakeholderGroup.get_name(
                     self.identified_stakeholder
                 )
-                stakeholder_context = (
-                    f"The user appears to be a {stakeholder_name}. Tailor your responses "
-                    "accordingly."
-                )
+                stakeholder_context = f"
+                    The user appears to be a {stakeholder_name}. Tailor your responses" \
+                    accordingly."
                 system_message += f"\n\n{stakeholder_context}"
 
             # Prepare messages for the API call
@@ -352,7 +351,8 @@ class OpenAIBIMAgent:
         """Get the system message for standard mode"""
         return (
             "You are a helpful AI assistant for a blockchain-powered real estate tokenization platform. "
-            "You help users understand Building Information Modeling (BIM) data and provide insights "
+            "You help users understand Building Information Modeling (BIM) data and 
+                provide insights "
             "about properties on the platform. Be concise and direct in your responses."
         )
 
@@ -360,16 +360,22 @@ class OpenAIBIMAgent:
         """Get the system message for enhanced mode"""
         return (
             "You are an advanced BIM AI assistant for a blockchain-powered real estate tokenization platform. "
-            "You have deep expertise in Building Information Modeling (BIM) methodology, IFC file structures, "
-            "and blockchain property tokenization. You provide detailed, stakeholder-specific insights and can "
+            "You have deep expertise in Building Information Modeling (BIM) methodology,
+                IFC file structures, "
+            "and blockchain property tokenization. You provide detailed,
+                stakeholder-specific insights and can "
             "interface directly with building models to extract valuable property information."
             "\n\n"
-            "When analyzing BIM data, consider spatial relationships, material specifications, structural "
-            "integrity, energy efficiency metrics, and compliance with building codes. For blockchain "
-            "aspects, consider tokenization strategies, smart contract functionality, transaction security, "
+            "When analyzing BIM data, consider spatial relationships,
+                material specifications, structural "
+            "integrity, energy efficiency metrics, and 
+                compliance with building codes. For blockchain "
+            "aspects, consider tokenization strategies, smart contract functionality,
+                transaction security, "
             "and regulatory compliance."
             "\n\n"
-            "Adapt your response style and technical depth based on the identified stakeholder group:"
+            "Adapt your response style and 
+                technical depth based on the identified stakeholder group:"
             "- For Tenants/Buyers: Focus on livability, amenities, and future value"
             "- For Brokers: Emphasize marketability and comparable properties"
             "- For Landlords: Highlight maintenance needs and operational efficiency"
