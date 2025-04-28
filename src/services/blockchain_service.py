@@ -268,3 +268,129 @@ class BlockchainService:
             })
         
         return formatted_validators
+        
+    def get_dashboard_stats(self) -> Dict[str, Any]:
+        """
+        Get blockchain statistics for the dashboard
+        
+        Returns:
+            Dict containing token value, reserves, APY, and other dashboard metrics
+        """
+        try:
+            # Try to get real-time data from blockchain
+            # chain_info would typically be retrieved from the blockchain in production
+            # This is a simplified placeholder implementation
+            chain_info = {}
+            
+            # Calculate or fetch relevant metrics
+            token_value = chain_info.get('token_price', 15811.04)
+            staking_apy = chain_info.get('staking_apy', 9.5)
+            total_reserves = chain_info.get('total_reserves', 38126.50)
+            daily_rewards = chain_info.get('daily_rewards', 0.318)
+            
+            # Get hot asset data
+            hot_asset = self._get_hot_asset()
+            
+            # Get verified vs unverified assets
+            verified_assets = 24250000  # In a real implementation, this would come from blockchain
+            unverified_assets = 13876500  # In a real implementation, this would come from blockchain
+            
+            return {
+                'token_value': token_value,
+                'staking_apy': staking_apy,
+                'total_reserves': total_reserves,
+                'daily_rewards': daily_rewards,
+                'verified_assets': verified_assets,
+                'unverified_assets': unverified_assets,
+                'hot_asset': hot_asset
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting dashboard stats: {str(e)}")
+            # Return fallback data if real-time data fails
+            return {
+                'token_value': '15,811.04',
+                'staking_apy': '9.5',
+                'total_reserves': '38126.50',
+                'daily_rewards': '0.318',
+                'verified_assets': '24250000',
+                'unverified_assets': '13876500',
+                'hot_asset': {
+                    'name': 'Idaka Project',
+                    'funded_percentage': 65,
+                    'funded_amount': '1625000',
+                    'target_amount': '2500000'
+                }
+            }
+    
+    def _get_hot_asset(self) -> Dict[str, Any]:
+        """
+        Get data for the hot asset featured on the dashboard
+        
+        Returns:
+            Dict containing hot asset details
+        """
+        try:
+            # In a real implementation, this would query the blockchain for a property
+            # that meets specific criteria (most recent, most active, etc.)
+            return {
+                'name': 'Idaka Project',
+                'funded_percentage': 65,
+                'funded_amount': '1625000',
+                'target_amount': '2500000'
+            }
+        except Exception as e:
+            logger.error(f"Error getting hot asset: {str(e)}")
+            return {
+                'name': 'Idaka Project',
+                'funded_percentage': 65,
+                'funded_amount': '1625000',
+                'target_amount': '2500000'
+            }
+    
+    def get_asset_distribution(self) -> Dict[str, Any]:
+        """
+        Get asset distribution data for dashboard charts
+        
+        Returns:
+            Dict containing verified and unverified asset percentages
+        """
+        try:
+            # In a real implementation, this would calculate these values from blockchain data
+            verified_percentage = 65
+            unverified_percentage = 35
+            
+            return {
+                'verified': verified_percentage,
+                'unverified': unverified_percentage
+            }
+        except Exception as e:
+            logger.error(f"Error getting asset distribution: {str(e)}")
+            return {
+                'verified': 65,
+                'unverified': 35
+            }
+    
+    def get_stakeholder_distribution(self) -> Dict[str, Any]:
+        """
+        Get stakeholder distribution data for dashboard charts
+        
+        Returns:
+            Dict containing stakeholder distribution percentages
+        """
+        try:
+            # In a real implementation, this would calculate these values from blockchain data
+            return {
+                'investors': 45,
+                'validators': 25,
+                'developers': 20,
+                'community': 10
+            }
+        except Exception as e:
+            logger.error(f"Error getting stakeholder distribution: {str(e)}")
+            return {
+                'investors': 45,
+                'validators': 25,
+                'developers': 20,
+                'community': 10
+            }

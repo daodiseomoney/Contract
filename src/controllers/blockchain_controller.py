@@ -188,6 +188,69 @@ def verify_transaction(tx_hash):
         else:
             return jsonify({'error': 'Failed to verify transaction'}, {'verified': False}), 500
 
+@blockchain_bp.route('/stats', methods=['GET'])
+@secure_endpoint
+def get_blockchain_stats():
+    """Get blockchain statistics for the dashboard"""
+    try:
+        # Get stats from blockchain service or use cached data
+        stats = blockchain_service.get_dashboard_stats()
+        
+        # Security: Add timestamp for freshness verification
+        stats['timestamp'] = time.time()
+        
+        return jsonify(stats), 200
+        
+    except Exception as e:
+        logger.error(f"Error in get_blockchain_stats: {str(e)}")
+        # Security: Don't expose internal errors in production
+        if current_app.debug:
+            return jsonify({'error': str(e)}), 500
+        else:
+            return jsonify({'error': 'Failed to retrieve blockchain statistics'}), 500
+
+@blockchain_bp.route('/asset-distribution', methods=['GET'])
+@secure_endpoint
+def get_asset_distribution():
+    """Get asset distribution data for dashboard charts"""
+    try:
+        # Get asset distribution from blockchain service
+        distribution = blockchain_service.get_asset_distribution()
+        
+        # Security: Add timestamp for freshness verification
+        distribution['timestamp'] = time.time()
+        
+        return jsonify(distribution), 200
+        
+    except Exception as e:
+        logger.error(f"Error in get_asset_distribution: {str(e)}")
+        # Security: Don't expose internal errors in production
+        if current_app.debug:
+            return jsonify({'error': str(e)}), 500
+        else:
+            return jsonify({'error': 'Failed to retrieve asset distribution data'}), 500
+
+@blockchain_bp.route('/stakeholder-distribution', methods=['GET'])
+@secure_endpoint
+def get_stakeholder_distribution():
+    """Get stakeholder distribution data for dashboard charts"""
+    try:
+        # Get stakeholder distribution from blockchain service
+        distribution = blockchain_service.get_stakeholder_distribution()
+        
+        # Security: Add timestamp for freshness verification
+        distribution['timestamp'] = time.time()
+        
+        return jsonify(distribution), 200
+        
+    except Exception as e:
+        logger.error(f"Error in get_stakeholder_distribution: {str(e)}")
+        # Security: Don't expose internal errors in production
+        if current_app.debug:
+            return jsonify({'error': str(e)}), 500
+        else:
+            return jsonify({'error': 'Failed to retrieve stakeholder distribution data'}), 500
+
 @blockchain_bp.route('/validators', methods=['GET'])
 @secure_endpoint
 def get_validators():
