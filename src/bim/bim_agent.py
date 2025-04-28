@@ -27,70 +27,71 @@ class BIMAgentManager:
     def __init__(self):
         """Initialize the BIM Agent Manager"""
         self.openai_agent = OpenAIBIMAgent()
-        
+
         # Initialize the IFC Agent with OpenAI Agents SDK
         self.ifc_agent = IFCAgent()
-        
+
         # Default to mock data
         self.use_real_ifc = False
         self.mock_ifc_data = MockIFCData()
-        
+
         # Initialize IFC parser but don't load any file yet
         self.ifc_parser = IFCParser()
         self.current_ifc_file = None
 
         # Try to find IFC files in the uploads directory
-        self.upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
-        
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        self.upload_dir = os.path.join(base_dir, "uploads")
+
         # Create uploads directory if it doesn't exist
         os.makedirs(self.upload_dir, exist_ok=True)
-        
+
         # OpenAI API integration
         self.enhanced_mode_enabled = False
         self.api_key_available = os.environ.get("OPENAI_API_KEY") is not None
 
         if not self.api_key_available:
             logger.warning("OPENAI_API_KEY not found in environment variables")
-            
+
         # Try to load the first available IFC file
         self._load_first_available_ifc()
 
     def _load_first_available_ifc(self) -> bool:
         """
         Try to load the first available IFC file in the uploads directory.
-        
+
         Returns:
             bool: True if a file was loaded, False otherwise
         """
         try:
             # Find all IFC files in the uploads directory
             ifc_files = glob.glob(os.path.join(self.upload_dir, "*.ifc"))
-            
+
             if ifc_files:
                 # Sort by modification time (newest first)
                 ifc_files.sort(key=os.path.getmtime, reverse=True)
-                
+
                 # Try to load the newest file
                 if self.ifc_parser.load_file(ifc_files[0]):
                     self.current_ifc_file = ifc_files[0]
                     self.use_real_ifc = True
                     logger.info(f"Loaded IFC file: {os.path.basename(ifc_files[0])}")
                     return True
-            
+
             logger.info("No IFC files found in uploads directory, using mock data")
             return False
-        
+
         except Exception as e:
             logger.error(f"Error loading IFC file: {str(e)}")
             return False
-    
+
     def load_ifc_file(self, file_path: str) -> Dict:
         """
         Load a specific IFC file.
-        
+
         Args:
             file_path: Path to the IFC file
-            
+
         Returns:
             Dict: Response with success/failure status
         """
@@ -99,12 +100,12 @@ class BIMAgentManager:
                 "success": False,
                 "message": f"File not found: {file_path}",
             }
-        
+
         try:
             if self.ifc_parser.load_file(file_path):
                 self.current_ifc_file = file_path
                 self.use_real_ifc = True
-                
+
                 return {
                     "success": True,
                     "message": f"Successfully loaded IFC file: {os.path.basename(file_path)}",
@@ -205,7 +206,8 @@ class BIMAgentManager:
                 "spaces": self.ifc_parser.get_spaces(),
                 "elements_sample": self.ifc_parser.get_all_elements()[:5],
                 "using_real_ifc": True,
-                "ifc_file": os.path.basename(self.current_ifc_file) if self.current_ifc_file else None,
+                "ifc_file": (os.path.basename(self.current_ifc_file)
+                             if self.current_ifc_file else None),
             }
         else:
             # Fall back to mock data
@@ -223,7 +225,7 @@ class BIMAgentManager:
             element = self.ifc_parser.get_element_by_id(element_id)
         else:
             element = self.mock_ifc_data.get_element_by_id(element_id)
-            
+
         if element:
             return {"success": True, "element": element}
         else:
@@ -231,7 +233,7 @@ class BIMAgentManager:
                 "success": False,
                 "message": f"Element with ID {element_id} not found",
             }
-    
+
     def get_element_types(self) -> List[str]:
         """Get all element types in the loaded IFC file"""
         if self.use_real_ifc and self.current_ifc_file:
@@ -243,7 +245,7 @@ class BIMAgentManager:
                 if "type" in element:
                     element_types.add(element["type"])
             return sorted(list(element_types))
-    
+
     def get_elements_by_type(self, element_type: str) -> List[Dict]:
         """Get all elements of a specific type"""
         if self.use_real_ifc and self.current_ifc_file:
@@ -251,6 +253,6 @@ class BIMAgentManager:
         else:
             # Filter mock data
             return [
-                element for element in self.mock_ifc_data.get_all_elements() 
+                element for element in self.mock_ifc_data.get_all_elements()
                 if element.get("type") == element_type
             ]

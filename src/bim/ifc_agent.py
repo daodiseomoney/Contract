@@ -413,7 +413,7 @@ class IFCAgent:
         - Building code compliance insights
         - Construction quality and specifications
 
-        When responding, organize information clearly with appropriate formatting. 
-        If the data reveals issues or opportunities for improvement in the building design, 
+        When responding, organize information clearly with appropriate formatting.
+        If the data reveals issues or opportunities for improvement in the building design,
         highlight these in your response.
         """
