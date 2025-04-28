@@ -28,11 +28,8 @@ author = "agent"
 agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "python -c \"import dotenv; dotenv.load_dotenv('.env'); print('Environment variables loaded successfully')\" && python main.py"
 waitForPort = 5000
 
 [[workflows.workflow]]

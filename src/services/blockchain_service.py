@@ -8,24 +8,40 @@ import json
 import logging
 import hashlib
 import base64
+import dotenv
 from typing import Dict, Any, Optional, List
 
 from src.gateways.pingpub_gateway import PingPubGateway
 
+# Set up logging
 logger = logging.getLogger(__name__)
+
+# SECURITY: Force loading of environment variables at module initialization
+# This ensures environment variables are available even if imported before app startup
+dotenv.load_dotenv('.env')
 
 class BlockchainService:
     """Service for blockchain operations including transaction coordination"""
     
     def __init__(self):
-        # Initialize gateways
-        self.pingpub_gateway = PingPubGateway()
+        # SECURITY: Double-check environment is loaded
+        dotenv.load_dotenv('.env')
         
-        # Contract addresses
-        self.contract_address = os.environ.get(
-            "CONTRACT_ADDRESS", 
-            "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"
-        )
+        logger.debug(f"PINGPUB_API_URL={os.environ.get('PINGPUB_API_URL', 'Not set')}")
+        logger.debug(f"CHAIN_ID={os.environ.get('CHAIN_ID', 'Not set')}")
+        
+        # Initialize gateways
+        try:
+            self.pingpub_gateway = PingPubGateway()
+        except Exception as e:
+            logger.error(f"Failed to initialize PingPubGateway: {str(e)}")
+            raise
+        
+        # Get contract address from environment (no hardcoded fallback)
+        self.contract_address = os.environ.get("CONTRACT_ADDRESS")
+        if not self.contract_address:
+            logger.error("CONTRACT_ADDRESS environment variable is missing")
+            raise ValueError("CONTRACT_ADDRESS environment variable is required")
         
         # Validator pool address for multi-sig transactions
         self.validator_pool_address = os.environ.get(

@@ -4,19 +4,38 @@ class KeplerWallet {
         this.chainId = 'odiseotestnet_1234-1';
         this.connected = false;
         this.address = null;
-
-        // Try to restore previous connection - use both the legacy and new localStorage keys
-        const savedAddress = localStorage.getItem('kepler_address') || localStorage.getItem('userWalletAddress');
+        
+        // SECURITY UPDATE: Use sessionStorage instead of localStorage for better security
+        // Session storage is cleared when the user closes their browser
+        
+        // Try to restore previous connection from sessionStorage (more secure)
+        const savedAddress = sessionStorage.getItem('kepler_address');
         if (savedAddress) {
             this.address = savedAddress;
             this.connected = true;
             
-            // Make sure we keep both storage keys in sync
-            localStorage.setItem('kepler_address', savedAddress);
-            localStorage.setItem('userWalletAddress', savedAddress);
-            localStorage.setItem('walletConnected', 'true');
+            // Security: Log connection time for session tracking
+            sessionStorage.setItem('wallet_connect_time', Date.now().toString());
+            sessionStorage.setItem('walletConnected', 'true');
             
             this.updateUI();
+        }
+        
+        // Security: Check for connection timeout (4 hours max)
+        this.checkSessionTimeout();
+    }
+    
+    // Security: Add session timeout check to automatically disconnect after period of inactivity
+    checkSessionTimeout() {
+        const connectTime = sessionStorage.getItem('wallet_connect_time');
+        if (connectTime) {
+            const elapsed = Date.now() - parseInt(connectTime);
+            const MAX_SESSION_TIME = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+            
+            if (elapsed > MAX_SESSION_TIME) {
+                console.log('Wallet session timed out after 4 hours');
+                this.disconnect();
+            }
         }
     }
 
@@ -45,10 +64,11 @@ class KeplerWallet {
             this.address = accounts[0].address;
             this.connected = true;
 
-            // Save connection state to both keys for compatibility
-            localStorage.setItem('kepler_address', this.address);
-            localStorage.setItem('userWalletAddress', this.address);
-            localStorage.setItem('walletConnected', 'true');
+            // SECURITY: Save connection state to sessionStorage instead of localStorage
+            sessionStorage.setItem('kepler_address', this.address);
+            sessionStorage.setItem('userWalletAddress', this.address);
+            sessionStorage.setItem('walletConnected', 'true');
+            sessionStorage.setItem('wallet_connect_time', Date.now().toString());
 
             this.updateUI();
             return this.address;
@@ -63,12 +83,22 @@ class KeplerWallet {
         this.connected = false;
         this.address = null;
         
-        // Clear all wallet related localStorage keys
+        // SECURITY: Clear all wallet related sessionStorage keys instead of localStorage
+        sessionStorage.removeItem('kepler_address');
+        sessionStorage.removeItem('userWalletAddress');
+        sessionStorage.removeItem('walletConnected');
+        sessionStorage.removeItem('wallet_connect_time');
+        
+        // For backwards compatibility, also clear any existing localStorage items
+        // This helps ensure no old data remains from previous versions
         localStorage.removeItem('kepler_address');
         localStorage.removeItem('userWalletAddress');
-        localStorage.setItem('walletConnected', 'false');
+        localStorage.removeItem('walletConnected');
         
         this.updateUI();
+        
+        // Dispatch wallet disconnected event
+        document.dispatchEvent(new CustomEvent('keplrDisconnected'));
     }
 
     updateUI() {
@@ -152,32 +182,40 @@ async function connectKeplrWallet() {
     try {
         const address = await window.keplerWallet.init();
         
-        // Store wallet connected status in localStorage for UI components
-        localStorage.setItem('walletConnected', 'true');
-        localStorage.setItem('userWalletAddress', address);
-        
+        // Wallet connection is handled in the init method now, no need to duplicate storage
         console.log('Keplr wallet connected:', address);
+        
+        // SECURITY: Record last activity time for session tracking
+        sessionStorage.setItem('last_wallet_activity', Date.now().toString());
         
         // Trigger wallet connected event for micro-rewards
         document.dispatchEvent(new CustomEvent('keplrConnected', {
-            detail: { address: address }
+            detail: { 
+                address: address,
+                timestamp: Date.now()
+            }
         }));
         
         return address;
     } catch (error) {
         console.error('Failed to connect Keplr wallet:', error);
-        alert('Error connecting Keplr wallet: ' + error.message);
-        localStorage.setItem('walletConnected', 'false');
-        localStorage.removeItem('userWalletAddress');
+        // Security: Don't expose full error message to user
+        alert('Error connecting Keplr wallet. Please make sure Keplr extension is installed and unlocked.');
+        
+        // Clear any session data on error
+        sessionStorage.removeItem('kepler_address');
+        sessionStorage.removeItem('userWalletAddress');
+        sessionStorage.removeItem('walletConnected');
+        sessionStorage.removeItem('wallet_connect_time');
+        
         return null;
     }
 }
 
 // Global function for disconnecting Keplr wallet
 function disconnectKeplrWallet() {
+    // Just delegate to the wallet instance method which handles all cleanup
     window.keplerWallet.disconnect();
-    localStorage.setItem('walletConnected', 'false');
-    localStorage.removeItem('userWalletAddress');
     console.log('Keplr wallet disconnected');
 }
 
