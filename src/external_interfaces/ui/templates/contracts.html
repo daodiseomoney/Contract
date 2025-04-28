@@ -612,9 +612,63 @@ Jurisdiction: Delaware, USA</textarea>
         });
         
         // Contract sign button
-        document.getElementById('contractSignBtn').addEventListener('click', function() {
-            alert('Signing contract with your Keplr wallet...');
-            // In a real implementation, this would call the blockchain to sign the contract
+        document.getElementById('contractSignBtn').addEventListener('click', async function() {
+            try {
+                // Check if the global signTransactionWithKeplr function exists
+                if (typeof signTransactionWithKeplr !== 'function') {
+                    alert('Transaction signing function not available. Please make sure you are using the latest version.');
+                    return;
+                }
+                
+                // Get the current contract ID from the UI or data attribute
+                const contractId = this.getAttribute('data-contract-id') || '1';
+                
+                // Prepare transaction data
+                const transactionData = {
+                    from_address: localStorage.getItem('userWalletAddress'),
+                    to_address: "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt", // Contract validator address
+                    amount: [{ denom: "uodis", amount: "1000" }],
+                    metadata: {
+                        id: contractId,
+                        hash: `contract_${contractId}_${Date.now()}`,
+                        role: "owner"
+                    },
+                    broadcastUrl: "/api/transactions/broadcast"
+                };
+                
+                // Show signing in progress
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing...';
+                this.disabled = true;
+                
+                // Sign transaction with Keplr wallet
+                const result = await signTransactionWithKeplr(transactionData);
+                
+                if (result && result.success) {
+                    // Update UI to show success
+                    this.innerHTML = '<i data-feather="check" class="icon-inline-sm"></i> Signed';
+                    this.classList.replace('btn-primary', 'btn-success');
+                    
+                    // Refresh the contract list
+                    setTimeout(() => {
+                        loadContracts();
+                    }, 1000);
+                    
+                    // Show success message
+                    alert('Contract signed successfully! Transaction broadcasted to blockchain.');
+                } else {
+                    throw new Error('Transaction signing failed');
+                }
+            } catch (error) {
+                console.error('Error signing transaction:', error);
+                this.innerHTML = '<i data-feather="x" class="icon-inline-sm"></i> Signing Failed';
+                this.classList.replace('btn-primary', 'btn-danger');
+                setTimeout(() => {
+                    this.innerHTML = 'Sign Contract';
+                    this.classList.replace('btn-danger', 'btn-primary');
+                    this.disabled = false;
+                }, 3000);
+                alert(`Failed to sign transaction: ${error.message}`);
+            }
         });
         
         // Check if the wallet is already connected
