@@ -4,6 +4,18 @@ This simulates the JavaScript functions and objects from the main.js file.
 """
 import json
 
+# Create a browser-like window object for accessing globals like keplr
+class Window:
+    """Mock browser window object."""
+    def __init__(self):
+        self.keplr = None
+        self.document = None
+        self.localStorage = {}
+        self.sessionStorage = {}
+
+# Global window instance
+window = Window()
+
 # Mock Keplr wallet integration functions
 async def convert_amino_to_proto(msg):
     """
@@ -84,3 +96,81 @@ class TransactionHelper:
             ],
             "memo": f"tx:{tx_data.get('tx_id', '')}|hash:{tx_data.get('content_hash', '')}|role:{tx_data.get('role', 'user')}",
         }
+
+async def signContract(tx_id, role="owner"):
+    """
+    Sign a contract transaction using Keplr wallet.
+    
+    Args:
+        tx_id (str): Transaction ID to sign
+        role (str): Signer role (owner, validator, etc.)
+        
+    Returns:
+        dict: Result of the signing operation
+    """
+    if not window.keplr:
+        raise Exception("Keplr wallet extension not found")
+    
+    # Enable the chain
+    chain_id = "odiseotestnet_1234-1"
+    await window.keplr.enable(chain_id)
+    
+    # Get the offline signer
+    offlineSigner = window.keplr.getOfflineSigner(chain_id)
+    
+    # Get accounts
+    accounts = await offlineSigner.getAccounts()
+    if not accounts or len(accounts) == 0:
+        raise Exception("No accounts found in Keplr wallet")
+    
+    # Get the first account
+    user_address = accounts[0]["address"]
+    
+    # 1. Get transaction details
+    transaction_response = await fetch(f"/api/transaction/{tx_id}")
+    transaction = await transaction_response.json()
+    
+    # 2. Get account information
+    account_response = await fetch(f"/api/account?address={user_address}")
+    account_info = await account_response.json()
+    
+    # 3. Create transaction data
+    tx_data = {
+        "tx_id": tx_id, 
+        "content_hash": transaction["content_hash"],
+        "role": role
+    }
+    
+    # 4. Create sign doc
+    sign_doc = TransactionHelper.create_sign_doc(account_info, tx_data)
+    
+    # 5. Sign with Keplr (Amino format)
+    signature = await window.keplr.signAmino(
+        chain_id, 
+        user_address, 
+        sign_doc, 
+        {"preferNoSetFee": True}
+    )
+    
+    # 6. Send signature to backend
+    sign_payload = {
+        "transaction_id": tx_id,
+        "signature": signature.signature,
+        "public_key": signature.pub_key.value,
+        "role": role
+    }
+    
+    sign_response = await fetch("/api/sign", {
+        "method": "POST",
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(sign_payload)
+    })
+    
+    sign_result = await sign_response.json()
+    
+    return {
+        "success": sign_response.ok,
+        "result": sign_result,
+        "transaction_id": tx_id,
+        "signer": user_address
+    }

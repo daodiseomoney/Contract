@@ -142,6 +142,30 @@ def mock_fetch():
 
 class TestKeplrTransactionSigningE2E:
     """End-to-end tests for Keplr transaction signing flow."""
+    
+    async def _create_mock_fetch_response(self, url, **kwargs):
+        """Create a mock fetch response based on the URL."""
+        if url == "/api/transaction/tx_123":
+            return MockFetchResponse(
+                {
+                    "transaction_id": "tx_123",
+                    "content_hash": "hash_abc123",
+                    "signatures": {"owner": "pending", "validator": "pending"},
+                }
+            )
+        elif url == "/api/account?address=odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705":
+            return MockFetchResponse(
+                {
+                    "account_number": "227917",
+                    "sequence": "84",
+                    "address": "odiseo1nse3slfxqmmu4m5dlyczsee52rpnr53c3rt705",
+                }
+            )
+        elif url == "/api/sign":
+            return MockFetchResponse(
+                {"success": True, "message": "Transaction signed successfully"}
+            )
+        return MockFetchResponse({}, ok=False, status=404)
 
     @pytest.mark.asyncio
     @patch("src.external_interfaces.ui.static.js.main.window")
@@ -153,7 +177,11 @@ class TestKeplrTransactionSigningE2E:
         """
         # Arrange - Set up mocks
         mock_window.keplr = mock_keplr
-        mock_fetch.side_effect = AsyncMock(side_effect=mock_fetch)
+        
+        # Create a new mock fetch function to avoid recursion
+        mock_fetch_function = AsyncMock()
+        mock_fetch_function.side_effect = self._create_mock_fetch_response
+        mock_fetch.side_effect = mock_fetch_function
 
         # Import the signContract function from main.js
         # In an actual test, we would:
