@@ -2,6 +2,7 @@ modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["boost", "c-ares", "grpc", "icu", "opencascade-occt", "opencollada", "openssl", "pcre", "pkg-config", "swig", "zlib"]
 
 [deployment]
 deploymentTarget = "autoscale"

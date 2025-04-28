@@ -4,8 +4,10 @@ BIM Agent Controller for handling AI-related routes
 
 import logging
 import uuid
+import os
 from datetime import datetime
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
+import json
 
 from src.bim.bim_agent import BIMAgentManager
 
@@ -18,6 +20,11 @@ bim_agent_bp = Blueprint("bim_agent", __name__, url_prefix="/api/bim-agent")
 
 # Initialize the BIM Agent Manager
 bim_agent_manager = BIMAgentManager()
+
+# Provide access to the singleton BIM Agent Manager instance
+def get_bim_agent_instance():
+    """Get the singleton instance of the BIM Agent Manager"""
+    return bim_agent_manager
 
 
 @bim_agent_bp.route("/chat", methods=["POST"])
@@ -102,6 +109,46 @@ def get_element(element_id):
     result = bim_agent_manager.get_element_by_id(element_id)
 
     return jsonify(result)
+
+
+@bim_agent_bp.route("/element-types", methods=["GET"])
+def get_element_types():
+    """Get all element types in the loaded IFC file"""
+    element_types = bim_agent_manager.get_element_types()
+    
+    return jsonify({
+        "success": True,
+        "element_types": element_types,
+        "count": len(element_types)
+    })
+
+
+@bim_agent_bp.route("/elements-by-type/<element_type>", methods=["GET"])
+def get_elements_by_type(element_type):
+    """Get all elements of a specific type"""
+    elements = bim_agent_manager.get_elements_by_type(element_type)
+    
+    return jsonify({
+        "success": True,
+        "element_type": element_type,
+        "elements": elements,
+        "count": len(elements)
+    })
+
+
+@bim_agent_bp.route("/ifc-status", methods=["GET"])
+def get_ifc_status():
+    """Get the status of the currently loaded IFC file"""
+    building_data = bim_agent_manager.get_building_data()
+    
+    return jsonify({
+        "success": True,
+        "using_real_ifc": building_data.get("using_real_ifc", False),
+        "ifc_file": building_data.get("ifc_file"),
+        "building_summary": building_data.get("building"),
+        "element_types_count": len(bim_agent_manager.get_element_types()),
+        "elements_count": building_data.get("building", {}).get("element_count", 0)
+    })
 
 
 @bim_agent_bp.route("/validate-ifc", methods=["POST"])
