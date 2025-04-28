@@ -5,8 +5,13 @@ Main entry point for the BIM AI Management Dashboard application
 import os
 import logging
 from flask import Flask, render_template, url_for, request, jsonify, abort
+from dotenv import load_dotenv
 
 from src.controllers.bim_controller import bim_bp
+from src.controllers.ifc_controller import ifc_bp
+
+# Load environment variables from .env file if it exists
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -24,6 +29,7 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
 # Register blueprints
 app.register_blueprint(bim_bp)
+app.register_blueprint(ifc_bp)
 
 
 # Routes

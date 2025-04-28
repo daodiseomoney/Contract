@@ -9,7 +9,8 @@ from typing import Dict, List
 
 from src.services.ai.bim_agent_openai import OpenAIBIMAgent
 from src.services.ai.ifc_agent import IFCAgent
-from src.gateways.ifc.ifc_parser import IFCParser
+from src.gateways.ifc.ifc_gateway import IFCGateway
+from src.services.ai.ai_agent_service import AIAgentService
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -24,9 +25,10 @@ class BIMAgentManager:
     def __init__(self):
         """Initialize the BIM Agent Manager"""
         # Initialize components
-        self.ifc_parser = IFCParser()
+        self.ifc_gateway = IFCGateway()
         self.bim_agent = OpenAIBIMAgent()
         self.ifc_agent = IFCAgent()
+        self.ai_service = AIAgentService()
         
         # Set up paths
         self.upload_dir = os.path.join(os.getcwd(), "uploads")
@@ -81,9 +83,9 @@ class BIMAgentManager:
             Dict: Response with success/failure status
         """
         try:
-            # Load file using IFC parser
-            parser_success = self.ifc_parser.load_file(file_path)
-            if not parser_success:
+            # Load file using IFC gateway
+            gateway_success = self.ifc_gateway.load_file(file_path)
+            if not gateway_success:
                 return {
                     "success": False,
                     "message": "Failed to parse IFC file"
@@ -93,13 +95,17 @@ class BIMAgentManager:
             agent_success = self.ifc_agent.load_ifc_file(file_path)
             
             # Get summary
-            building_summary = self.ifc_parser.get_building_summary()
+            summary = self.ifc_gateway.summary()
+            
+            # Do an AI analysis of the IFC file
+            analysis = self.ai_service.analyze_ifc_file(file_path)
             
             return {
                 "success": True,
                 "message": f"Successfully loaded {os.path.basename(file_path)}",
-                "building": building_summary,
-                "agent_enabled": agent_success
+                "building": summary,
+                "agent_enabled": agent_success,
+                "analysis": analysis.get("analysis", "")
             }
             
         except Exception as e:
@@ -139,10 +145,11 @@ class BIMAgentManager:
         try:
             # Get BIM data for context if available
             bim_data = None
-            if self.ifc_parser.ifc_file:
+            if self.ifc_gateway.model:
+                summary = self.ifc_gateway.summary()
                 bim_data = {
-                    "summary": self.ifc_parser.get_building_summary(),
-                    "element_count": len(self.ifc_parser.get_all_elements())
+                    "summary": summary,
+                    "element_count": summary.get("elements", 0)
                 }
                 
             # Process with BIM agent
