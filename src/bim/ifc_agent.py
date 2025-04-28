@@ -6,7 +6,7 @@ This module provides AI-enhanced interaction with BIM/IFC file objects.
 import logging
 import os
 import json  # noqa: F401
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple  # noqa: F401
 
 # Import IfcOpenShell if available
 try:
@@ -26,7 +26,7 @@ except ImportError:
 
 # Import OpenAI Agents SDK if available
 try:
-    from openai_agents import Tool, AgentExecutor, ChatCompletion
+    from openai_agents import Tool, AgentExecutor, ChatCompletion  # noqa: F401
     OPENAI_AGENTS_AVAILABLE = True
 except ImportError:
     OPENAI_AGENTS_AVAILABLE = False
@@ -50,9 +50,9 @@ class IFCAgent:
 
         # Check dependencies
         self.deps_available = (
-            IFCOPENSHELL_AVAILABLE and
-            OPENAI_AVAILABLE and
-            OPENAI_AGENTS_AVAILABLE
+            IFCOPENSHELL_AVAILABLE
+            and OPENAI_AVAILABLE
+            and OPENAI_AGENTS_AVAILABLE
         )
         if not self.deps_available:
             logger.warning("IFCAgent has limited functionality due to missing dependencies")
@@ -127,15 +127,14 @@ class IFCAgent:
             return {
                 "file_name": os.path.basename(self.file_path) if self.file_path else "Unknown",
                 "project_name": project.Name if project and project.Name else "Unknown Project",
-                "building_name": building.Name if building and 
-                    building.Name else "Unknown Building",
+                "building_name": building.Name if building
+                    and building.Name else "Unknown Building",
                 "number_of_storeys": len(storeys),
                 "element_count": sum(1 for _ in self.ifc_file.by_type("IfcElement")),
                 "spaces_count": sum(1 for _ in self.ifc_file.by_type("IfcSpace")),
             }
 
         # Only create the Tool object if the SDK is available
-        from openai_agents import Tool
         return Tool(
             name="get_building_info",
             description="Gets basic information about the building from the IFC file",
@@ -164,7 +163,6 @@ class IFCAgent:
             return sorted(list(element_types))
 
         # Only create the Tool object if the SDK is available
-        from openai_agents import Tool
         return Tool(
             name="get_element_types",
             description="Gets all element types (wall, door, etc.) in the IFC file",
@@ -227,7 +225,6 @@ class IFCAgent:
                 return [{"error": f"Error retrieving elements: {str(e)}"}]
 
         # Only create the Tool object if the SDK is available
-        from openai_agents import Tool
         return Tool(
             name="get_elements_by_type",
             description="Gets all elements of a specific type from the IFC file",
@@ -281,7 +278,10 @@ class IFCAgent:
                         if rel.is_a("IfcRelAggregates"):
                             if rel.RelatingObject == element:
                                 for child in rel.RelatedObjects:
-                                    result["children"].append(process_spatial_element(child, level + 1))
+                                    result["children"].append(
+                                        process_spatial_element(child,
+                                        level + 1)
+                                    )
 
                     return result
 
@@ -291,7 +291,6 @@ class IFCAgent:
                 return {"error": f"Error retrieving spatial structure: {str(e)}"}
 
         # Only create the Tool object if the SDK is available
-        from openai_agents import Tool
         return Tool(
             name="get_spatial_structure",
             description="Gets the spatial structure hierarchy from the IFC file",
@@ -348,7 +347,6 @@ class IFCAgent:
                 }
 
             # Import AgentExecutor here to avoid issues when the SDK is not available
-            from openai_agents import AgentExecutor
 
             # Create agent with the tools
             agent = AgentExecutor(
@@ -389,7 +387,7 @@ class IFCAgent:
             str: System prompt for the agent
         """
         return """
-        You are an expert BIM (Building Information Modeling) assistant specialized in 
+        You are an expert BIM (Building Information Modeling) assistant specialized in
             analyzing IFC (Industry Foundation Classes) files.
         You help users extract meaningful insights from BIM models through detailed analysis of building elements, spatial structures, and properties.
 
