@@ -46,116 +46,10 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="contractsTableBody">
+                            <!-- Contract rows will be loaded dynamically -->
                             <tr>
-                                <td>
-                                    <span class="d-block">CO-2025-001</span>
-                                    <small class="text-muted">0x71C...9E3f</small>
-                                </td>
-                                <td>Cosmic Tower Project</td>
-                                <td>CSMC</td>
-                                <td>$15,811,040</td>
-                                <td><span class="contract-status status-active">Active</span></td>
-                                <td><span class="badge bg-success">Verified</span></td>
-                                <td>Apr 3, 2025</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info">
-                                            <i data-feather="eye" class="icon-inline-sm"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i data-feather="link" class="icon-inline-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-block">CO-2025-002</span>
-                                    <small class="text-muted">0x31F...7A2c</small>
-                                </td>
-                                <td>Nexus Apartments</td>
-                                <td>NXAP</td>
-                                <td>$8,250,000</td>
-                                <td><span class="contract-status status-active">Active</span></td>
-                                <td><span class="badge bg-success">Verified</span></td>
-                                <td>Mar 21, 2025</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info">
-                                            <i data-feather="eye" class="icon-inline-sm"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i data-feather="link" class="icon-inline-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-block">CO-2025-003</span>
-                                    <small class="text-muted">0x94B...2D5a</small>
-                                </td>
-                                <td>Horizon Office Complex</td>
-                                <td>HZOC</td>
-                                <td>$12,500,000</td>
-                                <td><span class="contract-status status-pending">Pending</span></td>
-                                <td><span class="badge bg-warning">In Progress</span></td>
-                                <td>Mar 15, 2025</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info">
-                                            <i data-feather="eye" class="icon-inline-sm"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i data-feather="edit-3" class="icon-inline-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-block">CO-2024-015</span>
-                                    <small class="text-muted">0x67D...3F1b</small>
-                                </td>
-                                <td>Summit Residential Tower</td>
-                                <td>SMRT</td>
-                                <td>$9,750,000</td>
-                                <td><span class="contract-status status-completed">Completed</span></td>
-                                <td><span class="badge bg-warning">Unverified</span></td>
-                                <td>Dec 10, 2024</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info">
-                                            <i data-feather="eye" class="icon-inline-sm"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary disabled">
-                                            <i data-feather="share-2" class="icon-inline-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span class="d-block">CO-2025-004</span>
-                                    <small class="text-muted">0x28A...1R7t</small>
-                                </td>
-                                <td>Idaka Project</td>
-                                <td>IDKA</td>
-                                <td>$22,150,000</td>
-                                <td><span class="contract-status status-pending">Pending</span></td>
-                                <td><span class="badge bg-success">Verified</span></td>
-                                <td>Apr 5, 2025</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-info">
-                                            <i data-feather="eye" class="icon-inline-sm"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-success">
-                                            <i data-feather="check-square" class="icon-inline-sm"></i>
-                                        </button>
-                                    </div>
-                                </td>
+                                <td colspan="8" class="text-center">Loading contracts...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -548,8 +442,21 @@ Jurisdiction: Delaware, USA</textarea>
 {% block extra_js %}
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Global Function for Contract View -->
+<script>
+    function viewContract(contractId) {
+        // In a real implementation, this would navigate to the contract details page
+        // For now, we'll just show an alert
+        alert(`Viewing contract details for contract ID: ${contractId}`);
+    }
+</script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Load contracts from API
+        loadContracts();
+        
         // Initialize distribution chart
         const ctx = document.getElementById('distribution-chart').getContext('2d');
         const distributionChart = new Chart(ctx, {
@@ -595,8 +502,73 @@ Jurisdiction: Delaware, USA</textarea>
         
         // Generate Contract button click
         document.getElementById('generateContractBtn').addEventListener('click', function() {
-            // In a real implementation, this would generate the smart contract
-            alert('Generating smart contract and preparing for validator approval...');
+            // Check if wallet is connected
+            const walletConnected = localStorage.getItem('walletConnected') === 'true';
+            const walletAddress = localStorage.getItem('userWalletAddress');
+            
+            if (!walletConnected || !walletAddress) {
+                alert('Please connect your wallet first.');
+                return;
+            }
+            
+            // Get contract data from the form
+            const assetName = document.querySelector('#step1 input[type="text"]:nth-child(1)').value;
+            const location = document.querySelector('#step1 input[type="text"]:nth-child(2)').value;
+            const tokenName = document.querySelector('#step4 input[placeholder="Name"]').value;
+            const tokenSymbol = document.querySelector('#step4 input[placeholder="Symbol"]').value;
+            const totalSupply = document.querySelector('#step4 input[type="number"]').value;
+            const validatorSignatures = document.querySelector('#step5 input[type="number"]:nth-child(1)').value;
+            const totalValidators = document.querySelector('#step5 input[type="number"]:nth-child(3)').value;
+            
+            // Validate required fields
+            if (!assetName || !tokenSymbol) {
+                alert('Please fill in the required fields: Asset Name and Token Symbol');
+                return;
+            }
+            
+            // Create contract data object
+            const contractData = {
+                assetName: assetName,
+                location: location || 'Not specified',
+                tokenName: tokenName || assetName + ' Token',
+                tokenSymbol: tokenSymbol,
+                totalSupply: totalSupply || 1000000,
+                value: Math.floor(Math.random() * 20000000) + 5000000, // Sample value for demo
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                walletAddress: walletAddress,
+                validatorSignatures: validatorSignatures,
+                totalValidators: totalValidators,
+                dueDiligence: 'in_progress'
+            };
+            
+            // Submit to API
+            fetch('/api/contracts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(contractData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                alert('Contract created successfully! Contract ID: ' + data.id);
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('aiAssistantModal'));
+                modal.hide();
+                // Reload the page to show the new contract
+                setTimeout(() => { window.location.reload(); }, 1000);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Error creating contract: ' + error.message);
+            });
         });
         
         // Check wallet connection when AI Contract Wizard modal is opened
@@ -678,6 +650,98 @@ Jurisdiction: Delaware, USA</textarea>
                 }
             }
         }
+        
+        // Function to load contracts from API
+        function loadContracts() {
+            const tableBody = document.getElementById('contractsTableBody');
+            
+            // Fetch contracts from API
+            fetch('/api/contracts')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(contracts => {
+                    // Clear the table
+                    tableBody.innerHTML = '';
+                    
+                    if (contracts.length === 0) {
+                        // Show empty state
+                        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No contracts found. Create your first contract using the "New Contract" button.</td></tr>';
+                        return;
+                    }
+                    
+                    // Add each contract to the table
+                    contracts.forEach(contract => {
+                        // Format date
+                        const createdDate = new Date(contract.createdAt);
+                        const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+                        const formattedDate = createdDate.toLocaleDateString(undefined, dateOptions);
+                        
+                        // Format value with commas and dollar sign
+                        const formattedValue = '$' + contract.value.toLocaleString();
+                        
+                        // Format wallet address for display
+                        const walletAddress = contract.walletAddress || '0x000...000';
+                        const shortWalletAddress = walletAddress.length > 10 
+                            ? walletAddress.substring(0, 5) + '...' + walletAddress.substring(walletAddress.length - 4)
+                            : walletAddress;
+                        
+                        // Determine status and due diligence classes
+                        let statusClass = 'status-pending';
+                        if (contract.status === 'active') statusClass = 'status-active';
+                        if (contract.status === 'completed') statusClass = 'status-completed';
+                        
+                        let dueDiligenceClass = 'bg-warning';
+                        let dueDiligenceText = 'In Progress';
+                        if (contract.dueDiligence === 'verified') {
+                            dueDiligenceClass = 'bg-success';
+                            dueDiligenceText = 'Verified';
+                        } else if (contract.dueDiligence === 'unverified') {
+                            dueDiligenceClass = 'bg-warning';
+                            dueDiligenceText = 'Unverified';
+                        }
+                        
+                        // Create the table row
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                <span class="d-block">CO-${new Date().getFullYear()}-${contract.id.padStart(3, '0')}</span>
+                                <small class="text-muted">${shortWalletAddress}</small>
+                            </td>
+                            <td>${contract.assetName}</td>
+                            <td>${contract.tokenSymbol}</td>
+                            <td>${formattedValue}</td>
+                            <td><span class="contract-status ${statusClass}">${contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}</span></td>
+                            <td><span class="badge ${dueDiligenceClass}">${dueDiligenceText}</span></td>
+                            <td>${formattedDate}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-info" onclick="viewContract('${contract.id}')">
+                                        <i data-feather="eye" class="icon-inline-sm"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i data-feather="link" class="icon-inline-sm"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Re-initialize feather icons for the new content
+                    feather.replace();
+                })
+                .catch(error => {
+                    console.error('Error fetching contracts:', error);
+                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error loading contracts: ${error.message}</td></tr>`;
+                });
+        }
+        
+        // viewContract function is defined globally
         
         // Run wallet check on page load
         checkWalletConnection();
