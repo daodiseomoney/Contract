@@ -2,6 +2,7 @@ import logging
 import json
 from flask import Blueprint, jsonify, request
 import os
+from src.gateways.multisig_gateway import MultiSigBlockchainGateway
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -49,6 +50,30 @@ def get_contract(contract_id):
         return jsonify(contract)
     except Exception as e:
         logger.error(f"Error fetching contract {contract_id}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@contract_bp.route("/transactions/<transaction_id>/status", methods=["GET"])
+def view_transaction_status(transaction_id):
+    """Retrieve the status of a specific transaction"""
+    try:
+        # Initialize the gateway with test mode for now
+        # In production, this would be properly configured
+        gateway = MultiSigBlockchainGateway(test_mode=True)
+        
+        # Get the transaction status
+        try:
+            status = gateway.get_transaction_status(transaction_id)
+            return jsonify(status)
+        except ValueError as e:
+            logger.error(f"Transaction not found: {str(e)}")
+            return jsonify({"error": f"Transaction not found: {str(e)}"}), 404
+        except Exception as e:
+            logger.error(f"Error getting transaction status: {str(e)}")
+            return jsonify({"error": f"Error getting transaction status: {str(e)}"}), 500
+            
+    except Exception as e:
+        logger.error(f"Error initializing blockchain gateway: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
