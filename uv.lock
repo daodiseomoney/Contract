@@ -1358,6 +1358,7 @@ dependencies = [
     { name = "psycopg2-binary" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "python-dotenv" },
     { name = "twilio" },
 ]
 
@@ -1377,6 +1378,7 @@ requires-dist = [
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
+    { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "twilio", specifier = ">=9.5.1" },
 ]
 
