@@ -212,18 +212,24 @@ class TestStorageFactory:
         with app.app_context():
             # App is already configured with BIMSERVER_ENABLED = True in the fixture
             
+            # First, create a mock instance to be returned
+            mock_gateway_instance = MagicMock(spec=BIMServerGateway)
+            
+            # Create a factory function that returns our mock instance
+            def mock_factory(*args, **kwargs):
+                return mock_gateway_instance
+                
+            # Patch the BIMServerGateway class so constructor calls return our instance
             with patch(
-                "src.gateways.bimserver_gateway.BIMServerGateway.__init__",
-                return_value=None,
-            ) as mock_init, patch("src.gateways.bimserver_gateway.BIMServerGateway") as mock_gateway_class:
-                # Make the mocked class return the instance when called
-                mock_gateway_instance = mock_gateway_class.return_value
+                "src.gateways.storage_factory.BIMServerGateway", 
+                side_effect=mock_factory
+            ) as mock_gateway_class:
                 
                 storage = StorageFactory.create_storage_gateway()
                 
-                # Assert that BIMServerGateway was properly initialized
-                mock_init.assert_called_once()
-                assert storage == mock_gateway_instance
+                # Assert that BIMServerGateway was properly initialized with correct parameters
+                mock_gateway_class.assert_called_once()
+                assert storage is mock_gateway_instance
 
     def test_fallback_to_local_storage_when_bimserver_fails(self, app):
         """Test fallback to local storage when BIMserver initialization fails."""
