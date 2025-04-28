@@ -32,6 +32,7 @@ class Config:
         "xls",
         "xlsx",
         "ifc",
+        "dwg",
         "glb",
         "gltf",
     }
