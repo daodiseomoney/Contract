@@ -187,26 +187,32 @@ class BIMAgentManager:
             
     def get_building_data(self) -> Dict:
         """Get building data for the UI"""
-        if not self.ifc_parser.ifc_file:
+        if not self.ifc_gateway.ifc_file:
             return {
                 "success": False,
                 "message": "No IFC file loaded"
             }
             
         try:
-            building_summary = self.ifc_parser.get_building_summary()
-            element_types = self.ifc_parser.get_element_types()
-            element_counts = {}
+            # Get summary from IFC gateway
+            summary = self.ifc_gateway.summary()
             
-            for element_type in element_types:
-                elements = self.ifc_parser.get_elements_by_type(element_type)
-                element_counts[element_type] = len(elements)
-                
+            if not summary.get("success", False):
+                return {
+                    "success": False,
+                    "message": summary.get("message", "Failed to get building data")
+                }
+            
             return {
                 "success": True,
-                "building": building_summary,
-                "element_types": element_types,
-                "element_counts": element_counts
+                "building": {
+                    "name": summary.get("building_name", "Unknown Building"),
+                    "site": summary.get("site_name", "Unknown Site"),
+                    "schema": summary.get("schema", "Unknown Schema"),
+                    "elements": summary.get("elements", 0)
+                },
+                "element_types": summary.get("element_types", []),
+                "element_counts": summary.get("element_counts", {})
             }
             
         except Exception as e:
@@ -218,14 +224,14 @@ class BIMAgentManager:
             
     def get_element_by_id(self, element_id: str) -> Dict:
         """Get element details by ID"""
-        if not self.ifc_parser.ifc_file:
+        if not self.ifc_gateway.ifc_file:
             return {
                 "success": False,
                 "message": "No IFC file loaded"
             }
             
         try:
-            element = self.ifc_parser.get_element_by_id(element_id)
+            element = self.ifc_gateway.get_element_by_id(element_id)
             if not element:
                 return {
                     "success": False,
@@ -246,14 +252,14 @@ class BIMAgentManager:
             
     def get_element_types(self) -> List[str]:
         """Get all element types in the loaded IFC file"""
-        if not self.ifc_parser.ifc_file:
+        if not self.ifc_gateway.ifc_file:
             return []
             
-        return self.ifc_parser.get_element_types()
+        return self.ifc_gateway.get_element_types()
         
     def get_elements_by_type(self, element_type: str) -> List[Dict]:
         """Get all elements of a specific type"""
-        if not self.ifc_parser.ifc_file:
+        if not self.ifc_gateway.ifc_file:
             return []
             
-        return self.ifc_parser.get_elements_by_type(element_type)
+        return self.ifc_gateway.get_elements_by_type(element_type)
