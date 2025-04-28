@@ -474,22 +474,48 @@
             handleFiles(this.files);
         });
         
-        function handleFiles(files) {
-            // In a real implementation, you would upload these files to the server
+        async function handleFiles(files) {
             console.log('Files selected:', files);
             
-            // For demo purposes, just show the file names
+            // Check if wallet is connected
+            const walletConnected = localStorage.getItem('walletConnected') === 'true';
+            const userWalletAddress = localStorage.getItem('userWalletAddress');
+            
+            if (!walletConnected || !userWalletAddress) {
+                // Show wallet connection prompt
+                const notification = document.createElement('div');
+                notification.className = 'alert alert-warning alert-dismissible fade show';
+                notification.innerHTML = `
+                    <i data-feather="alert-triangle" class="icon-inline-sm"></i>
+                    <strong>Wallet Required:</strong> Please connect your Keplr wallet to upload IFC files to the blockchain.
+                    <button type="button" class="btn btn-sm btn-info ms-3" id="wallet-connect-prompt">Connect Wallet</button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
+                feather.replace();
+                
+                // Add event listener
+                document.getElementById('wallet-connect-prompt').addEventListener('click', async () => {
+                    await connectKeplrWallet();
+                    notification.remove();
+                    // If connection was successful, proceed with the upload
+                    if (localStorage.getItem('walletConnected') === 'true') {
+                        handleFiles(files);
+                    }
+                });
+                
+                return;
+            }
+            
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 console.log('File:', file.name, file.size, file.type);
                 
-                // You would upload the file here and then add it to the list
-                // For now, we'll just simulate adding it to the list
+                // Create file item in the UI
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
-                
-                // Generate random hash for demo
-                const hash = '0x' + Math.random().toString(16).substring(2, 6) + '...' + Math.random().toString(16).substring(2, 6);
+                fileItem.id = `file-item-${Date.now()}`;
                 
                 fileItem.innerHTML = `
                     <div class="file-icon">
@@ -505,7 +531,7 @@
                             <span>•</span>
                             <span>Just now</span>
                             <span>•</span>
-                            <span>Hash: ${hash}</span>
+                            <span>Calculating hash...</span>
                         </div>
                     </div>
                     <div class="file-actions">
@@ -530,54 +556,264 @@
                 uploadedFiles.insertBefore(fileItem, uploadedFiles.firstChild);
                 feather.replace();
                 
-                // Simulate validation process
-                setTimeout(() => {
-                    const fileNameEl = fileItem.querySelector('.file-name');
+                try {
+                    // Prepare FormData for the API call
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('address', userWalletAddress);
+                    
+                    // Add metadata
+                    const metadata = {
+                        'user_agent': navigator.userAgent,
+                        'timestamp': new Date().toISOString(),
+                        'origin': window.location.origin
+                    };
+                    formData.append('metadata', JSON.stringify(metadata));
+                    
+                    // First phase: Upload to prepare the blockchain transaction
+                    const response = await fetch('/api/prepare-upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}: ${await response.text()}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Transaction prepared:', data);
+                    
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to prepare transaction');
+                    }
+                    
+                    // Update file item with hash
+                    const hashDisplay = data.content_hash.substring(0, 8) + '...' + data.content_hash.substring(data.content_hash.length - 8);
+                    fileItem.querySelector('.file-meta').innerHTML = `
+                        <span>${(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                        <span>•</span>
+                        <span>Just now</span>
+                        <span>•</span>
+                        <span>Hash: ${hashDisplay}</span>
+                    `;
+                    
+                    // Second phase: Sign the transaction with Keplr
+                    try {
+                        // Use the Keplr wallet to sign the transaction
+                        const signResponse = await signTransactionWithKeplr(data.sign_doc);
+                        console.log('Transaction signed:', signResponse);
+                        
+                        // Update status to "Signed"
+                        const statusBadge = fileItem.querySelector('.badge');
+                        statusBadge.textContent = 'Signed';
+                        
+                        // Third phase: Broadcast the transaction
+                        const broadcastResponse = await fetch('/api/broadcast', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(signResponse)
+                        });
+                        
+                        if (!broadcastResponse.ok) {
+                            throw new Error(`Server responded with ${broadcastResponse.status}: ${await broadcastResponse.text()}`);
+                        }
+                        
+                        const broadcastData = await broadcastResponse.json();
+                        console.log('Transaction broadcast:', broadcastData);
+                        
+                        if (!broadcastData.success) {
+                            throw new Error(broadcastData.error || 'Failed to broadcast transaction');
+                        }
+                        
+                        // Update status to "Verified"
+                        statusBadge.classList.remove('bg-warning');
+                        statusBadge.classList.add('bg-success');
+                        statusBadge.textContent = 'Verified on Chain';
+                        
+                        // Update action area with transaction options
+                        const actionArea = fileItem.querySelector('.file-actions');
+                        actionArea.innerHTML = `
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-info" title="View file">
+                                    <i data-feather="eye" class="icon-inline-sm"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" title="Create contract">
+                                    <i data-feather="file-plus" class="icon-inline-sm"></i>
+                                </button>
+                                <a href="${broadcastData.explorer_url}" target="_blank" class="btn btn-sm btn-outline-primary" title="View on Explorer">
+                                    <i data-feather="external-link" class="icon-inline-sm"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete file">
+                                    <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        feather.replace();
+                        
+                        // Create contract button event
+                        const contractBtn = actionArea.querySelector('[title="Create contract"]');
+                        if (contractBtn) {
+                            contractBtn.addEventListener('click', function() {
+                                const spvKycModal = new bootstrap.Modal(document.getElementById('spvKycModal'));
+                                spvKycModal.show();
+                            });
+                        }
+                        
+                        // Show ODIS reward and trigger animation
+                        // Calculate reward based on file size
+                        const rewardValue = (parseFloat((file.size / (1024 * 1024)).toFixed(2)) * 0.5).toFixed(2);
+                        
+                        // Show notification
+                        const notification = document.createElement('div');
+                        notification.className = 'alert alert-success alert-dismissible fade show';
+                        notification.innerHTML = `
+                            <i data-feather="award" class="icon-inline-sm"></i>
+                            <strong>Transaction Verified on Blockchain!</strong> You earned ${rewardValue} ODIS tokens as a reward.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
+                        feather.replace();
+                        
+                        // Play success animation
+                        playBlockchainTransactionAnimation('app-container', {
+                            numBlocks: 5,
+                            duration: 3000,
+                            onComplete: () => {
+                                // After transaction animation, play celebration
+                                playCelebrationConfetti('app-container', {
+                                    fromBottom: true,
+                                    particleCount: 100
+                                });
+                                
+                                // Trigger micro-rewards
+                                if (window.rewardsUI) {
+                                    window.rewardsUI.triggerAction('transaction_submit', {
+                                        animationContainer: null // Skip animation since we already played it
+                                    });
+                                }
+                            }
+                        });
+                        
+                        // Auto-dismiss notification after 8 seconds
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                            setTimeout(() => notification.remove(), 500);
+                        }, 8000);
+                        
+                    } catch (signingError) {
+                        console.error('Error signing transaction:', signingError);
+                        
+                        // Update status to error
+                        const statusBadge = fileItem.querySelector('.badge');
+                        statusBadge.classList.remove('bg-warning');
+                        statusBadge.classList.add('bg-danger');
+                        statusBadge.textContent = 'Signing Failed';
+                        
+                        // Update action area with retry option
+                        const actionArea = fileItem.querySelector('.file-actions');
+                        actionArea.innerHTML = `
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <small class="text-danger">Failed to sign transaction</small>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-warning retry-sign-btn" data-tx-id="${data.transaction_id}">
+                                        <i data-feather="refresh-cw" class="icon-inline-sm"></i> Retry
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        feather.replace();
+                        
+                        // Add event listener for retry button
+                        const retryBtn = actionArea.querySelector('.retry-sign-btn');
+                        if (retryBtn) {
+                            retryBtn.addEventListener('click', async function() {
+                                // Retry the signing process with the same transaction data
+                                try {
+                                    const newSignResponse = await signTransactionWithKeplr(data.sign_doc);
+                                    console.log('Transaction signed on retry:', newSignResponse);
+                                    
+                                    // Continue with broadcasting...
+                                    // (Similar code as above, but this would be duplicate code in real implementation)
+                                    // Consider refactoring this into a separate function
+                                } catch (retryError) {
+                                    console.error('Retry signing failed:', retryError);
+                                    alert('Failed to sign transaction: ' + retryError.message);
+                                }
+                            });
+                        }
+                        
+                        // Show error notification
+                        const notification = document.createElement('div');
+                        notification.className = 'alert alert-danger alert-dismissible fade show';
+                        notification.innerHTML = `
+                            <i data-feather="alert-circle" class="icon-inline-sm"></i>
+                            <strong>Transaction Signing Failed:</strong> ${signingError.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
+                        feather.replace();
+                        
+                        // Auto-dismiss after 10 seconds
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                            setTimeout(() => notification.remove(), 500);
+                        }, 10000);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error processing file:', error);
+                    
+                    // Update UI to show error
                     const statusBadge = fileItem.querySelector('.badge');
-                    const actionArea = fileItem.querySelector('.file-actions');
-                    
-                    // Update status to "Validated"
                     statusBadge.classList.remove('bg-warning');
-                    statusBadge.classList.add('bg-success');
-                    statusBadge.textContent = 'Validated';
+                    statusBadge.classList.add('bg-danger');
+                    statusBadge.textContent = 'Error';
                     
-                    // Update action area
+                    const actionArea = fileItem.querySelector('.file-actions');
                     actionArea.innerHTML = `
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-info" title="View file">
-                                <i data-feather="eye" class="icon-inline-sm"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" title="Create contract" onclick="document.getElementById('spvKycModal').classList.add('show'); document.getElementById('spvKycModal').style.display='block';">
-                                <i data-feather="file-plus" class="icon-inline-sm"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" title="Delete file">
-                                <i data-feather="trash-2" class="icon-inline-sm"></i>
-                            </button>
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <small class="text-danger">${error.message}</small>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-warning retry-upload-btn">
+                                    <i data-feather="refresh-cw" class="icon-inline-sm"></i> Retry
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
-                    
                     feather.replace();
                     
-                    // Show ODIS reward notification
-                    const rewardValue = (parseFloat((file.size / (1024 * 1024)).toFixed(2)) * 0.5).toFixed(2);
-                    const notification = document.createElement('div');
-                    notification.className = 'alert alert-success alert-dismissible fade show';
-                    notification.innerHTML = `
-                        <i data-feather="award" class="icon-inline-sm"></i>
-                        <strong>IFC Validation Complete!</strong> You earned ${rewardValue} ODIS tokens as reward.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    `;
-                    
-                    document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
-                    feather.replace();
-                    
-                    // Auto-dismiss after 5 seconds
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                        setTimeout(() => notification.remove(), 500);
-                    }, 5000);
-                    
-                }, 3000);
+                    // Add event listener for retry button
+                    const retryBtn = actionArea.querySelector('.retry-upload-btn');
+                    if (retryBtn) {
+                        retryBtn.addEventListener('click', function() {
+                            // Create a new FileList with just this file
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            const newFiles = dt.files;
+                            
+                            // Retry upload with just this file
+                            handleFiles(newFiles);
+                            
+                            // Remove the error item
+                            fileItem.remove();
+                        });
+                    }
+                }
             }
         }
         

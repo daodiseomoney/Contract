@@ -19,6 +19,8 @@ A blockchain-powered real estate tokenization platform that enables secure and t
 - Multi-signature transaction processing
 - Comprehensive transaction tracking
 - Advanced error handling for blockchain transactions
+- Interactive micro-rewards system with blockchain animations
+- PingPub integration for validator transactions
 
 ## BIMserver Integration
 
@@ -45,6 +47,29 @@ export BIMSERVER_PASSWORD=your_password
 ```
 
 Without these variables, the system will automatically fall back to local file storage.
+
+## PingPub Blockchain Integration
+
+The platform integrates with the Odiseo blockchain network through PingPub API, enabling:
+
+- Secure transaction broadcasting to the Odiseo blockchain
+- Multi-signature validation through the validator network
+- IFC file hash verification on-chain
+- Transparent transaction history via block explorer
+
+### Configuration
+
+Configure the blockchain connection with these environment variables:
+
+```bash
+# PingPub API endpoint for Odiseo testnet
+export PINGPUB_API_URL=https://pingpub-testnet.daodiseo.com/api/
+
+# Blockchain network settings
+export CHAIN_ID=odiseotestnet_1234-1
+export CONTRACT_ADDRESS=odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt
+export VALIDATOR_POOL_ADDRESS=odiseo1k5vh4mzjncn4tnvan463whhrkkcsvjzgxm384q
+```
 
 ## Installation
 
