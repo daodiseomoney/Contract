@@ -11,6 +11,7 @@ from src.controllers.bim_controller import bim_bp
 from src.controllers.ifc_controller import ifc_bp
 from src.controllers.account_controller import account_bp
 from src.controllers.transaction_controller import transaction_bp
+from src.controllers.upload_controller import upload_bp
 
 # Load environment variables from .env file if it exists
 load_dotenv()
@@ -34,6 +35,7 @@ app.register_blueprint(bim_bp)
 app.register_blueprint(ifc_bp)
 app.register_blueprint(account_bp)
 app.register_blueprint(transaction_bp)
+app.register_blueprint(upload_bp)
 
 
 # Routes
