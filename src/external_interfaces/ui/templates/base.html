@@ -418,6 +418,7 @@
                                     <i data-feather="info" class="icon-inline-sm me-2"></i>
                                     <span>You'll need the Keplr browser extension installed to proceed.</span>
                                 </div>
+                                <div id="keplrConnectionStatus"></div>
                             </div>
                             <div class="modal-footer border-info">
                                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -440,15 +441,64 @@
                 feather.replace();
                 
                 // Confirm button functionality
-                document.getElementById('confirmKeplrConnect').addEventListener('click', function() {
-                    // Here we would connect to Keplr wallet
-                    console.log('Connecting to Keplr wallet...');
-                    
-                    // Simulate successful connection
-                    setTimeout(() => {
-                        // Set global wallet connection state
-                        walletConnected = true;
-                        userWalletAddress = 'odis...f34a';
+                document.getElementById('confirmKeplrConnect').addEventListener('click', async function() {
+                    try {
+                        const statusElement = document.getElementById('keplrConnectionStatus');
+                        statusElement.innerHTML = `
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    <span>Connecting to Keplr wallet...</span>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Check if window.keplerWallet exists (from our kepler.js)
+                        if (window.keplerWallet) {
+                            // Use our custom KeplerWallet implementation
+                            await window.keplerWallet.init();
+                            if (window.keplerWallet.isConnected()) {
+                                userWalletAddress = window.keplerWallet.address;
+                                walletConnected = true;
+                            } else {
+                                throw new Error('Failed to connect wallet. Please try again.');
+                            }
+                        } else if (window.keplr) {
+                            // Fallback to direct Keplr wallet connection
+                            
+                            // First get network configuration from our backend
+                            const networkConfigResponse = await fetch('/api/network-config');
+                            const networkConfig = await networkConfigResponse.json();
+                            
+                            // Add chain to Keplr wallet
+                            await window.keplr.experimentalSuggestChain(networkConfig);
+                            
+                            // Enable chain
+                            await window.keplr.enable(networkConfig.chainId);
+                            
+                            // Get offline signer
+                            const offlineSigner = window.keplr.getOfflineSigner(networkConfig.chainId);
+                            
+                            // Get accounts
+                            const accounts = await offlineSigner.getAccounts();
+                            userWalletAddress = accounts[0].address;
+                            walletConnected = true;
+                            
+                            // Save address to backend
+                            try {
+                                await fetch('/api/account/wallet', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ address: userWalletAddress })
+                                });
+                            } catch (e) {
+                                console.warn('Could not save wallet address to backend:', e);
+                            }
+                        } else {
+                            throw new Error('Keplr wallet extension not found. Please install it first.');
+                        }
                         
                         // Save connection state to localStorage
                         localStorage.setItem('walletConnected', 'true');
@@ -466,17 +516,45 @@
                         // Update user profile
                         const userProfile = document.getElementById('userProfileBtn');
                         if (userProfile) {
-                            userProfile.querySelector('span').textContent = userWalletAddress;
+                            // Display truncated wallet address
+                            const shortenedAddress = userWalletAddress.length > 16 
+                                ? `${userWalletAddress.slice(0, 8)}...${userWalletAddress.slice(-4)}`
+                                : userWalletAddress;
+                            userProfile.querySelector('span').textContent = shortenedAddress;
                         }
                         
-                        // Hide modal
-                        keplrModal.hide();
+                        // Show success message
+                        statusElement.innerHTML = `
+                            <div class="alert alert-success">
+                                <div class="d-flex align-items-center">
+                                    <i data-feather="check-circle" class="me-2"></i>
+                                    <span>Connected successfully!</span>
+                                </div>
+                            </div>
+                        `;
+                        feather.replace();
                         
-                        // Show onboarding guide after successful connection
+                        // Hide modal after a short delay
                         setTimeout(() => {
+                            keplrModal.hide();
+                            
+                            // Show onboarding guide
                             showOnboardingGuide();
                         }, 1000);
-                    }, 1500);
+                    } catch (error) {
+                        console.error('Keplr connection error:', error);
+                        
+                        // Show error message
+                        document.getElementById('keplrConnectionStatus').innerHTML = `
+                            <div class="alert alert-danger">
+                                <div class="d-flex align-items-center">
+                                    <i data-feather="alert-triangle" class="me-2"></i>
+                                    <span>${error.message || 'Failed to connect. Please try again.'}</span>
+                                </div>
+                            </div>
+                        `;
+                        feather.replace();
+                    }
                 });
                 
                 // Remove modal from DOM when hidden
@@ -864,6 +942,9 @@
             }
         });
     </script>
+    
+    <!-- Keplr Wallet Integration -->
+    <script src="{{ url_for('static', filename='js/kepler.js') }}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>
