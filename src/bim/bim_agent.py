@@ -11,6 +11,7 @@ import glob
 from src.bim.bim_agent_openai import OpenAIBIMAgent
 from src.bim.mock_ifc import MockIFCData
 from src.bim.ifc_parser import IFCParser
+from src.bim.ifc_agent import IFCAgent
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -26,6 +27,9 @@ class BIMAgentManager:
     def __init__(self):
         """Initialize the BIM Agent Manager"""
         self.openai_agent = OpenAIBIMAgent()
+        
+        # Initialize the IFC Agent with OpenAI Agents SDK
+        self.ifc_agent = IFCAgent()
         
         # Default to mock data
         self.use_real_ifc = False
