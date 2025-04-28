@@ -5,7 +5,7 @@ This module provides AI capabilities for processing BIM data and interacting wit
 
 import logging
 import os
-from typing import Dict, Optional, List
+from typing import Dict, List
 import glob
 
 from src.bim.bim_agent_openai import OpenAIBIMAgent
@@ -139,7 +139,8 @@ class BIMAgentManager:
             return {
                 "success": True,
                 "enhanced_mode": self.enhanced_mode_enabled,
-                "message": f"Enhanced mode {'enabled' if self.enhanced_mode_enabled else 'disabled'}",
+                "message": (f"Enhanced mode "
+                            f"{'enabled' if self.enhanced_mode_enabled else 'disabled'}"),
             }
         except Exception as e:
             logger.error(f"Error toggling enhanced mode: {e}")
@@ -193,7 +194,8 @@ class BIMAgentManager:
             return {
                 "success": False,
                 "message": f"Error processing message: {str(e)}",
-                "response": "Sorry, I encountered an error processing your message. Please try again.",
+                "response": ("Sorry, I encountered an error processing your message. "
+                             "Please try again."),
                 "metadata": {"error": str(e)},
             }
 
