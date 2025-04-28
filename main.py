@@ -6,7 +6,7 @@ import os
 import logging
 from flask import Flask, render_template, url_for, request, jsonify, abort
 
-from src.controllers.bim_agent_controller import bim_agent_bp
+from src.controllers.bim_controller import bim_bp
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -23,7 +23,7 @@ app = Flask(
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
 # Register blueprints
-app.register_blueprint(bim_agent_bp)
+app.register_blueprint(bim_bp)
 
 
 # Routes
