@@ -16,7 +16,7 @@ from src.security_utils import secure_endpoint, verify_wallet_ownership
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-blockchain_bp = Blueprint('blockchain', __name__, url_prefix='/api')
+blockchain_bp = Blueprint('blockchain', __name__, url_prefix='/api/blockchain')
 
 # Initialize services
 blockchain_service = BlockchainService()
