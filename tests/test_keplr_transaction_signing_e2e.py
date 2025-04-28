@@ -88,17 +88,25 @@ class MockKeplrWallet:
             }
         )
 
-        # Return mock signature response
-        return {
+        # Create response object with proper dot-access properties
+        # as expected in the transaction code
+        class DotDict(dict):
+            """Dict that allows attribute access to its keys"""
+            def __getattr__(self, key):
+                return self[key]
+                
+        response = DotDict({
             "signed": signDoc,
-            "signature": {
-                "pub_key": {
+            "signature": DotDict({
+                "pub_key": DotDict({
                     "type": "tendermint/PubKeySecp256k1",
                     "value": "A1234567890abcdef",
-                },
+                }),
                 "signature": "c2lnbmF0dXJl",  # Base64 mock signature
-            },
-        }
+            }),
+        })
+        
+        return response
 
 
 @pytest.fixture
@@ -143,7 +151,7 @@ def mock_fetch():
 class TestKeplrTransactionSigningE2E:
     """End-to-end tests for Keplr transaction signing flow."""
     
-    async def _create_mock_fetch_response(self, url, **kwargs):
+    async def _create_mock_fetch_response(self, url, *args, **kwargs):
         """Create a mock fetch response based on the URL."""
         if url == "/api/transaction/tx_123":
             return MockFetchResponse(
@@ -280,7 +288,10 @@ class TestKeplrTransactionSigningE2E:
         """Test that using an incorrect message format fails with Keplr."""
         # Arrange
         mock_window.keplr = mock_keplr
-        mock_fetch.side_effect = AsyncMock(side_effect=mock_fetch)
+        # Create a new mock fetch function to avoid recursion
+        mock_fetch_function = AsyncMock()
+        mock_fetch_function.side_effect = self._create_mock_fetch_response
+        mock_fetch.side_effect = mock_fetch_function
 
         # Enable the chain
         chainId = "odiseotestnet_1234-1"
@@ -320,7 +331,10 @@ class TestKeplrTransactionSigningE2E:
         """Test that using Proto format with @type fails with signAmino."""
         # Arrange
         mock_window.keplr = mock_keplr
-        mock_fetch.side_effect = AsyncMock(side_effect=mock_fetch)
+        # Create a new mock fetch function to avoid recursion
+        mock_fetch_function = AsyncMock()
+        mock_fetch_function.side_effect = self._create_mock_fetch_response
+        mock_fetch.side_effect = mock_fetch_function
 
         # Enable the chain
         chainId = "odiseotestnet_1234-1"
