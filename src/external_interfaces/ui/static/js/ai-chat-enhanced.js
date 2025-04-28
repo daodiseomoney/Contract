@@ -128,7 +128,7 @@ const aiChat = {
     
     // Check enhanced mode status
     checkEnhancedStatus: function() {
-        fetch('/api/bim-agent/enhanced-status')
+        fetch('/api/bim/enhanced-status')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -143,7 +143,7 @@ const aiChat = {
     
     // Toggle enhanced mode
     toggleEnhancedMode: function(enabled) {
-        fetch('/api/bim-agent/toggle-enhanced', {
+        fetch('/api/bim/toggle-enhanced', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -192,7 +192,7 @@ const aiChat = {
         inputElement.value = '';
         
         // Send message to server with the use_agent parameter
-        fetch('/api/bim-agent/chat', {
+        fetch('/api/bim/message', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
