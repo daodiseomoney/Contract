@@ -1,0 +1,88 @@
+.
+├── -
+├── architecture.md
+├── attached_assets
+│   ├── content-1745786406535.md
+│   ├── dds_interface.mov
+│   ├── IMG_5888.png
+│   ├── IMG_5893.jpeg
+│   ├── Pasted-Below-is-a-copy-paste-system-prompt-you-can-drop-straight-into-the-Agent-tab-in-your-Replit-work-1745853598706.txt
+│   └── Pasted-Below-is-the-next-iteration-system-prompt-for-the-Replit-AI-coding-agent-updated-with-the-info-you--1745799126142.txt
+├── bimserver_api.html
+├── .cache
+│   ├── black
+│   ├── nix
+│   ├── pip
+│   ├── replit
+│   └── uv
+├── code_check.py
+├── CODE_STRUCTURE.md
+├── contracts.json
+├── .coverage
+├── fix_flake8_issues.py
+├── fix_flake8_violations.py
+├── fix_ifc4x3_add1.py
+├── .flake8
+├── flake_report.txt
+├── generated-icon.png
+├── .local
+│   └── state
+├── main.py
+├── pre-commit-hook.py
+├── pyproject.toml
+├── .pytest_cache
+│   ├── CACHEDIR.TAG
+│   ├── .gitignore
+│   ├── README.md
+│   └── v
+├── .pythonlibs
+│   ├── bin
+│   ├── CACHEDIR.TAG
+│   ├── .gitignore
+│   ├── include
+│   ├── lib
+│   ├── lib64 -> lib
+│   └── pyvenv.cfg
+├── README.md
+├── .replit
+├── replit.nix
+├── setup.cfg
+├── src
+│   ├── bim
+│   ├── controllers
+│   ├── entities
+│   ├── external_interfaces
+│   ├── gateways
+│   ├── __init__.py
+│   ├── services
+│   └── use_cases
+├── test_debug.log
+├── tests
+│   ├── conftest.py
+│   ├── __init__.py
+│   ├── README.md
+│   ├── test_api_endpoints.py
+│   ├── test_bimserver_gateway.py
+│   ├── test_end_to_end.py
+│   ├── test_isolated_client.py
+│   ├── test_isolated_flow.py
+│   ├── test_kepler_gateway.py
+│   ├── test_keplr_amino_format_integration.py
+│   ├── test_keplr_frontend_compatibility.py
+│   ├── test_keplr_message_browser_simulation.py
+│   ├── test_keplr_message_format_fix.py
+│   ├── test_keplr_message_formats.py
+│   ├── test_keplr_transaction_signing_e2e.py
+│   ├── test_message_formats.py
+│   ├── test_real_implementation.py
+│   ├── test_transaction_service.py
+│   └── test_utils.py
+├── tree.txt
+├── uploads
+│   ├── architectural_-_annotation_scaling_and_multileaders.dwg
+│   └── sample.ifc
+├── .upm
+│   └── store.json
+└── uv.lock
+
+28 directories, 58 files
