@@ -279,7 +279,7 @@ class IFCParser:
         element_type = element.is_a()
         element_id = element.GlobalId if hasattr(element, "GlobalId") else str(element.id())
         element_name = (
-            element.Name if hasattr(element, "Name") and element.Name 
+            element.Name if hasattr(element, "Name") and element.Name
             else f"{element_type}_{element.id()}"
         )
 
@@ -368,8 +368,9 @@ class IFCParser:
                             properties["Materials"] = ", ".join(material_names)
                         elif relating_material.is_a("IfcMaterialLayerSetUsage"):
                             material_set = relating_material.ForLayerSet
-                            layer_names = [layer.Material.Name for layer in
-                                         material_set.MaterialLayers]
+                            layer_names = [
+                                layer.Material.Name for layer in material_set.MaterialLayers
+                            ]
                             properties["MaterialLayers"] = ", ".join(layer_names)
 
             # Get spatial location info
@@ -424,5 +425,5 @@ class IFCParser:
             return str(nominal_value.wrappedValue)
         else:
             # Return string representation for other types
-            return str(nominal_value.wrappedValue) if hasattr(nominal_value,
-                "wrappedValue") else str(nominal_value)
+            return (str(nominal_value.wrappedValue) if hasattr(nominal_value, "wrappedValue")
+                    else str(nominal_value))
