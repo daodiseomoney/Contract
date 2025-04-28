@@ -82,6 +82,12 @@ body {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    overflow-y: auto;
 }
 
 .main-content {
@@ -89,6 +95,8 @@ body {
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
+    margin-left: 260px;
+    width: calc(100% - 260px);
 }
 
 /* Sidebar */

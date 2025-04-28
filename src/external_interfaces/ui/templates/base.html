@@ -170,13 +170,16 @@
     
     <!-- Initialize Feather Icons -->
     <script>
-        feather.replace();
-        
-        // Initialize Keplr wallet connection and header buttons
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+            
             // Wallet connect button in sidebar
             const connectKeplrBtn = document.getElementById('connectKeplrBtn');
             if (connectKeplrBtn) {
+                connectKeplrBtn.innerHTML = '<i class="icon-inline-sm"></i> Connect Keplr Wallet';
                 connectKeplrBtn.addEventListener('click', function() {
                     connectKeplrWallet();
                 });

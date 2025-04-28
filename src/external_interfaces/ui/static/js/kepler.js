@@ -216,6 +216,13 @@ window.keplerWallet = new KeplerWallet();
 // Global function for connecting Keplr wallet - can be called from anywhere
 async function connectKeplrWallet() {
     try {
+        // Check for Keplr extension
+        if (typeof window.keplr === 'undefined') {
+            alert('Please install Keplr extension to connect your wallet. Visit https://www.keplr.app/download for installation instructions.');
+            return null;
+        }
+        
+        // Connect via our wallet instance
         const address = await window.keplerWallet.init();
         
         // Wallet connection is handled in the init method now, no need to duplicate storage
@@ -224,6 +231,25 @@ async function connectKeplrWallet() {
         // SECURITY: Record last activity time for session tracking
         sessionStorage.setItem('last_wallet_activity', Date.now().toString());
         
+        // Also store in local storage for UI persistence (removed after 4 hours by timeout check)
+        localStorage.setItem('walletConnected', 'true');
+        localStorage.setItem('userWalletAddress', address);
+        
+        // Update UI elements
+        const connectButton = document.getElementById('connectKeplrBtn');
+        if (connectButton) {
+            connectButton.innerHTML = '<i class="icon-inline-sm"></i> Connected';
+            connectButton.classList.remove('btn-outline-info');
+            connectButton.classList.add('btn-success');
+        }
+        
+        const userProfileBtn = document.getElementById('userProfileBtn');
+        if (userProfileBtn) {
+            // Display shortened wallet address
+            const displayAddress = address.slice(0, 8) + '...' + address.slice(-4);
+            userProfileBtn.querySelector('span').textContent = displayAddress;
+        }
+        
         // Trigger wallet connected event for micro-rewards
         document.dispatchEvent(new CustomEvent('keplrConnected', {
             detail: { 
@@ -231,6 +257,10 @@ async function connectKeplrWallet() {
                 timestamp: Date.now()
             }
         }));
+        
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
         
         return address;
     } catch (error) {
@@ -243,6 +273,8 @@ async function connectKeplrWallet() {
         sessionStorage.removeItem('userWalletAddress');
         sessionStorage.removeItem('walletConnected');
         sessionStorage.removeItem('wallet_connect_time');
+        localStorage.removeItem('walletConnected');
+        localStorage.removeItem('userWalletAddress');
         
         return null;
     }
