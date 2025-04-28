@@ -1,5 +1,6 @@
 import logging
 from flask import Blueprint, jsonify, request
+from src.gateways.kepler_gateway import KeplerGateway
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -7,6 +8,14 @@ logger = logging.getLogger(__name__)
 
 # Create blueprint
 account_bp = Blueprint("account", __name__, url_prefix="/api")
+
+# Initialize kepler gateway with network configuration
+network_config = {
+    "chain_id": "odiseotestnet_1234-1",
+    "rpc_url": "https://odiseo.test.rpc.nodeshub.online",
+    "api_url": "https://odiseo.test.api.nodeshub.online"
+}
+kepler_gateway = KeplerGateway(network_config)
 
 
 @account_bp.route("/account", methods=["GET"])
@@ -47,4 +56,17 @@ def connect_wallet():
         )
     except Exception as e:
         logger.error(f"Error connecting wallet: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@account_bp.route("/network-config", methods=["GET"])
+def get_network_config():
+    """Get Cosmos network configuration for Keplr wallet integration"""
+    try:
+        # Get network configuration from the gateway
+        config = kepler_gateway.get_network_config()
+        logger.debug(f"Returning network config: {config}")
+        return jsonify(config)
+    except Exception as e:
+        logger.error(f"Error getting network config: {str(e)}")
         return jsonify({"error": str(e)}), 500

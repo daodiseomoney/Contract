@@ -1,5 +1,9 @@
 import logging
+import uuid
+import json
 from flask import Blueprint, jsonify, request
+from src.services.transaction_service import TransactionService
+from src.gateways.kepler_gateway import KeplerGateway, KeplerSignatureRole
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -8,12 +12,44 @@ logger = logging.getLogger(__name__)
 # Create blueprint
 transaction_bp = Blueprint("transaction", __name__, url_prefix="/api")
 
+# Initialize service
+transaction_service = TransactionService()
+network_config = {
+    "chain_id": "odiseotestnet_1234-1",
+    "rpc_url": "https://odiseo.test.rpc.nodeshub.online",
+    "api_url": "https://odiseo.test.api.nodeshub.online"
+}
+kepler_gateway = KeplerGateway(network_config)
+
 
 @transaction_bp.route("/transactions", methods=["GET"])
 def get_transactions():
     """Retrieve blockchain transactions"""
-    # In a real implementation, this would query the blockchain for transactions
-    mock_transactions = [
+    # Get from blockchain or return test data if no address is provided
+    address = request.args.get("address")
+    
+    if address:
+        # Try to get real transaction data for the address
+        try:
+            # This would be replaced with actual blockchain query
+            logger.debug(f"Querying transactions for address: {address}")
+            # Placeholder - real implementation would query blockchain
+            return jsonify([
+                {
+                    "id": f"tx-{uuid.uuid4().hex[:8]}",
+                    "type": "Property Tokenization",
+                    "hash": f"0x{uuid.uuid4().hex}",
+                    "timestamp": "2025-04-04T12:34:56Z",
+                    "status": "confirmed",
+                    "address": address,
+                }
+            ])
+        except Exception as e:
+            logger.error(f"Error querying transactions: {str(e)}")
+            # Fall back to sample data
+    
+    # Sample transactions for display
+    transactions = [
         {
             "id": "tx1",
             "type": "Property Tokenization",
@@ -22,7 +58,7 @@ def get_transactions():
             "timestamp": "2025-04-04T12:34:56Z",
             "status": "confirmed",
             "value": "1500000",
-            "currency": "ATOM",
+            "currency": "ODIS",
         },
         {
             "id": "tx2",
@@ -44,7 +80,7 @@ def get_transactions():
         },
     ]
 
-    return jsonify(mock_transactions)
+    return jsonify(transactions)
 
 
 @transaction_bp.route("/transactions/<tx_id>", methods=["GET"])
@@ -62,9 +98,9 @@ def get_transaction(tx_id):
             "timestamp": "2025-04-04T12:34:56Z",
             "status": "confirmed",
             "value": "1500000",
-            "currency": "ATOM",
-            "sender": "0x1a2b3c4d5e6f7g8h9i0j",
-            "receiver": "0x0j9i8h7g6f5e4d3c2b1a",
+            "currency": "ODIS",
+            "sender": "odiseo1a2b3c4d5e6f7g8h9i0j",
+            "receiver": "odiseo0j9i8h7g6f5e4d3c2b1a",
             "gas_used": 21000,
             "gas_price": "0.000000001",
             "fees": "0.000021",
@@ -89,29 +125,103 @@ def sign_transaction():
     """Sign a transaction with a wallet"""
     try:
         data = request.json
+        logger.debug(f"Received data for signing: {data}")
 
-        if not data or "tx_hash" not in data or "wallet_address" not in data:
-            return (
-                jsonify({"error": "Transaction hash and wallet address are required"}),
-                400,
-            )
+        if not data:
+            return jsonify({"error": "Transaction data is required"}), 400
 
-        tx_hash = data["tx_hash"]
-        wallet_address = data["wallet_address"]
-
-        # In a real implementation, this would interact with a blockchain client
-        # to sign the transaction with the provided wallet
-        logger.debug(f"Signing transaction {tx_hash} with wallet {wallet_address}")
-
-        return jsonify(
-            {
-                "success": True,
-                "message": "Transaction signed successfully",
-                "tx_hash": tx_hash,
-                "wallet_address": wallet_address,
-                "signature": f"0x{wallet_address[:8]}...signature",
-            }
-        )
+        if "wallet_address" not in data:
+            return jsonify({"error": "Wallet address is required"}), 400
+        
+        wallet_address = data.get("wallet_address")
+        transaction_id = data.get("transaction_id", f"tx-{uuid.uuid4().hex[:8]}")
+        content_hash = data.get("content_hash", "")
+        role = data.get("role", "owner")
+        
+        # Create transaction message
+        msg = {
+            "type": "cosmos-sdk/MsgSend",
+            "from_address": wallet_address,
+            "to_address": data.get("to_address", "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"),
+            "amount": data.get("amount", [{"denom": "uodis", "amount": "1000"}]),
+            "transaction_id": transaction_id,
+            "content_hash": content_hash,
+            "role": role
+        }
+        
+        # Create sign doc for frontend to use with Keplr wallet
+        sign_doc = transaction_service.create_sign_doc(wallet_address, msg)
+        
+        return jsonify({
+            "success": True,
+            "sign_doc": sign_doc,
+            "transaction_id": transaction_id
+        })
     except Exception as e:
-        logger.error(f"Error signing transaction: {str(e)}")
+        logger.error(f"Error preparing transaction for signing: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@transaction_bp.route("/transactions/broadcast", methods=["POST"])
+def broadcast_transaction():
+    """Broadcast a signed transaction to the blockchain"""
+    try:
+        data = request.json
+        logger.debug(f"Received data for broadcasting: {data}")
+
+        if not data:
+            return jsonify({"error": "Transaction data is required"}), 400
+
+        # Process the signed transaction
+        result = transaction_service.broadcast_transaction(data)
+        
+        # Return the result
+        return jsonify({
+            "success": True,
+            "message": "Transaction broadcasted successfully",
+            "result": result
+        })
+    except Exception as e:
+        logger.error(f"Error broadcasting transaction: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@transaction_bp.route("/transactions/create", methods=["POST"])
+def create_transaction():
+    """Create a transaction for tokenizing a property"""
+    try:
+        data = request.json
+        logger.debug(f"Received data for creating transaction: {data}")
+
+        if not data or "property_id" not in data:
+            return jsonify({"error": "Property ID is required"}), 400
+
+        property_id = data["property_id"]
+        property_value = data.get("property_value", "1000000")
+        token_count = data.get("token_count", "1000000")
+        
+        # Generate transaction ID
+        transaction_id = f"tx-{uuid.uuid4().hex[:8]}"
+        
+        # Create a message with proper structure for Cosmos SDK
+        msg = {
+            "type": "cosmos-sdk/MsgSend",
+            "property_id": property_id,
+            "property_value": property_value,
+            "token_count": token_count,
+            "transaction_id": transaction_id
+        }
+        
+        # Return the transaction data
+        return jsonify({
+            "success": True,
+            "transaction_id": transaction_id,
+            "msg": msg,
+            "next_steps": {
+                "sign": f"/api/transactions/sign",
+                "broadcast": f"/api/transactions/broadcast"
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error creating transaction: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
