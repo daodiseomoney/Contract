@@ -579,12 +579,21 @@ body {
 @media (max-width: 768px) {
     .sidebar {
         width: 70px;
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
     }
     
     .sidebar .app-title,
-    .sidebar .nav-link span,
-    .sidebar-footer {
+    .sidebar .nav-link span {
         display: none;
+    }
+    
+    .sidebar-footer {
+        display: flex;
+        flex-direction: column;
     }
     
     .nav-link {
@@ -598,6 +607,7 @@ body {
     
     .main-content {
         margin-left: 70px;
+        width: calc(100% - 70px);
     }
 }
 

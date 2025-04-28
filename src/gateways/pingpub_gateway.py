@@ -472,3 +472,75 @@ class PingPubGateway:
                 # Mainnet URL should be configured explicitly
                 logger.error("EXPLORER_URL environment variable is missing for mainnet")
                 return f"https://explorer.chaintools.tech/odiseo/tx/{tx_hash}"
+                
+    def get_token_stats(self):
+        """
+        Retrieve token statistics from the blockchain
+        
+        Returns:
+            dict: Token statistics including price, staking APY, etc.
+        """
+        try:
+            # In a real implementation, this would query the blockchain or market API
+            # For now, this is a simulated API call
+            endpoint = f"{self.base_url}token/stats"
+            logger.debug(f"Requesting token stats from: {endpoint}")
+            
+            # Try to connect to the endpoint
+            try:
+                response = self.session.get(endpoint, timeout=self.timeout)
+                response.raise_for_status()
+                data = response.json()
+                return data
+            except requests.RequestException:
+                # If endpoint doesn't exist in our mock implementation,
+                # return simulated data for development purposes
+                logger.warning("Token stats endpoint not available, using simulated data")
+                return {
+                    "price": 15811.04,
+                    "staking_apy": 9.5,
+                    "total_reserves": 38126.50,
+                    "daily_rewards": 0.318,
+                    "market_cap": 1250000000,
+                    "supply": 78250000,
+                    "inflation_rate": 5.2
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to get token stats: {str(e)}")
+            raise
+            
+    def get_asset_stats(self):
+        """
+        Retrieve asset statistics from the blockchain
+        
+        Returns:
+            dict: Asset statistics including verified and unverified assets
+        """
+        try:
+            # In a real implementation, this would query the blockchain 
+            # For now, this is a simulated API call
+            endpoint = f"{self.base_url}assets/stats"
+            logger.debug(f"Requesting asset stats from: {endpoint}")
+            
+            # Try to connect to the endpoint
+            try:
+                response = self.session.get(endpoint, timeout=self.timeout)
+                response.raise_for_status()
+                data = response.json()
+                return data
+            except requests.RequestException:
+                # If endpoint doesn't exist in our mock implementation,
+                # return simulated data for development purposes
+                logger.warning("Asset stats endpoint not available, using simulated data")
+                return {
+                    "verified": 24250000,
+                    "unverified": 13876500,
+                    "total_count": 157,
+                    "verified_count": 98,
+                    "unverified_count": 59
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to get asset stats: {str(e)}")
+            raise
