@@ -6,13 +6,21 @@ This document outlines the code organization for the Daodiseo platform, followin
 
 ```
 daodiseo/
+├── docs/                   # Documentation files
+│   └── api/                # API documentation
 ├── src/                    # Source code
-│   ├── bim/                # Building Information Modeling components
 │   ├── controllers/        # Web controllers (HTTP layer)
+│   ├── data/               # Data storage files (JSON, etc.)
 │   ├── entities/           # Domain entities
 │   ├── external_interfaces/ # Interfaces to external systems (UI, APIs)
+│   │   ├── config/         # Configuration for external interfaces
+│   │   └── ui/             # User interface components
+│   │       ├── static/     # Static assets (CSS, JS, images)
+│   │       └── templates/  # HTML templates
 │   ├── gateways/           # Gateway implementations for external services
+│   │   └── ifc/            # IFC file handling gateways
 │   ├── services/           # Domain services
+│   │   └── ai/             # AI services for analysis
 │   └── use_cases/          # Application use cases
 ├── tests/                  # Test suite
 ├── uploads/                # Uploaded files storage
@@ -45,8 +53,8 @@ The codebase follows a clean architecture pattern with the following layers:
 
 ## Key Components
 
-### BIM Components (`src/bim/`)
-Building Information Modeling components that handle 3D model data and integrations with BIM providers.
+### BIM Components (`src/gateways/ifc/`)
+Building Information Modeling components that handle 3D model data, IFC file processing, and integrations with BIM providers.
 
 ### Controllers (`src/controllers/`)
 HTTP controllers that handle web requests and responses. These convert between HTTP and domain objects.

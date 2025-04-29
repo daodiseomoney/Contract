@@ -66,7 +66,7 @@ Configure the blockchain connection with these environment variables:
 export PINGPUB_API_URL=https://pingpub-testnet.daodiseo.com/api/
 
 # Blockchain network settings
-export CHAIN_ID=odiseotestnet_1234-1
+export CHAIN_ID=ithaca-1
 export CONTRACT_ADDRESS=odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt
 export VALIDATOR_POOL_ADDRESS=odiseo1k5vh4mzjncn4tnvan463whhrkkcsvjzgxm384q
 ```
@@ -93,7 +93,7 @@ See [architecture.md](architecture.md) for a detailed overview of the system arc
 
 ## API Documentation
 
-For BIMserver API integration details, see [bimserver_api.html](bimserver_api.html).
+For BIMserver API integration details, see [docs/api/bimserver_api.html](docs/api/bimserver_api.html).
 
 ## Testing
 

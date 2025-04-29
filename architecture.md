@@ -47,6 +47,8 @@ A modular Flask-based platform enabling real estate stakeholders to tokenize pro
 - Smart contract deployment for tokenized assets
 - Automated budget split enforcement
 - Transaction logging and verification
+- Keplr wallet integration for signing transactions
+- Ithaca-1 chain integration for the Cosmos ecosystem
 
 ### 3. Compliance & Analytics
 - AI-powered safety regulation validation
@@ -66,10 +68,12 @@ A modular Flask-based platform enabling real estate stakeholders to tokenize pro
 - **Database**: PostgreSQL
 - **Authentication**: Flask-Login
 - **Form Handling**: Flask-WTF
+- **Blockchain**: CosmPy for Cosmos SDK integration
 
 ### Frontend
 - **Template Engine**: Jinja2
 - **Styling**: Bootstrap (Dark Theme)
+- **Icons**: Feather Icons (bundled locally)
 - **Charts**: Chart.js
 - **UI Components**: Custom Flask components
 
@@ -78,11 +82,13 @@ A modular Flask-based platform enabling real estate stakeholders to tokenize pro
 - Local file system as fallback storage (MVP)
 - PostgreSQL for application data
 - Blockchain for asset tokenization
+- Structured JSON data storage for contracts
 
 ### Analytics
 - Custom LLM implementation for compliance checks
 - Keyword-based safety analysis
 - Real-time validation feedback
+- Blockchain transaction analysis
 
 ## Security Features
 - Role-based access control
