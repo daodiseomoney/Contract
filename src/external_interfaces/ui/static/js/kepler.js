@@ -231,9 +231,10 @@ async function connectKeplrWallet() {
         // SECURITY: Record last activity time for session tracking
         sessionStorage.setItem('last_wallet_activity', Date.now().toString());
         
-        // Also store in local storage for UI persistence (removed after 4 hours by timeout check)
-        localStorage.setItem('walletConnected', 'true');
-        localStorage.setItem('userWalletAddress', address);
+        // Store in sessionStorage only for better security (removed after 4 hours by timeout check)
+        // No longer using localStorage for better security
+        sessionStorage.setItem('walletConnected', 'true');
+        sessionStorage.setItem('userWalletAddress', address);
         
         // Update UI elements
         const connectButton = document.getElementById('connectKeplrBtn');

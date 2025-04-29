@@ -938,9 +938,9 @@
                     walletConnected = false;
                     userWalletAddress = '';
                     
-                    // Clear localStorage items
-                    localStorage.removeItem('walletConnected');
-                    localStorage.removeItem('userWalletAddress');
+                    // Clear sessionStorage items
+                    sessionStorage.removeItem('walletConnected');
+                    sessionStorage.removeItem('userWalletAddress');
                     
                     // Update UI
                     const walletBtn = document.getElementById('connectKeplrBtn');
