@@ -6,7 +6,7 @@ from datetime import datetime
 
 class MockBlockchainGateway:
     def __init__(self):
-        self.contracts_file = "contracts.json"
+        self.contracts_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "contracts.json")
         self._load_contracts()
 
     def _load_contracts(self):

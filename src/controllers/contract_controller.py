@@ -13,7 +13,7 @@ contract_bp = Blueprint("contract", __name__, url_prefix="/api")
 
 # Path to JSON file storing contract data
 CONTRACTS_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "contracts.json"
+    os.path.dirname(os.path.dirname(__file__)), "data", "contracts.json"
 )
 
 # Ensure contracts file exists
