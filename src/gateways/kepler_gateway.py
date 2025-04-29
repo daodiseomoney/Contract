@@ -1,7 +1,10 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Any
 import json
+import logging
 from enum import Enum
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class KeplerSignatureRole(Enum):
     OWNER = "owner"
@@ -56,38 +59,109 @@ class KeplerGateway:
             "gasPriceStep": {"low": 0.01, "average": 0.025, "high": 0.04},
         }
 
-    async def connect_wallet(self) -> str:
-        """This function will be called from JavaScript to connect Kepler wallet"""
-        # ------------------------------------------------------------
-        # TODO(DDS_TEAM): Implement backend validation of wallet connection
-        # TODO(DDS_TEAM): Store wallet connection in user session
-        # TODO(DDS_TEAM): Verify wallet ownership using signature
-        # ------------------------------------------------------------
-        # The actual connection happens in JavaScript
-        # This is just a placeholder for the backend interface
-        return self.connected_address or ""  # Return empty string if None
+    def connect_wallet(self, address: str) -> str:
+        """
+        Record a connected wallet address
+        
+        Args:
+            address: The wallet address to connect
+            
+        Returns:
+            str: The connected wallet address
+        """
+        # Store the connected address
+        self.connected_address = address
+        logger.info(f"Wallet connected: {address}")
+        
+        # In a real implementation, verify wallet ownership with a signature
+        # TODO(DDS_TEAM): Implement signature verification for wallet connection
+        
+        return address
 
-    async def sign_transaction(self, tx_data: Dict, role: KeplerSignatureRole) -> Dict:
-        """This function will be called from JavaScript to sign a transaction"""
-        # ------------------------------------------------------------
-        # TODO(DDS_TEAM): Implement proper Amino message formatting
-        # TODO(DDS_TEAM): Add backend verification of signature
-        # TODO(DDS_TEAM): Implement proper fee calculation
-        # TODO(DDS_TEAM): Add transaction validation before signing
-        # ------------------------------------------------------------
-        # The actual signing happens in JavaScript
-        # This is just a placeholder for the backend interface
-
-        # Use simplified memo format matching our frontend changes
+    def sign_transaction(self, tx_data: Dict, role: KeplerSignatureRole = None) -> Dict:
+        """
+        Prepare a transaction for signing with Keplr wallet
+        
+        Args:
+            tx_data: Transaction data including from_address, to_address, and amount
+            role: The role of the signer (optional)
+            
+        Returns:
+            Dict: The formatted transaction sign doc for Keplr
+        """
+        # Get transaction parameters with defaults
+        from_address = tx_data.get("from_address", "")
+        to_address = tx_data.get("to_address", "")
+        amount = tx_data.get("amount", [{"denom": "uodis", "amount": "1000"}])
         transaction_id = tx_data.get("transaction_id", "")
         content_hash = tx_data.get("content_hash", "")
-        role_value = role.value if role else "unknown"
-
-        return {
-            "messages": tx_data.get("messages", []),
-            "fee": tx_data.get("fee", {}),
-            "memo": f"{transaction_id}:{content_hash}:{role_value}",  # Simple colon-separated format
+        
+        # Determine role value
+        role_value = role.value if role else tx_data.get("role", "owner")
+        
+        # Standard fee for transactions (2500 uodis)
+        fee = {
+            "amount": [{"denom": "uodis", "amount": "2500"}],
+            "gas": "100000"
         }
+        
+        # Create memo with transaction metadata
+        memo = f"{transaction_id}:{content_hash}:{role_value}"
+        
+        # Create message in Amino format for Keplr compatibility
+        msg = {
+            "type": "cosmos-sdk/MsgSend",
+            "value": {
+                "from_address": from_address,
+                "to_address": to_address,
+                "amount": amount
+            }
+        }
+        
+        # Create complete sign doc for Keplr
+        sign_doc = {
+            "chain_id": self.chain_id,
+            "account_number": tx_data.get("account_number", "0"),
+            "sequence": tx_data.get("sequence", "0"),
+            "fee": fee,
+            "msgs": [msg],
+            "memo": memo
+        }
+        
+        logger.debug(f"Sign doc prepared: {json.dumps(sign_doc, indent=2)}")
+        return sign_doc
+    
+    def convert_amino_to_proto(self, msg: Dict) -> Dict:
+        """
+        Convert an Amino message to Proto format
+        
+        Args:
+            msg: The Amino format message
+            
+        Returns:
+            Dict: The Proto format message
+        """
+        # Handle Amino message with type/value structure
+        if msg.get("type") == "cosmos-sdk/MsgSend" and "value" in msg:
+            # Convert to Proto format
+            proto_msg = {
+                "typeUrl": "/cosmos.bank.v1beta1.MsgSend",
+                "value": {
+                    "fromAddress": msg["value"]["from_address"],
+                    "toAddress": msg["value"]["to_address"],
+                    "amount": msg["value"]["amount"]
+                }
+            }
+            logger.debug(f"Converted Amino to Proto: {json.dumps(proto_msg, indent=2)}")
+            return proto_msg
+        
+        # If already in Proto format, return as is
+        if "typeUrl" in msg:
+            return msg
+            
+        # For unknown formats, log warning
+        logger.warning(f"Unknown message format for conversion: {msg}")
+        return msg
 
     def parse_memo_data(self, memo: str) -> Dict:
         """Parse transaction memo data with flexible format support"""

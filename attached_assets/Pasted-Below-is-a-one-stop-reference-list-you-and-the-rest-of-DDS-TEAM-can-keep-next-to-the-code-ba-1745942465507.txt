@@ -1,0 +1,64 @@
+Below is a “one-stop” reference list you (and the rest of **DDS_TEAM**) can keep next to the code-base while you tackle the TODOs the agent inserted. All links point to the canonical docs, examples or repo READMEs that explain—or show working code for—each missing feature the agent highlighted.
+
+---
+
+## ⚙️ Keplr Wallet (Enable ▶ Sign ▶ Broadcast)
+
+| Topic | Doc / Example |
+|-------|---------------|
+| Enabling a custom chain (`window.keplr.enable`, `getOfflineSigner`) | <https://docs.keplr.app/api/sdk#enable> |
+| Amino signing (`signAmino`) flow | <https://docs.keplr.app/api/guide/sign-a-message> |
+| Proto / `signDirect` flow | <https://docs.keplr.app/api/guide/sign-a-message#protobuf-based-signing-direct> |
+| Broadcasting a signed tx (REST + RPC) | <https://docs.keplr.app/api/guide/broadcast-tx> |
+| Multisig accounts in Keplr | <https://docs.keplr.app/features/multisig> |
+
+---
+
+## 📦 CosmJS & Cosmos-SDK Message / Fee Helpers
+
+| Topic | Doc / Example |
+|-------|---------------|
+| `MsgSend` Amino ↔ Proto mapping | <https://github.com/cosmos/cosmjs/tree/main/packages/stargate#messages> |
+| Full tx build + sign + broadcast (TypeScript) | <https://github.com/cosmos/cosmjs/blob/main/packages/stargate/src/signingstargateclient.spec.ts> |
+| Gas & fee calculation patterns | <https://docs.cosmos.network/v0.47/run-node/interact-cli#setting-fees> |
+| Creating / verifying multisig txs via CLI | <https://docs.cosmos.network/v0.47/core/transactions#multisignature-transactions> |
+
+---
+
+## 🏗️ CosmWasm & Wasmd (Smart-contract layer)
+
+| Topic | Doc / Example |
+|-------|---------------|
+| Adding `x/wasm` module to a chain | <https://github.com/CosmWasm/wasmd#quick-start> |
+| Upload / instantiate contract via CLI | <https://docs.cosmwasm.com/docs/1.0/smart-contracts/deploying> |
+| Multisig DAO pattern (DAODAO) | <https://github.com/DA0-DA0/dao-contracts> |
+
+---
+
+## 🖼️ UI / Front-end
+
+| Topic | Doc / Example |
+|-------|---------------|
+| Feather-icons ES bundle / CDN snippet | <https://feathericons.com/#usage> |
+| PingPub Explorer API reference (tx & validator queries) | <https://github.com/ping-pub/explorer/tree/master/docs/api> |
+| Playwright headless E2E test recipe (file upload, click, assert) | <https://playwright.dev/docs/library> |
+
+---
+
+## 🗂️ BIMServer & IFC Helpers
+
+| Topic | Doc / Example |
+|-------|---------------|
+| Official BIMServer REST / gRPC docs | <https://github.com/opensourceBIM/BIMserver/wiki/Remote-API> |
+| Python client wrapper (community) | <https://github.com/RuggeroMarelli/bimserverapi> |
+
+---
+
+### How to use this sheet 🔖  
+
+* When a **TODO(DDS_TEAM)** mentions a missing call (e.g. “convert Amino → Proto”), jump to the **CosmJS** row to grab working code.
+* If the frontend console shows **`feather is not defined`**, open the **Feather-icons** link for the correct bundle tag.
+* Need to wire real tx history instead of mocks? The **PingPub API** row shows the `/tx` and `/staking/validators` endpoints you can hit from `pingpub_gateway.py`.  
+* As soon as the chain upgrade branch gets `x/wasm`, follow the three Wasmd links to compile & store your first contract.
+
+This should cover every bullet the agent surfaced. If you hit something that **isn’t** explained by one of these docs, ping me and I’ll dig up the next reference.
