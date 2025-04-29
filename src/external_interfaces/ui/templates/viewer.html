@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}BIM Viewer - BIM AI Management Dashboard{% endblock %}
+{% block page_title %}3D Building Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i data-feather="box" class="icon-inline"></i>
+                    Cosmic Tower Project
+                </h5>
+                <div class="card-subtitle">
+                    Interactive 3D BIM Model
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="full-viewer" class="bim-viewer"></div>
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="model-info">
+                            <div class="model-name">Cosmic Tower Project</div>
+                            <div class="model-meta">
+                                <span class="model-meta-item">
+                                    <i data-feather="layers" class="icon-inline-sm"></i>
+                                    17 Stories
+                                </span>
+                                <span class="model-meta-item">
+                                    <i data-feather="square" class="icon-inline-sm"></i>
+                                    25,000 m²
+                                </span>
+                                <span class="model-meta-item">
+                                    <i data-feather="map-pin" class="icon-inline-sm"></i>
+                                    Future City
+                                </span>
+                                <span class="model-meta-item text-success">
+                                    <i data-feather="check-circle" class="icon-inline-sm"></i>
+                                    Verified
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-sm btn-outline-info me-2">
+                            <i data-feather="download-cloud" class="icon-inline-sm"></i>
+                            Download IFC
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i data-feather="share-2" class="icon-inline-sm"></i>
+                            Share Model
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <!-- Building Elements Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i data-feather="list" class="icon-inline"></i>
+                    Building Elements
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Name</th>
+                                <th>Properties</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ST001</td>
+                                <td>IfcColumn</td>
+                                <td>Column-Type1</td>
+                                <td>
+                                    <span class="badge bg-info">Concrete</span>
+                                    <span class="badge bg-secondary">Load-bearing</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info btn-icon">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ST002</td>
+                                <td>IfcBeam</td>
+                                <td>Beam-Type1</td>
+                                <td>
+                                    <span class="badge bg-info">Steel</span>
+                                    <span class="badge bg-secondary">Span: 8m</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info btn-icon">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AR001</td>
+                                <td>IfcWall</td>
+                                <td>Wall-Exterior</td>
+                                <td>
+                                    <span class="badge bg-info">Curtain Wall</span>
+                                    <span class="badge bg-secondary">R-25</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info btn-icon">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AR002</td>
+                                <td>IfcDoor</td>
+                                <td>Door-Main-Entrance</td>
+                                <td>
+                                    <span class="badge bg-info">Glass & Aluminum</span>
+                                    <span class="badge bg-success">ADA Compliant</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info btn-icon">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ME001</td>
+                                <td>IfcChiller</td>
+                                <td>HVAC-Chiller-1</td>
+                                <td>
+                                    <span class="badge bg-info">500 tons</span>
+                                    <span class="badge bg-success">High Efficiency</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info btn-icon">
+                                        <i data-feather="eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- AI Chat Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i data-feather="message-circle" class="icon-inline"></i>
+                    Ask About This Building
+                </h5>
+                <div class="card-subtitle">Enhanced BIM AI Assistant</div>
+            </div>
+            <div class="card-body">
+                <div id="viewer-chat" class="chat-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Three.js -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+<!-- Custom Scripts -->
+<script src="{{ url_for('static', filename='js/bim-viewer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ai-chat-enhanced.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize full BIM viewer
+        bimViewer.init('full-viewer', true);
+        
+        // Initialize AI chat
+        aiChat.init('viewer-chat');
+        
+        // Update feather icons
+        feather.replace();
+    });
+</script>
+{% endblock %}

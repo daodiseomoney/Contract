@@ -1,0 +1,329 @@
+/**
+ * Micro-rewards system and blockchain animations CSS
+ */
+
+/* Animation Canvas Styles */
+.animation-canvas {
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Rewards Badge */
+.rewards-badge {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(17, 17, 34, 0.8);
+  border-radius: 10px;
+  padding: 10px 15px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(224, 13, 121, 0.3);
+  border: 2px solid rgba(224, 13, 121, 0.6);
+  backdrop-filter: blur(10px);
+  z-index: 1001;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rewards-badge:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(224, 13, 121, 0.5);
+}
+
+/* Rewards Level Indicator */
+.level-indicator {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #E00D79, #2196F3);
+  color: white;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+/* Progress Bar */
+.rewards-progress {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.rewards-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #00E5FF, #E00D79);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Rewards Panel */
+.rewards-panel {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  background: rgba(17, 17, 34, 0.9);
+  border-radius: 10px;
+  padding: 15px;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(224, 13, 121, 0.4);
+  border: 2px solid rgba(224, 13, 121, 0.7);
+  backdrop-filter: blur(10px);
+  z-index: 1002;
+  transform: translateY(20px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.rewards-panel.visible {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.rewards-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rewards-panel-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #E00D79;
+}
+
+.rewards-panel-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+}
+
+.rewards-panel-close:hover {
+  color: white;
+}
+
+/* Actions List */
+.rewards-actions {
+  margin-top: 15px;
+}
+
+.rewards-action-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rewards-action-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rewards-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+}
+
+.rewards-action-value {
+  font-weight: bold;
+  color: #00E5FF;
+}
+
+/* Floating Points Animation */
+.floating-points {
+  position: absolute;
+  color: #00E5FF;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  z-index: 1001;
+  pointer-events: none;
+}
+
+/* Level Up Notification */
+.level-up-notification {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(17, 17, 34, 0.9);
+  border-radius: 10px;
+  padding: 20px 30px;
+  box-shadow: 0 0 20px rgba(224, 13, 121, 0.8);
+  z-index: 2000;
+  text-align: center;
+  border: 2px solid #E00D79;
+}
+
+/* Achievement Badges */
+.achievement-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #673AB7, #3F51B5);
+  color: white;
+  margin: 0 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  position: relative;
+  cursor: pointer;
+}
+
+.achievement-badge.locked {
+  background: linear-gradient(135deg, #37474F, #546E7A);
+  opacity: 0.6;
+}
+
+.achievement-badge .tooltip {
+  position: absolute;
+  background: rgba(17, 17, 34, 0.95);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  white-space: nowrap;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(224, 13, 121, 0.5);
+  pointer-events: none;
+}
+
+.achievement-badge:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+/* Transaction Success Animation */
+.transaction-success {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
+  text-align: center;
+  pointer-events: none;
+}
+
+.transaction-success .checkmark {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 2;
+  stroke: #00E676;
+  stroke-miterlimit: 10;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.5);
+  animation: scale-up 0.3s ease-in-out;
+}
+
+.transaction-success .checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.transaction-success .checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+}
+
+/* Keyframe Animations */
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scale-up {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes float-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* Animation Presets */
+.rewards-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(224, 13, 121, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(224, 13, 121, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 13, 121, 0);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .rewards-badge {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .rewards-panel {
+    bottom: 70px;
+    right: 10px;
+    width: calc(100% - 20px);
+    max-width: 320px;
+  }
+}

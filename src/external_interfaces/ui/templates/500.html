@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - BIM AI Management Dashboard{% endblock %}
+
+{% block page_title %}500 - Server Error{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-content">
+        <div class="error-icon">
+            <i data-feather="alert-octagon"></i>
+        </div>
+        <h2 class="error-title">500</h2>
+        <p class="error-message">Something went wrong on our servers. Please try again later.</p>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-info">
+            <i data-feather="refresh-cw" class="icon-inline"></i>
+            Refresh Page
+        </a>
+    </div>
+</div>
+{% endblock %}

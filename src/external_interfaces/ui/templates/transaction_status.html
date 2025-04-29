@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Transaction Status</h2>
+            <div class="transaction-timeline my-4">
+                <div class="timeline-track"></div>
+                <div class="timeline-steps">
+                    <div class="timeline-step" data-step="upload">
+                        <div class="step-icon">
+                            <i class="bi bi-file-earmark-arrow-up"></i>
+                        </div>
+                        <div class="step-label">File Upload</div>
+                        <div class="step-info"></div>
+                    </div>
+                    <div class="timeline-step" data-step="tokenize">
+                        <div class="step-icon">
+                            <i class="bi bi-coin"></i>
+                        </div>
+                        <div class="step-label">Tokenization</div>
+                        <div class="step-info"></div>
+                    </div>
+                    <div class="timeline-step" data-step="signatures">
+                        <div class="step-icon">
+                            <i class="bi bi-pen"></i>
+                        </div>
+                        <div class="step-label">Signatures</div>
+                        <div class="step-info"></div>
+                    </div>
+                    <div class="timeline-step" data-step="blockchain">
+                        <div class="step-icon">
+                            <i class="bi bi-boxes"></i>
+                        </div>
+                        <div class="step-label">Blockchain</div>
+                        <div class="step-info"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Transaction Details</h5>
+                    <div class="transaction-details">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.transaction-timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--bs-border-color);
+    transform: translateY(-50%);
+}
+
+.timeline-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+}
+
+.step-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bs-dark);
+    color: var(--bs-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.step-label {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--bs-body-color);
+}
+
+.step-info {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--bs-secondary);
+}
+
+.timeline-step.active .step-icon {
+    background: var(--bs-primary);
+    box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), 0.2);
+}
+
+.timeline-step.completed .step-icon {
+    background: var(--bs-success);
+}
+
+.timeline-step.error .step-icon {
+    background: var(--bs-danger);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.timeline-step.active .step-icon {
+    animation: pulse 1.5s infinite;
+}
+</style>
+{% endblock %}

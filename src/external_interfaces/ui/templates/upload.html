@@ -1,62 +1,116 @@
-
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2>Create Smart Contract</h2>
-            <p class="text-muted">Upload your BIM file and configure budget allocations</p>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-7">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h4 class="card-title mb-4">Upload BIM File</h4>
-                    <form id="uploadForm" class="needs-validation" novalidate>
-                        <div class="mb-4">
-                            <label class="form-label">BIM File</label>
-                            <div class="input-group">
-                                <input type="file" class="form-control" name="file" accept=".ifc,.dwg" required>
-                                <span class="input-group-text"><i class="bi bi-file-earmark-arrow-up"></i></span>
-                            </div>
-                            <div class="form-text">Supported formats: .ifc, .dwg</div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label">Budget Splits</label>
-                            <div id="budgetSplits">
-                                <div class="input-group mb-2">
-                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                    <input type="text" class="form-control" placeholder="Role" name="roles[]">
-                                    <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100">
-                                    <span class="input-group-text">%</span>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addBudgetSplit()">
-                                <i class="bi bi-plus"></i> Add Split
-                            </button>
-                        </div>
+{% block title %}Upload BIM Models - Daodiseo Platform{% endblock %}
+{% block page_title %}Upload & Due Diligence Portal{% endblock %}
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-upload"></i> Upload & Tokenize
-                            </button>
-                        </div>
-                    </form>
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i data-feather="upload-cloud" class="icon-inline"></i>
+                    Upload BIM Models
+                </h5>
+                <div class="card-subtitle">
+                    IFC file validation and asset verification
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-5">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h4 class="card-title mb-4">Upload Status</h4>
-                    <div id="uploadStatus">
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> Ready to process your BIM file
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <i data-feather="info" class="icon-inline-sm"></i>
+                    <strong>Due Diligence Process:</strong> Once uploaded, IFC files will be analyzed by our AI system and validators. Only verified assets can mint NFTs.
+                </div>
+                
+                <div class="upload-area" id="drop-area">
+                    <div class="upload-icon">
+                        <i data-feather="upload-cloud"></i>
+                    </div>
+                    <h3 class="upload-title">Drag & Drop Files Here</h3>
+                    <p class="upload-subtitle">or click to browse your files</p>
+                    <label class="btn btn-outline-info">
+                        <input type="file" id="file-input" multiple accept=".ifc,.ifcxml,.ifc4" style="display: none;">
+                        Browse Files
+                    </label>
+                </div>
+                
+                <div class="file-list">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Uploaded Files</h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-info active">All Files</button>
+                            <button type="button" class="btn btn-sm btn-outline-info">Verified</button>
+                            <button type="button" class="btn btn-sm btn-outline-info">Pending</button>
+                        </div>
+                    </div>
+                    
+                    <div id="uploaded-files">
+                        <!-- Sample file item with validation status -->
+                        <div class="file-item">
+                            <div class="file-icon">
+                                <i data-feather="file"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name d-flex align-items-center">
+                                    Cosmic_Tower_Project.ifc
+                                    <span class="badge bg-success ms-2">Verified</span>
+                                </div>
+                                <div class="file-meta">
+                                    <span>25.4 MB</span>
+                                    <span>•</span>
+                                    <span>April 5, 2025</span>
+                                    <span>•</span>
+                                    <span>Hash: 0x71C...9E3f</span>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-info" title="View file">
+                                        <i data-feather="eye" class="icon-inline-sm"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" title="Create contract">
+                                        <i data-feather="file-plus" class="icon-inline-sm"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" title="Delete file">
+                                        <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sample file item with pending status -->
+                        <div class="file-item">
+                            <div class="file-icon">
+                                <i data-feather="file"></i>
+                            </div>
+                            <div class="file-details">
+                                <div class="file-name d-flex align-items-center">
+                                    Horizon_Office_Complex.ifc
+                                    <span class="badge bg-warning ms-2">Pending</span>
+                                </div>
+                                <div class="file-meta">
+                                    <span>32.7 MB</span>
+                                    <span>•</span>
+                                    <span>April 1, 2025</span>
+                                    <span>•</span>
+                                    <span>Hash: 0x94B...2D5a</span>
+                                </div>
+                            </div>
+                            <div class="file-actions">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <small class="text-warning">Due diligence in progress</small>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-info" title="View file">
+                                            <i data-feather="eye" class="icon-inline-sm"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-warning" title="View validation status">
+                                            <i data-feather="clock" class="icon-inline-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -64,4 +118,715 @@
         </div>
     </div>
 </div>
+
+<div class="row mt-4">
+    <div class="col-md-7">
+        <!-- Due Diligence Workflow -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i data-feather="shield" class="icon-inline"></i>
+                    Due Diligence Workflow
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="due-diligence-workflow position-relative">
+                    <!-- Vertical progress line -->
+                    <div class="position-absolute" style="top: 0; bottom: 0; left: 24px; width: 2px; background-color: rgba(255,255,255,0.1);"></div>
+                    
+                    <!-- Step 1: IFC Validation -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-success d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="check" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">IFC File Validation</h6>
+                            <p class="text-muted small mb-2">AI analyzes the IFC file for structural completeness and building metrics</p>
+                            <div class="d-flex text-success small">
+                                <i data-feather="check-circle" class="icon-inline-sm me-1"></i>
+                                <span>Completed automatically upon upload</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Legal Document Submission -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-warning d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="file-text" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">Legal Document Submission</h6>
+                            <p class="text-muted small mb-2">Upload property legal documents for verification</p>
+                            <button class="btn btn-sm btn-outline-info">
+                                <i data-feather="upload" class="icon-inline-sm"></i>
+                                Upload Documents
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: SPV Formation -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-dark d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="briefcase" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">SPV Formation</h6>
+                            <p class="text-muted small mb-2">Create a special purpose vehicle for the tokenized asset</p>
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i data-feather="tool" class="icon-inline-sm"></i>
+                                Form SPV
+                            </button>
+                            <small class="d-block text-muted mt-1">Available after legal document verification</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Validator Approval -->
+                    <div class="workflow-step d-flex mb-4">
+                        <div class="workflow-step-icon bg-dark d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="users" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">Validator Approval (3/5 Required)</h6>
+                            <p class="text-muted small mb-2">Validators review and approve the asset for tokenization</p>
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i data-feather="send" class="icon-inline-sm"></i>
+                                Submit to Validators
+                            </button>
+                            <small class="d-block text-muted mt-1">Available after SPV formation</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5: NFT Minting -->
+                    <div class="workflow-step d-flex">
+                        <div class="workflow-step-icon bg-dark d-flex align-items-center justify-content-center rounded-circle" style="width: 48px; height: 48px; position: relative; z-index: 1;">
+                            <i data-feather="award" class="text-white"></i>
+                        </div>
+                        <div class="workflow-step-content ms-3">
+                            <h6 class="mb-1">NFT Minting Eligibility</h6>
+                            <p class="text-muted small mb-2">Asset becomes eligible for NFT minting after all steps complete</p>
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i data-feather="award" class="icon-inline-sm"></i>
+                                Mint NFTs
+                            </button>
+                            <small class="d-block text-muted mt-1">Available after validator approval</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <!-- AI Analysis Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i data-feather="cpu" class="icon-inline"></i>
+                    AI Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Selected File</label>
+                    <select class="form-select bg-dark text-light border-secondary">
+                        <option value="cosmic">Cosmic_Tower_Project.ifc</option>
+                        <option value="horizon">Horizon_Office_Complex.ifc</option>
+                    </select>
+                </div>
+                
+                <div class="card bg-dark mb-3">
+                    <div class="card-header border-secondary">
+                        <h6 class="card-title mb-0">
+                            <i data-feather="bar-chart-2" class="icon-inline-sm"></i>
+                            Building Metrics
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Building Type</small>
+                                <span>Commercial High-Rise</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Total Area</small>
+                                <span>25,000 m²</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Stories</small>
+                                <span>17</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Construction Year</small>
+                                <span>2023</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-dark mb-3">
+                    <div class="card-header border-secondary">
+                        <h6 class="card-title mb-0">
+                            <i data-feather="dollar-sign" class="icon-inline-sm"></i>
+                            Tokenization Recommendations
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Estimated Value</small>
+                                <span class="text-info">$15,811,040</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Suggested Token Symbol</small>
+                                <span class="text-info">CSMC</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Recommended Supply</small>
+                                <span class="text-info">1,000,000</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="d-block text-muted">Initial Token Price</small>
+                                <span class="text-info">$15.81</span>
+                            </div>
+                        </div>
+                        <div class="alert alert-success p-2 mb-0 small">
+                            <i data-feather="check-circle" class="icon-inline-sm"></i>
+                            <strong>ODIS Rewards:</strong> Upon validation, you'll receive 5% of asset value in ODIS tokens.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-dark">
+                    <div class="card-header border-secondary">
+                        <h6 class="card-title mb-0">
+                            <i data-feather="code" class="icon-inline-sm"></i>
+                            CosmWasm Contract Code
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-black text-light p-2 rounded small"><code>pub fn execute_staking(
+  deps: DepsMut,
+  env: Env,
+  ifc_hash: String,
+  liquidity: u128
+) -> Result<Response, ContractError> {
+  if bim_server::validate_ifc(&ifc_hash) {
+      let odis = liquidity * 0.05; // Base reward
+      // Add AI-adjusted bonus
+      Ok(Response::new().add_attribute(
+          "ODIS_REWARD", 
+          odis.to_string())
+      )
+  } else {
+      Err(ContractError::UnverifiedAsset {})
+  }
+}</code></pre>
+                        <button class="btn btn-sm btn-outline-info w-100 mt-2">
+                            <i data-feather="code" class="icon-inline-sm"></i>
+                            Generate Full Contract
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SPV/KYC Verification Modal -->
+<div class="modal fade" id="spvKycModal" tabindex="-1" aria-labelledby="spvKycModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-light border-info">
+            <div class="modal-header border-info">
+                <h5 class="modal-title" id="spvKycModalLabel">
+                    <i data-feather="shield" class="icon-inline text-info"></i>
+                    SPV & KYC Verification
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i data-feather="alert-triangle" class="icon-inline-sm"></i>
+                    <strong>Important:</strong> SPV/KYC verification is required before NFT minting. This ensures compliance with regulations.
+                </div>
+                
+                <ul class="nav nav-tabs mb-3" id="spvKycTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="spv-tab" data-bs-toggle="tab" data-bs-target="#spv-tab-pane" type="button" role="tab">SPV Formation</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="kyc-tab" data-bs-toggle="tab" data-bs-target="#kyc-tab-pane" type="button" role="tab">KYC Verification</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="spvKycTabContent">
+                    <div class="tab-pane fade show active" id="spv-tab-pane" role="tabpanel" aria-labelledby="spv-tab" tabindex="0">
+                        <p>Enter Special Purpose Vehicle (SPV) information for this real estate asset.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">SPV Legal Name</label>
+                            <input type="text" class="form-control bg-dark text-light border-info" placeholder="e.g., Cosmic Tower SPV LLC">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Registration Number</label>
+                                <input type="text" class="form-control bg-dark text-light border-info" placeholder="e.g., CT-2025-45678">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Jurisdiction</label>
+                                <input type="text" class="form-control bg-dark text-light border-info" placeholder="e.g., Delaware, USA">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Legal Documents</label>
+                            <input type="file" class="form-control bg-dark text-light border-info" multiple>
+                            <small class="text-muted">Upload certificate of incorporation, operating agreement, etc.</small>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="kyc-tab-pane" role="tabpanel" aria-labelledby="kyc-tab" tabindex="0">
+                        <p>Complete Know Your Customer (KYC) verification for all stakeholders.</p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Primary Contact</label>
+                            <input type="text" class="form-control bg-dark text-light border-info" placeholder="Full legal name">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control bg-dark text-light border-info" placeholder="Email address">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control bg-dark text-light border-info" placeholder="Phone number">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Identification Documents</label>
+                            <input type="file" class="form-control bg-dark text-light border-info" multiple>
+                            <small class="text-muted">Upload passport, driver's license, or other government ID</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Proof of Address</label>
+                            <input type="file" class="form-control bg-dark text-light border-info" multiple>
+                            <small class="text-muted">Upload utility bill, bank statement, etc. (less than 3 months old)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-info">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info">
+                    <i data-feather="upload" class="icon-inline-sm"></i>
+                    Submit for Verification
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        
+        // Prevent default behavior
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('border-info');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('border-info');
+        }
+        
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+        
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        async function handleFiles(files) {
+            console.log('Files selected:', files);
+            
+            // Check if wallet is connected
+            const walletConnected = localStorage.getItem('walletConnected') === 'true';
+            const userWalletAddress = localStorage.getItem('userWalletAddress');
+            
+            if (!walletConnected || !userWalletAddress) {
+                // Show wallet connection prompt
+                const notification = document.createElement('div');
+                notification.className = 'alert alert-warning alert-dismissible fade show';
+                notification.innerHTML = `
+                    <i data-feather="alert-triangle" class="icon-inline-sm"></i>
+                    <strong>Wallet Required:</strong> Please connect your Keplr wallet to upload IFC files to the blockchain.
+                    <button type="button" class="btn btn-sm btn-info ms-3" id="wallet-connect-prompt">Connect Wallet</button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
+                feather.replace();
+                
+                // Add event listener
+                document.getElementById('wallet-connect-prompt').addEventListener('click', async () => {
+                    await connectKeplrWallet();
+                    notification.remove();
+                    // If connection was successful, proceed with the upload
+                    if (localStorage.getItem('walletConnected') === 'true') {
+                        handleFiles(files);
+                    }
+                });
+                
+                return;
+            }
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                console.log('File:', file.name, file.size, file.type);
+                
+                // Create file item in the UI
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.id = `file-item-${Date.now()}`;
+                
+                fileItem.innerHTML = `
+                    <div class="file-icon">
+                        <i data-feather="file"></i>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-name d-flex align-items-center">
+                            ${file.name}
+                            <span class="badge bg-warning ms-2">Validating</span>
+                        </div>
+                        <div class="file-meta">
+                            <span>${(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            <span>•</span>
+                            <span>Just now</span>
+                            <span>•</span>
+                            <span>Calculating hash...</span>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <small class="text-warning">Processing...</small>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-info">
+                                    <i data-feather="eye" class="icon-inline-sm"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Insert the new file at the top of the list
+                const uploadedFiles = document.getElementById('uploaded-files');
+                uploadedFiles.insertBefore(fileItem, uploadedFiles.firstChild);
+                feather.replace();
+                
+                try {
+                    // Prepare FormData for the API call
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('address', userWalletAddress);
+                    
+                    // Add metadata
+                    const metadata = {
+                        'user_agent': navigator.userAgent,
+                        'timestamp': new Date().toISOString(),
+                        'origin': window.location.origin
+                    };
+                    formData.append('metadata', JSON.stringify(metadata));
+                    
+                    // First phase: Upload to prepare the blockchain transaction
+                    const response = await fetch('/api/prepare-upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.status}: ${await response.text()}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Transaction prepared:', data);
+                    
+                    if (!data.success) {
+                        throw new Error(data.error || 'Failed to prepare transaction');
+                    }
+                    
+                    // Update file item with hash
+                    const hashDisplay = data.content_hash.substring(0, 8) + '...' + data.content_hash.substring(data.content_hash.length - 8);
+                    fileItem.querySelector('.file-meta').innerHTML = `
+                        <span>${(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                        <span>•</span>
+                        <span>Just now</span>
+                        <span>•</span>
+                        <span>Hash: ${hashDisplay}</span>
+                    `;
+                    
+                    // Second phase: Sign the transaction with Keplr
+                    try {
+                        // Use the Keplr wallet to sign the transaction
+                        const signResponse = await signTransactionWithKeplr(data.sign_doc);
+                        console.log('Transaction signed:', signResponse);
+                        
+                        // Update status to "Signed"
+                        const statusBadge = fileItem.querySelector('.badge');
+                        statusBadge.textContent = 'Signed';
+                        
+                        // Third phase: Broadcast the transaction
+                        const broadcastResponse = await fetch('/api/broadcast', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(signResponse)
+                        });
+                        
+                        if (!broadcastResponse.ok) {
+                            throw new Error(`Server responded with ${broadcastResponse.status}: ${await broadcastResponse.text()}`);
+                        }
+                        
+                        const broadcastData = await broadcastResponse.json();
+                        console.log('Transaction broadcast:', broadcastData);
+                        
+                        if (!broadcastData.success) {
+                            throw new Error(broadcastData.error || 'Failed to broadcast transaction');
+                        }
+                        
+                        // Update status to "Verified"
+                        statusBadge.classList.remove('bg-warning');
+                        statusBadge.classList.add('bg-success');
+                        statusBadge.textContent = 'Verified on Chain';
+                        
+                        // Update action area with transaction options
+                        const actionArea = fileItem.querySelector('.file-actions');
+                        actionArea.innerHTML = `
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-info" title="View file">
+                                    <i data-feather="eye" class="icon-inline-sm"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" title="Create contract">
+                                    <i data-feather="file-plus" class="icon-inline-sm"></i>
+                                </button>
+                                <a href="${broadcastData.explorer_url}" target="_blank" class="btn btn-sm btn-outline-primary" title="View on Explorer">
+                                    <i data-feather="external-link" class="icon-inline-sm"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete file">
+                                    <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        feather.replace();
+                        
+                        // Create contract button event
+                        const contractBtn = actionArea.querySelector('[title="Create contract"]');
+                        if (contractBtn) {
+                            contractBtn.addEventListener('click', function() {
+                                const spvKycModal = new bootstrap.Modal(document.getElementById('spvKycModal'));
+                                spvKycModal.show();
+                            });
+                        }
+                        
+                        // Show ODIS reward and trigger animation
+                        // Calculate reward based on file size
+                        const rewardValue = (parseFloat((file.size / (1024 * 1024)).toFixed(2)) * 0.5).toFixed(2);
+                        
+                        // Show notification
+                        const notification = document.createElement('div');
+                        notification.className = 'alert alert-success alert-dismissible fade show';
+                        notification.innerHTML = `
+                            <i data-feather="award" class="icon-inline-sm"></i>
+                            <strong>Transaction Verified on Blockchain!</strong> You earned ${rewardValue} ODIS tokens as a reward.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
+                        feather.replace();
+                        
+                        // Play success animation
+                        playBlockchainTransactionAnimation('app-container', {
+                            numBlocks: 5,
+                            duration: 3000,
+                            onComplete: () => {
+                                // After transaction animation, play celebration
+                                playCelebrationConfetti('app-container', {
+                                    fromBottom: true,
+                                    particleCount: 100
+                                });
+                                
+                                // Trigger micro-rewards
+                                if (window.rewardsUI) {
+                                    window.rewardsUI.triggerAction('transaction_submit', {
+                                        animationContainer: null // Skip animation since we already played it
+                                    });
+                                }
+                            }
+                        });
+                        
+                        // Auto-dismiss notification after 8 seconds
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                            setTimeout(() => notification.remove(), 500);
+                        }, 8000);
+                        
+                    } catch (signingError) {
+                        console.error('Error signing transaction:', signingError);
+                        
+                        // Update status to error
+                        const statusBadge = fileItem.querySelector('.badge');
+                        statusBadge.classList.remove('bg-warning');
+                        statusBadge.classList.add('bg-danger');
+                        statusBadge.textContent = 'Signing Failed';
+                        
+                        // Update action area with retry option
+                        const actionArea = fileItem.querySelector('.file-actions');
+                        actionArea.innerHTML = `
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <small class="text-danger">Failed to sign transaction</small>
+                                </div>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-warning retry-sign-btn" data-tx-id="${data.transaction_id}">
+                                        <i data-feather="refresh-cw" class="icon-inline-sm"></i> Retry
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        feather.replace();
+                        
+                        // Add event listener for retry button
+                        const retryBtn = actionArea.querySelector('.retry-sign-btn');
+                        if (retryBtn) {
+                            retryBtn.addEventListener('click', async function() {
+                                // Retry the signing process with the same transaction data
+                                try {
+                                    const newSignResponse = await signTransactionWithKeplr(data.sign_doc);
+                                    console.log('Transaction signed on retry:', newSignResponse);
+                                    
+                                    // Continue with broadcasting...
+                                    // (Similar code as above, but this would be duplicate code in real implementation)
+                                    // Consider refactoring this into a separate function
+                                } catch (retryError) {
+                                    console.error('Retry signing failed:', retryError);
+                                    alert('Failed to sign transaction: ' + retryError.message);
+                                }
+                            });
+                        }
+                        
+                        // Show error notification
+                        const notification = document.createElement('div');
+                        notification.className = 'alert alert-danger alert-dismissible fade show';
+                        notification.innerHTML = `
+                            <i data-feather="alert-circle" class="icon-inline-sm"></i>
+                            <strong>Transaction Signing Failed:</strong> ${signingError.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        
+                        document.querySelector('.card-body').insertBefore(notification, document.querySelector('.upload-area'));
+                        feather.replace();
+                        
+                        // Auto-dismiss after 10 seconds
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                            setTimeout(() => notification.remove(), 500);
+                        }, 10000);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error processing file:', error);
+                    
+                    // Update UI to show error
+                    const statusBadge = fileItem.querySelector('.badge');
+                    statusBadge.classList.remove('bg-warning');
+                    statusBadge.classList.add('bg-danger');
+                    statusBadge.textContent = 'Error';
+                    
+                    const actionArea = fileItem.querySelector('.file-actions');
+                    actionArea.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <small class="text-danger">${error.message}</small>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-warning retry-upload-btn">
+                                    <i data-feather="refresh-cw" class="icon-inline-sm"></i> Retry
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i data-feather="trash-2" class="icon-inline-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    feather.replace();
+                    
+                    // Add event listener for retry button
+                    const retryBtn = actionArea.querySelector('.retry-upload-btn');
+                    if (retryBtn) {
+                        retryBtn.addEventListener('click', function() {
+                            // Create a new FileList with just this file
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            const newFiles = dt.files;
+                            
+                            // Retry upload with just this file
+                            handleFiles(newFiles);
+                            
+                            // Remove the error item
+                            fileItem.remove();
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Initialize SPV/KYC modal events
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('[title="Create contract"]')) {
+                const spvKycModal = new bootstrap.Modal(document.getElementById('spvKycModal'));
+                spvKycModal.show();
+            }
+        });
+        
+        // Update feather icons
+        feather.replace();
+    });
+</script>
 {% endblock %}

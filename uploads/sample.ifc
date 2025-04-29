@@ -1,0 +1,33 @@
+ISO-10303-21;
+HEADER;
+FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');
+FILE_NAME('sample.ifc',
+  '2025-04-27T18:30:00',('Indradeva'),
+  ('DAODISEO test generator'),'IFC Open Source','IFC Engine','');
+FILE_SCHEMA(('IFC2X3'));
+ENDSEC;
+DATA;
+#1  = IFCPERSON($,'Indradeva',$,$,$,$,$,$);
+#2  = IFCPERSONANDORGANIZATION(#1,$,$);
+#3  = IFCAPPLICATION($,'0.1','DAODISEO Uploader','DDS');
+#4  = IFCOWNERHISTORY(#2,#3,$,.ADDED.,$,$,'DDS-init',0);
+#5  = IFCDIRECTION((1.,0.,0.));
+#6  = IFCDIRECTION((0.,1.,0.));
+#7  = IFCDIRECTION((0.,0.,1.));
+#8  = IFCAXIS2PLACEMENT3D($,#5,#7);
+#9  = IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,1.E-05,#8,$);
+#10 = IFCPROJECT('2nY1eJAv9A9uMTA0LzU3',#4,'DDS Test Project',$,$,$,$,(#9),'IFC2X3');
+#11 = IFCPOSTALADDRESS($,$,$,$,('Blockchain Ave'),$,'Crypto City',$,'00001','Utopia');
+#12 = IFCLOCALPLACEMENT($,#8);
+#13 = IFCSITE('1tsP3w7SfjT9rK5FDXJ',#4,'DDS Site',$,$,#12,$,$,.ELEMENT.,$,$,$,$);
+#14 = IFCBUILDING('2xkT15wyS4u35bMLfEt',#4,'DDS Building',$,$,#12,$,$,.ELEMENT.,$,$,$);
+#15 = IFCBUILDINGSTOREY('1aYk34wXc90NByvQVc9',#4,'Ground Floor',$,$,#12,$,$,.ELEMENT.,0.);
+#16 = IFCRELAGGREGATES('0oQJ28M3sKjDmFPmSrd',#4,$,$,#10,(#13));
+#17 = IFCRELAGGREGATES('1QzX38v6pDwXhM5wHy8',#4,$,$,#13,(#14));
+#18 = IFCRELAGGREGATES('2PgC59d8fRqVvM6yHz9',#4,$,$,#14,(#15));
+#20 = IFCCARTESIANPOINT((0.,0.,0.));
+#21 = IFCAXIS2PLACEMENT3D(#20,$,$);
+#22 = IFCPRODUCTDEFINITIONSHAPE($,$,$);
+#23 = IFCWALLSTANDARDCASE('3RdE60eWgKsZxN7zIaB',#4,'Test Wall',$,$,#12,$,#22,$);
+ENDSEC;
+END-ISO-10303-21;

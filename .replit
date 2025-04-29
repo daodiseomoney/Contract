@@ -1,0 +1,46 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["boost", "c-ares", "grpc", "icu", "opencascade-occt", "opencollada", "openssl", "pcre", "pkg-config", "swig", "zlib"]
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask Web App"
+
+[[workflows.workflow]]
+name = "Flask Web App"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -c \"import dotenv; dotenv.load_dotenv('.env'); print('Environment variables loaded successfully')\" && python main.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Run Flask App"
+author = 19011026
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

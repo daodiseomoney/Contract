@@ -1,203 +1,144 @@
-// Initialize charts
-function initializeCharts() {
-    const ctx = document.getElementById('contractsChart')?.getContext('2d');
-    if (ctx) {
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Pending', 'Active', 'Completed'],
-                datasets: [{
-                    data: [4, 8, 3],
-                    backgroundColor: [
-                        'rgba(255, 193, 7, 0.8)',
-                        'rgba(40, 167, 69, 0.8)',
-                        'rgba(23, 162, 184, 0.8)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
+/**
+ * Main JavaScript for the Daodiseo Real Estate Tokenization Platform
+ * Common functions used across the entire application
+ */
+
+// Utility function to format numbers with commas
+function formatNumber(num) {
+    if (typeof num === 'string') {
+        num = parseFloat(num.replace(/,/g, ''));
     }
-
-    // Update stats
-    const elements = {
-        totalContracts: document.getElementById('totalContracts'),
-        activeContracts: document.getElementById('activeContracts'),
-        totalValue: document.getElementById('totalValue')
-    };
-
-    if (elements.totalContracts) elements.totalContracts.textContent = '15';
-    if (elements.activeContracts) elements.activeContracts.textContent = '8';
-    if (elements.totalValue) elements.totalValue.textContent = '$2.5M';
-
-    updateRecentActivity();
-    updateContractsTable();
+    return num.toLocaleString('en-US');
 }
 
-// Update recent activity section
-function updateRecentActivity() {
-    const activities = [
-        'Contract #123 tokenized successfully',
-        'New property added to blockchain',
-        'Budget split updated for Contract #456',
-        'Compliance check completed'
-    ];
-
-    const activityList = document.getElementById('recentActivity');
-    if (activityList) {
-        activities.forEach(activity => {
-            const item = document.createElement('a');
-            item.className = 'list-group-item list-group-item-action';
-            item.innerHTML = `
-                <div class="d-flex w-100 justify-content-between">
-                    <p class="mb-1">${activity}</p>
-                    <small class="text-muted">Just now</small>
-                </div>
-            `;
-            activityList.appendChild(item);
-        });
+// Utility function to format currency
+function formatCurrency(amount) {
+    if (typeof amount === 'string') {
+        amount = parseFloat(amount.replace(/,/g, ''));
     }
+    return '$' + amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
-// Update contracts table
-function updateContractsTable() {
-    const sampleProjects = [
-        { id: 'DEMO-001', property: 'Silicon Valley Office Complex', status: 'Demo', value: '$12.5M', created: '2025-03-17' },
-        { id: 'DEMO-002', property: 'Manhattan Residential Tower', status: 'Demo', value: '$25M', created: '2025-03-17' },
-        { id: 'DEMO-003', property: 'Dubai Smart City Project', status: 'Demo', value: '$40M', created: '2025-03-17' }
-    ];
-
-    const contractsTable = document.querySelector('#contractsTable tbody');
-    const sampleSection = document.getElementById('sampleProjectsSection');
-
-    if (contractsTable) {
-        fetch('/api/contracts')
-            .then(response => response.json())
-            .then(contracts => {
-                const displayContracts = contracts.length > 0 ? contracts : sampleProjects;
-
-                if (sampleSection) {
-                    sampleSection.style.display = contracts.length > 0 ? 'none' : 'block';
-                }
-
-                contractsTable.innerHTML = displayContracts.map(contract => `
-                    <tr>
-                        <td>${contract.id}</td>
-                        <td>${contract.property || 'N/A'}</td>
-                        <td><span class="badge bg-${contract.status === 'Active' ? 'success' : 'info'}">${contract.status}</span></td>
-                        <td>${contract.value || 'N/A'}</td>
-                        <td>${contract.created || 'N/A'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary">View</button>
-                            <button class="btn btn-sm btn-secondary">Export</button>
-                        </td>
-                    </tr>
-                `).join('');
-            })
-            .catch(error => console.error('Error fetching contracts:', error));
+// Utility function to format percentage
+function formatPercentage(value) {
+    if (typeof value === 'string') {
+        value = parseFloat(value);
     }
+    return value.toFixed(1) + '%';
 }
 
-// Unified form handling
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadForm = document.getElementById('uploadForm');
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', handleUpload);
-    }
-
-    if (document.getElementById('contractsChart')) {
-        initializeCharts();
-    }
-});
-
-// Add budget split field
-function addBudgetSplit() {
-    const container = document.getElementById('budgetSplits');
-    if (container) {
-        const newSplit = document.createElement('div');
-        newSplit.className = 'input-group mb-2';
-        newSplit.innerHTML = `
-            <span class="input-group-text"><i class="bi bi-person"></i></span>
-            <input type="text" class="form-control" placeholder="Role" name="roles[]">
-            <input type="number" class="form-control" placeholder="%" name="percentages[]" min="0" max="100">
-            <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
-                <i class="bi bi-trash"></i>
-            </button>
-        `;
-        container.appendChild(newSplit);
-    }
+// Utility function to truncate wallet address
+function truncateAddress(address, prefixLength = 6, suffixLength = 4) {
+    if (!address) return '';
+    if (address.length <= prefixLength + suffixLength) return address;
+    return `${address.substring(0, prefixLength)}...${address.substring(address.length - suffixLength)}`;
 }
 
-// Handle file upload and contract creation
-async function handleUpload(e) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const statusDiv = document.getElementById('uploadStatus');
+// Utility function to create a tooltip
+function createTooltip(element, text) {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = text;
+    
+    element.addEventListener('mouseenter', () => {
+        document.body.appendChild(tooltip);
+        const rect = element.getBoundingClientRect();
+        tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+        tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+        tooltip.classList.add('visible');
+    });
+    
+    element.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+        document.body.removeChild(tooltip);
+    });
+}
 
+// Utility function to show an alert notification
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer') || createAlertContainer();
+    
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    alertContainer.appendChild(alert);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        alert.classList.remove('show');
+        setTimeout(() => {
+            alertContainer.removeChild(alert);
+        }, 150);
+    }, 5000);
+    
+    return alert;
+}
+
+// Helper function to create alert container if it doesn't exist
+function createAlertContainer() {
+    const container = document.createElement('div');
+    container.id = 'alertContainer';
+    container.className = 'alert-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '1050';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Utility function to handle API errors
+function handleApiError(error, fallbackMessage = 'An error occurred') {
+    console.error('API Error:', error);
+    
+    let errorMessage = fallbackMessage;
+    if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+    
+    showAlert(errorMessage, 'danger');
+    return null;
+}
+
+// Utility function for making API calls
+async function fetchApi(url, options = {}) {
     try {
-        // First upload the file
-        const uploadResponse = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-        });
-
-        const uploadResult = await uploadResponse.json();
-        if (uploadResult.error) throw new Error(uploadResult.error);
-
-        // Then create the contract
-        const budgetSplits = {};
-        formData.getAll('roles[]').forEach((role, i) => {
-            const percentage = formData.getAll('percentages[]')[i];
-            if (role && percentage) {
-                budgetSplits[role] = parseFloat(percentage);
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
             }
         });
-
-        const tokenizeResponse = await fetch('/api/tokenize', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                file_path: uploadResult.file_path,
-                budget_splits: budgetSplits
-            })
-        });
-
-        const tokenizeResult = await tokenizeResponse.json();
-        if (tokenizeResult.error) throw new Error(tokenizeResult.error);
-
-        showSuccess('Contract created successfully!');
-        setTimeout(() => window.location.href = '/contracts', 1500);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Request failed with status ${response.status}`);
+        }
+        
+        return await response.json();
     } catch (error) {
-        showError(error.message || 'An error occurred during upload');
+        console.error('API fetch error:', error);
+        throw error;
     }
 }
 
-// Utility functions
-function showError(message) {
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-danger alert-dismissible fade show';
-    alert.innerHTML = `
-        <i class="bi bi-exclamation-triangle"></i> ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.querySelector('.container')?.prepend(alert);
-}
-
-function showSuccess(message) {
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-success alert-dismissible fade show';
-    alert.innerHTML = `
-        <i class="bi bi-check-circle"></i> ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.querySelector('.container')?.prepend(alert);
-}
+// Initialize components when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Update feather icons
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
+    // Initialize tooltips
+    const tooltipElements = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipElements.forEach(el => {
+        new bootstrap.Tooltip(el);
+    });
+});

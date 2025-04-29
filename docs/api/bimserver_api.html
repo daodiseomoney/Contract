@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIMserver API Integration Documentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #1a5276;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #1a5276;
+            padding-bottom: 10px;
+        }
+        code, pre {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-size: 90%;
+        }
+        pre {
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #e8f4fd;
+            border-left: 4px solid #2980b9;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff6e6;
+            border-left: 4px solid #e67e22;
+            padding: 10px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>BIMserver API Integration Documentation</h1>
+    
+    <p>This document provides technical documentation for the BIMserver API integration in the Real Estate Tokenization Platform.</p>
+    
+    <h2>Overview</h2>
+    
+    <p>
+        The platform integrates with <a href="https://github.com/opensourceBIM/BIMserver" target="_blank">BIMserver</a>, 
+        an open-source Building Information Modeling server. BIMserver provides a model-driven architecture for managing BIM files, 
+        offering advanced features such as:
+    </p>
+    
+    <ul>
+        <li>Project and revision management</li>
+        <li>Model checking and validation</li>
+        <li>IFC data access and querying</li>
+        <li>Multi-user collaboration</li>
+        <li>Version control for BIM models</li>
+    </ul>
+    
+    <div class="note">
+        <strong>Note:</strong> BIMserver is not a simple file storage system. It's a complete platform that stores 
+        BIM data as objects rather than files, allowing for more sophisticated operations on the model.
+    </div>
+    
+    <h2>Architecture</h2>
+    
+    <p>
+        The integration follows Clean Architecture principles, with the BIMserver functionality encapsulated 
+        in the <code>BIMServerGateway</code> class. This class implements an interface that allows it to be 
+        used interchangeably with the <code>LocalStorageGateway</code>.
+    </p>
+    
+    <p>The key components of the integration are:</p>
+    
+    <ul>
+        <li><code>BIMServerGateway</code>: Main gateway class for interacting with BIMserver</li>
+        <li><code>StorageFactory</code>: Factory class that creates the appropriate storage gateway based on configuration</li>
+        <li>Updated controllers that use the factory to handle file uploads</li>
+    </ul>
+    
+    <h2>Configuration</h2>
+    
+    <p>To configure the BIMserver integration, the following environment variables can be set:</p>
+    
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Default Value</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>BIMSERVER_URL</td>
+            <td>http://localhost:8080</td>
+            <td>URL of the BIMserver instance</td>
+        </tr>
+        <tr>
+            <td>BIMSERVER_USERNAME</td>
+            <td>admin@example.com</td>
+            <td>Username for BIMserver authentication</td>
+        </tr>
+        <tr>
+            <td>BIMSERVER_PASSWORD</td>
+            <td>admin</td>
+            <td>Password for BIMserver authentication</td>
+        </tr>
+        <tr>
+            <td>BIMSERVER_ENABLED</td>
+            <td>False</td>
+            <td>Set to "True" to enable BIMserver integration</td>
+        </tr>
+    </table>
+    
+    <div class="warning">
+        <strong>Warning:</strong> For production environments, secure credentials should be used and never committed to source control.
+    </div>
+    
+    <h2>API Reference</h2>
+    
+    <h3>BIMServerGateway</h3>
+    
+    <h4>Initialization</h4>
+    
+    <pre><code>
+    gateway = BIMServerGateway(
+        base_url="http://localhost:8080",
+        username="admin@example.com",
+        password="admin"
+    )
+    </code></pre>
+    
+    <h4>Methods</h4>
+    
+    <h5>store_file(file, project_id=None, project_name=None)</h5>
+    
+    <p>
+        Stores a BIM file in BIMserver and returns the revision ID.
+    </p>
+    
+    <p><strong>Parameters:</strong></p>
+    <ul>
+        <li><code>file</code>: File object to upload</li>
+        <li><code>project_id</code>: (Optional) Project ID to upload to</li>
+        <li><code>project_name</code>: (Optional) Project name (will create if project_id not provided)</li>
+    </ul>
+    
+    <p><strong>Returns:</strong> Revision ID (roid) as a string</p>
+    
+    <h5>retrieve_file(revision_id, format="ifc")</h5>
+    
+    <p>
+        Retrieves file content from BIMserver.
+    </p>
+    
+    <p><strong>Parameters:</strong></p>
+    <ul>
+        <li><code>revision_id</code>: Revision ID (roid) to retrieve</li>
+        <li><code>format</code>: Output format (e.g., 'ifc', 'ifcxml', 'json')</li>
+    </ul>
+    
+    <p><strong>Returns:</strong> File content as bytes</p>
+    
+    <h5>create_project(project_name, schema="ifc2x3tc1")</h5>
+    
+    <p>
+        Creates a new project in BIMserver.
+    </p>
+    
+    <p><strong>Parameters:</strong></p>
+    <ul>
+        <li><code>project_name</code>: Name for the new project</li>
+        <li><code>schema</code>: Schema to use (e.g., 'ifc2x3tc1', 'ifc4')</li>
+    </ul>
+    
+    <p><strong>Returns:</strong> Project ID (poid) as a string</p>
+    
+    <h5>get_projects()</h5>
+    
+    <p>
+        Gets all projects from BIMserver.
+    </p>
+    
+    <p><strong>Returns:</strong> List of project dictionaries</p>
+    
+    <h5>get_revisions(project_id)</h5>
+    
+    <p>
+        Gets all revisions for a project.
+    </p>
+    
+    <p><strong>Parameters:</strong></p>
+    <ul>
+        <li><code>project_id</code>: Project ID (poid)</li>
+    </ul>
+    
+    <p><strong>Returns:</strong> List of revision dictionaries</p>
+    
+    <h3>StorageFactory</h3>
+    
+    <h4>Methods</h4>
+    
+    <h5>create_storage_gateway()</h5>
+    
+    <p>
+        Creates and returns the appropriate storage gateway based on configuration.
+    </p>
+    
+    <p><strong>Returns:</strong> Either a <code>LocalStorageGateway</code> or <code>BIMServerGateway</code> instance</p>
+    
+    <h2>JSON API Format</h2>
+    
+    <p>BIMserver uses a specific JSON format for API calls:</p>
+    
+    <pre><code>
+    {
+        "request": {
+            "interface": "InterfaceName",
+            "method": "methodName",
+            "parameters": {
+                "paramName1": "value1",
+                "paramName2": "value2"
+            }
+        }
+    }
+    </code></pre>
+    
+    <p>Responses are similarly structured:</p>
+    
+    <pre><code>
+    {
+        "response": {
+            "result": resultValue
+        }
+    }
+    </code></pre>
+    
+    <h2>Common Operations</h2>
+    
+    <h3>Uploading a BIM File</h3>
+    
+    <p>The process of uploading a BIM file to BIMserver involves several steps:</p>
+    
+    <ol>
+        <li>Create or select a project</li>
+        <li>Initiate a check-in process to get a topicId</li>
+        <li>Upload the file data</li>
+        <li>Finalize the check-in to get a revision ID</li>
+    </ol>
+    
+    <h3>Retrieving a BIM File</h3>
+    
+    <ol>
+        <li>Get the appropriate serializer for the requested format</li>
+        <li>Download the file using the revision ID</li>
+        <li>Decode the file data</li>
+    </ol>
+    
+    <h2>Error Handling</h2>
+    
+    <p>
+        The BIMserver gateway includes comprehensive error handling with detailed logging. 
+        If the BIMserver is unavailable or authentication fails, the system will automatically 
+        fall back to local storage to ensure uninterrupted operation.
+    </p>
+    
+    <h2>Security Considerations</h2>
+    
+    <ul>
+        <li>All API calls use HTTPS for secure communication (when configured with a secure URL)</li>
+        <li>Authentication tokens are securely managed and not exposed in logs</li>
+        <li>File data is validated before upload to prevent security issues</li>
+        <li>BIMserver access is restricted by username/password authentication</li>
+    </ul>
+    
+    <h2>Future Enhancements</h2>
+    
+    <ol>
+        <li>Support for BIMserver's query language (BIMQL) for advanced model interrogation</li>
+        <li>Integration with BIMserver's notification system for real-time updates</li>
+        <li>Implementation of BIMserver's clash detection and validation services</li>
+        <li>Support for BIMserver plugins and extensions</li>
+    </ol>
+    
+    <h2>References</h2>
+    
+    <ul>
+        <li><a href="https://github.com/opensourceBIM/BIMserver" target="_blank">BIMserver GitHub Repository</a></li>
+        <li><a href="https://github.com/opensourceBIM/BIMserver/wiki" target="_blank">BIMserver Wiki</a></li>
+        <li><a href="http://www.buildingsmart-tech.org/specifications/ifc-overview" target="_blank">IFC Specifications</a></li>
+    </ul>
+    
+    <footer>
+        <p>&copy; 2025 Real Estate Tokenization Platform. All rights reserved.</p>
+    </footer>
+</body>
+</html>

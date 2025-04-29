@@ -1,0 +1,165 @@
+/* Custom Bootstrap theme overrides */
+:root {
+  --white: #ffffff;
+  --light: #000000;
+  --dark: #000000;
+  --primary: #001e00;
+  --secondary: #b80596;
+  --info: #e00d79;
+  --success: #009907;
+  --warning: #f3c000;
+  --danger: #ed0048;
+  
+  --primary-rgb: 0, 30, 0;
+  --secondary-rgb: 184, 5, 150;
+  --info-rgb: 224, 13, 121;
+  --success-rgb: 0, 153, 7;
+  --warning-rgb: 243, 192, 0;
+  --danger-rgb: 237, 0, 72;
+}
+
+/* Override Bootstrap theme colors */
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--secondary) !important;
+}
+
+.bg-info {
+  background-color: var(--info) !important;
+}
+
+.bg-success {
+  background-color: var(--success) !important;
+}
+
+.bg-warning {
+  background-color: var(--warning) !important;
+}
+
+.bg-danger {
+  background-color: var(--danger) !important;
+}
+
+.text-primary {
+  color: var(--primary) !important;
+}
+
+.text-secondary {
+  color: var(--secondary) !important;
+}
+
+.text-info {
+  color: var(--info) !important;
+}
+
+.text-success {
+  color: var(--success) !important;
+}
+
+.text-warning {
+  color: var(--warning) !important;
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.btn-info {
+  background-color: var(--info);
+  border-color: var(--info);
+}
+
+.btn-success {
+  background-color: var(--success);
+  border-color: var(--success);
+}
+
+.btn-warning {
+  background-color: var(--warning);
+  border-color: var(--warning);
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-outline-secondary {
+  color: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.btn-outline-info {
+  color: var(--info);
+  border-color: var(--info);
+}
+
+.btn-outline-success {
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.btn-outline-warning {
+  color: var(--warning);
+  border-color: var(--warning);
+}
+
+.btn-outline-danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Override Bootstrap base */
+.btn-outline-primary:hover, .btn-outline-primary:active, .btn-outline-primary:focus {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.btn-outline-secondary:hover, .btn-outline-secondary:active, .btn-outline-secondary:focus {
+  background-color: var(--secondary);
+  border-color: var(--secondary);
+  color: white;
+}
+
+.btn-outline-info:hover, .btn-outline-info:active, .btn-outline-info:focus {
+  background-color: var(--info);
+  border-color: var(--info);
+  color: white;
+}
+
+.btn-outline-success:hover, .btn-outline-success:active, .btn-outline-success:focus {
+  background-color: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+.btn-outline-warning:hover, .btn-outline-warning:active, .btn-outline-warning:focus {
+  background-color: var(--warning);
+  border-color: var(--warning);
+  color: white;
+}
+
+.btn-outline-danger:hover, .btn-outline-danger:active, .btn-outline-danger:focus {
+  background-color: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_code }} - BIM AI Management Dashboard{% endblock %}
+{% block page_title %}Error {{ error_code }}{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-content">
+        <div class="error-icon">
+            <i data-feather="alert-triangle"></i>
+        </div>
+        <h1 class="error-title">{{ error_code }}</h1>
+        <p class="error-message">{{ error_message }}</p>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-info">
+            <i data-feather="home" class="icon-inline-sm"></i>
+            Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
