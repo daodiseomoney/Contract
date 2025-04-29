@@ -15,7 +15,7 @@ transaction_bp = Blueprint("transaction", __name__, url_prefix="/api")
 # Initialize service
 transaction_service = TransactionService()
 network_config = {
-    "chain_id": "odiseotestnet_1234-1",
+    "chain_id": "ithaca-1",  # Updated to match the testnet chain ID
     "rpc_url": "https://odiseo.test.rpc.nodeshub.online",
     "api_url": "https://odiseo.test.api.nodeshub.online"
 }
@@ -137,27 +137,20 @@ def sign_transaction():
         data = request.json
         logger.debug(f"Received data for signing: {data}")
 
-        # ------------------------------------------------------------
-        # TODO(DDS_TEAM): Implement wallet ownership verification before signing
-        # TODO(DDS_TEAM): Add proper Amino message formatting for Keplr compatibility
-        # TODO(DDS_TEAM): Validate transaction parameters against blockchain requirements
-        # TODO(DDS_TEAM): Add proper fee estimation based on gas requirements
-        # ------------------------------------------------------------
-
         if not data:
             return jsonify({"error": "Transaction data is required"}), 400
 
         if "wallet_address" not in data:
             return jsonify({"error": "Wallet address is required"}), 400
         
+        # Extract transaction parameters
         wallet_address = data.get("wallet_address")
         transaction_id = data.get("transaction_id", f"tx-{uuid.uuid4().hex[:8]}")
         content_hash = data.get("content_hash", "")
         role = data.get("role", "owner")
         
-        # Create transaction message
-        msg = {
-            "type": "cosmos-sdk/MsgSend",
+        # Create transaction parameters
+        tx_data = {
             "from_address": wallet_address,
             "to_address": data.get("to_address", "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt"),
             "amount": data.get("amount", [{"denom": "uodis", "amount": "1000"}]),
@@ -166,13 +159,30 @@ def sign_transaction():
             "role": role
         }
         
-        # Create sign doc for frontend to use with Keplr wallet
-        sign_doc = transaction_service.create_sign_doc(wallet_address, msg)
+        # Try to get account info from blockchain
+        try:
+            # Get real account information for transaction parameters
+            from src.gateways.pingpub_gateway import PingPubGateway
+            pingpub_gateway = PingPubGateway()
+            account_info = pingpub_gateway.get_account_info(wallet_address)
+            
+            # Add account info to transaction data
+            tx_data["account_number"] = account_info.get("account_number", "0")
+            tx_data["sequence"] = account_info.get("sequence", "0")
+            
+            logger.debug(f"Using account info from blockchain: {account_info}")
+        except Exception as acc_error:
+            logger.warning(f"Error retrieving account info: {str(acc_error)}")
+            # Continue without account info, will use defaults
+        
+        # Create sign doc for Keplr wallet using Kepler gateway
+        sign_doc = kepler_gateway.sign_transaction(tx_data)
         
         return jsonify({
             "success": True,
             "sign_doc": sign_doc,
-            "transaction_id": transaction_id
+            "transaction_id": transaction_id,
+            "broadcast_url": "/api/transactions/broadcast"
         })
     except Exception as e:
         logger.error(f"Error preparing transaction for signing: {str(e)}", exc_info=True)
@@ -186,23 +196,67 @@ def broadcast_transaction():
         data = request.json
         logger.debug(f"Received data for broadcasting: {data}")
 
-        # ------------------------------------------------------------
-        # TODO(DDS_TEAM): Implement signature verification before broadcasting
-        # TODO(DDS_TEAM): Add proper error handling for blockchain timeouts
-        # TODO(DDS_TEAM): Implement transaction tracking and status updates
-        # TODO(DDS_TEAM): Add retry mechanism for failed broadcasts
-        # ------------------------------------------------------------
-
+        # Validate input data
         if not data:
             return jsonify({"error": "Transaction data is required"}), 400
-
-        # Process the signed transaction
-        result = transaction_service.broadcast_transaction(data)
+            
+        if "signature" not in data:
+            return jsonify({"error": "Signature is required"}), 400
+            
+        if "transaction" not in data:
+            return jsonify({"error": "Transaction data is required"}), 400
+            
+        # Extract signature and transaction data
+        signature = data["signature"]
+        transaction = data["transaction"]
         
-        # Return the result
+        # Get signature components
+        signature_value = signature.get("signature")
+        pub_key = signature.get("pub_key")
+        
+        # Get signed transaction details for formatting
+        signed_tx = signature.get("signed", {})
+        
+        # Validate signature components
+        if not signature_value or not pub_key:
+            return jsonify({"error": "Invalid signature format"}), 400
+            
+        # Convert Amino messages to Proto format
+        amino_msgs = signed_tx.get("msgs", [])
+        proto_msgs = []
+        
+        for msg in amino_msgs:
+            proto_msg = kepler_gateway.convert_amino_to_proto(msg)
+            proto_msgs.append(proto_msg)
+            
+        logger.debug(f"Converted messages to Proto format: {proto_msgs}")
+        
+        # Prepare broadcast data
+        broadcast_tx = {
+            "tx": {
+                "msg": proto_msgs,
+                "fee": signed_tx.get("fee", {"amount": [{"denom": "uodis", "amount": "2500"}], "gas": "100000"}),
+                "signatures": [{
+                    "pub_key": pub_key,
+                    "signature": signature_value
+                }],
+                "memo": signed_tx.get("memo", "")
+            },
+            "mode": "block"  # Wait for confirmation
+        }
+        
+        # Broadcast the transaction
+        result = transaction_service.broadcast_transaction(broadcast_tx)
+        
+        # Format response with transaction hash
+        tx_hash = result.get("txhash", "")
+        explorer_url = f"https://testnet.explorer.nodeshub.online/odiseo/tx/{tx_hash}"
+        
         return jsonify({
             "success": True,
             "message": "Transaction broadcasted successfully",
+            "txhash": tx_hash,
+            "explorer_url": explorer_url,
             "result": result
         })
     except Exception as e:

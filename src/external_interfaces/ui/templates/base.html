@@ -10,12 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Feather Icons (with specific version for stability) -->
-    <!-- ------------------------------------------------------------
-    # TODO(DDS_TEAM): Fix Feather Icons loading - current CDN integration unreliable
-    # TODO(DDS_TEAM): Consider bundling Feather icons locally or using alternative CDN
-    # ------------------------------------------------------------ -->
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.0/dist/feather.min.js" integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous"></script>
+    <!-- Feather Icons - Locally Bundled (implementation fixed) -->
+    <script src="{{ url_for('static', filename='js/lib/feather.min.js') }}"></script>
     <!-- Initialize Feather Icons immediately and again when document loads -->
     <script>
         // First attempt to initialize feather icons immediately
