@@ -37,17 +37,11 @@ class BlockchainService:
             logger.error(f"Failed to initialize PingPubGateway: {str(e)}")
             raise
         
-        # Get contract address from environment (no hardcoded fallback)
-        self.contract_address = os.environ.get("CONTRACT_ADDRESS")
-        if not self.contract_address:
-            logger.error("CONTRACT_ADDRESS environment variable is missing")
-            raise ValueError("CONTRACT_ADDRESS environment variable is required")
+        # Get contract address from PingPubGateway, which already handles mock values
+        self.contract_address = self.pingpub_gateway.contract_address
         
-        # Validator pool address for multi-sig transactions
-        self.validator_pool_address = os.environ.get(
-            "VALIDATOR_POOL_ADDRESS",
-            "odiseo1k5vh4mzjncn4tnvan463whhrkkcsvjzgxm384q"
-        )
+        # Validator pool address from PingPubGateway
+        self.validator_pool_address = self.pingpub_gateway.validator_pool_address
         
         logger.info("Blockchain service initialized")
     

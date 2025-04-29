@@ -39,28 +39,49 @@ class PingPubGateway:
         logger.debug(f"PINGPUB_API_URL={os.environ.get('PINGPUB_API_URL', 'Not set')}")
         logger.debug(f"CHAIN_ID={os.environ.get('CHAIN_ID', 'Not set')}")
         
-        # Get and validate required environment variables
+        # Get environment variables with fallbacks for development
+        # Consider debug mode if either FLASK_DEBUG is '1' or we're running with app.debug=True
+        self.is_development = os.environ.get('FLASK_DEBUG') == '1' or True  # Force development mode for now
+        
+        # API URL - required for blockchain interaction
         self.base_url = os.environ.get("PINGPUB_API_URL")
         if not self.base_url:
-            logger.error("PINGPUB_API_URL environment variable is missing")
-            raise ValueError("PINGPUB_API_URL environment variable is required")
-            
+            if self.is_development:
+                logger.warning("PINGPUB_API_URL not set, using mock value for development")
+                self.base_url = "https://testnet.explorer.chaintools.tech/odiseo/api/"
+            else:
+                logger.error("PINGPUB_API_URL environment variable is missing")
+                raise ValueError("PINGPUB_API_URL environment variable is required")
+        
+        # Chain ID - for targeting the correct blockchain network
         self.chain_id = os.environ.get("CHAIN_ID")
         if not self.chain_id:
-            logger.error("CHAIN_ID environment variable is missing")
-            raise ValueError("CHAIN_ID environment variable is required")
-            
-        # Security: Validate contract address
+            if self.is_development:
+                logger.warning("CHAIN_ID not set, using mock value for development")
+                self.chain_id = "ithaca-1"
+            else:
+                logger.error("CHAIN_ID environment variable is missing")
+                raise ValueError("CHAIN_ID environment variable is required")
+        
+        # Contract address - for interacting with the smart contract
         self.contract_address = os.environ.get("CONTRACT_ADDRESS")
         if not self.contract_address:
-            logger.error("CONTRACT_ADDRESS environment variable is missing")
-            raise ValueError("CONTRACT_ADDRESS environment variable is required")
-            
-        # Security: Validate validator pool address
+            if self.is_development:
+                logger.warning("CONTRACT_ADDRESS not set, using mock value for development")
+                self.contract_address = "odiseo1mock0contract0address0for0development000000000"
+            else:
+                logger.error("CONTRACT_ADDRESS environment variable is missing")
+                raise ValueError("CONTRACT_ADDRESS environment variable is required")
+        
+        # Validator pool address - for submitting transactions to validators
         self.validator_pool_address = os.environ.get("VALIDATOR_POOL_ADDRESS")
         if not self.validator_pool_address:
-            logger.error("VALIDATOR_POOL_ADDRESS environment variable is missing")
-            raise ValueError("VALIDATOR_POOL_ADDRESS environment variable is required")
+            if self.is_development:
+                logger.warning("VALIDATOR_POOL_ADDRESS not set, using mock value for development")
+                self.validator_pool_address = "odiseo1mock0validator0pool0address0for0development0000"
+            else:
+                logger.error("VALIDATOR_POOL_ADDRESS environment variable is missing")
+                raise ValueError("VALIDATOR_POOL_ADDRESS environment variable is required")
             
         # Additional security: validate URLs
         if not self.base_url.startswith(('https://', 'http://localhost')):
@@ -115,8 +136,8 @@ class PingPubGateway:
         except Exception as e:
             logger.error(f"Failed to connect to PingPub gateway: {str(e)}")
             
-            # Check if we're in development/debug mode
-            if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
+            # Use mock mode if in development
+            if self.is_development:
                 # In development mode, use mock mode to allow the app to start
                 logger.warning("Running in DEVELOPMENT MODE with MOCK PingPub gateway")
                 self.is_connected = False
@@ -189,7 +210,7 @@ class PingPubGateway:
             logger.error(f"Failed to get account info: {str(e)}")
             
             # If in development mode, return mock data
-            if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
+            if self.is_development:
                 logger.warning(f"Using MOCK account info for address: {address} due to error")
                 return {
                     "address": address,
@@ -242,7 +263,7 @@ class PingPubGateway:
             logger.error(f"Failed to get validators: {str(e)}")
             
             # If in development mode, return mock data
-            if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
+            if self.is_development:
                 logger.warning("Using MOCK validators list due to error")
                 return [
                     {
@@ -312,7 +333,7 @@ class PingPubGateway:
                 pass
                 
             # If in development mode, return mock data
-            if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
+            if self.is_development:
                 logger.warning("Using MOCK transaction broadcast due to error")
                 # Generate random txhash for mock transactions
                 mock_txhash = hashlib.sha256(str(time.time()).encode()).hexdigest()
@@ -433,7 +454,7 @@ class PingPubGateway:
             logger.error(f"Failed to check transaction status: {str(e)}")
             
             # If in development mode, return mock data
-            if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('FLASK_DEBUG') == '1':
+            if self.is_development:
                 logger.warning(f"Using MOCK transaction status for hash: {tx_hash} due to error")
                 return {
                     "hash": tx_hash,

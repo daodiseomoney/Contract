@@ -26,7 +26,9 @@ logger = logging.getLogger(__name__)
 
 # Validate environment variables before startup
 try:
-    validate_environment()
+    if not validate_environment():
+        logger.critical("FATAL: Environment validation failed")
+        sys.exit(1)
 except Exception as e:
     logger.critical(f"FATAL: Environment validation failed: {str(e)}")
     sys.exit(1)
@@ -38,8 +40,16 @@ app = Flask(
     template_folder="src/external_interfaces/ui/templates",
 )
 
-# Set secret key from environment (no default fallback in production)
+# Set secret key from environment (with development fallback for testing only)
+# The only environment variable we need in development is SESSION_SECRET
 app.secret_key = os.environ.get("SESSION_SECRET")
+if not app.secret_key:
+    if app.debug:
+        logger.warning("Using development SESSION_SECRET - DO NOT USE IN PRODUCTION")
+        app.secret_key = "dev-secret-for-testing-only-do-not-use-in-production"
+    else:
+        logger.critical("SESSION_SECRET is required in production")
+        sys.exit(1)
 
 # Set session cookie security options
 app.config['SESSION_COOKIE_SECURE'] = not app.debug  # Secure cookies in production
