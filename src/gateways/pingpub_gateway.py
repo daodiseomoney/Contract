@@ -43,6 +43,12 @@ class PingPubGateway:
         # Consider debug mode if either FLASK_DEBUG is '1' or we're running with app.debug=True
         self.is_development = os.environ.get('FLASK_DEBUG') == '1' or True  # Force development mode for now
         
+        # ------------------------------------------------------------
+        # TODO(DDS_TEAM): Replace mock environment values with real blockchain configuration
+        # TODO(DDS_TEAM): Add proper environment validation for production deployment
+        # TODO(DDS_TEAM): Implement dynamic chain configuration for testnet/mainnet switching
+        # ------------------------------------------------------------
+        
         # API URL - required for blockchain interaction
         self.base_url = os.environ.get("PINGPUB_API_URL")
         if not self.base_url:

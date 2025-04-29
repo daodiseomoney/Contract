@@ -21,8 +21,11 @@ kepler_gateway = KeplerGateway(network_config)
 @account_bp.route("/account", methods=["GET"])
 def get_account():
     """Get current user account information"""
-    # In a real implementation, this would retrieve user data from database
-    # based on authenticated session
+    # ------------------------------------------------------------
+    # TODO(DDS_TEAM): Replace mock account with real database lookup
+    # TODO(DDS_TEAM): Implement proper user authentication and session management
+    # TODO(DDS_TEAM): Add validation for wallet address parameter
+    # ------------------------------------------------------------
     mock_account = {
         "username": "demo_user",
         "wallet_address": request.args.get("address", ""),
@@ -44,7 +47,11 @@ def connect_wallet():
 
         address = data["address"]
 
-        # In a real implementation, this would update the user's wallet in the database
+        # ------------------------------------------------------------
+        # TODO(DDS_TEAM): Implement actual wallet-to-user association in database
+        # TODO(DDS_TEAM): Add wallet signature verification to ensure ownership
+        # TODO(DDS_TEAM): Implement session management for wallet connection
+        # ------------------------------------------------------------
         logger.debug(f"Wallet connected: {address}")
 
         return jsonify(

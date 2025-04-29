@@ -58,12 +58,23 @@ class KeplerGateway:
 
     async def connect_wallet(self) -> str:
         """This function will be called from JavaScript to connect Kepler wallet"""
+        # ------------------------------------------------------------
+        # TODO(DDS_TEAM): Implement backend validation of wallet connection
+        # TODO(DDS_TEAM): Store wallet connection in user session
+        # TODO(DDS_TEAM): Verify wallet ownership using signature
+        # ------------------------------------------------------------
         # The actual connection happens in JavaScript
         # This is just a placeholder for the backend interface
         return self.connected_address or ""  # Return empty string if None
 
     async def sign_transaction(self, tx_data: Dict, role: KeplerSignatureRole) -> Dict:
         """This function will be called from JavaScript to sign a transaction"""
+        # ------------------------------------------------------------
+        # TODO(DDS_TEAM): Implement proper Amino message formatting
+        # TODO(DDS_TEAM): Add backend verification of signature
+        # TODO(DDS_TEAM): Implement proper fee calculation
+        # TODO(DDS_TEAM): Add transaction validation before signing
+        # ------------------------------------------------------------
         # The actual signing happens in JavaScript
         # This is just a placeholder for the backend interface
 

@@ -28,6 +28,12 @@ def get_transactions():
     # Get from blockchain or return test data if no address is provided
     address = request.args.get("address")
     
+    # ------------------------------------------------------------
+    # TODO(DDS_TEAM): Replace mock transaction data with real blockchain queries
+    # TODO(DDS_TEAM): Implement proper pagination for transaction results
+    # TODO(DDS_TEAM): Add caching layer to reduce blockchain API calls
+    # TODO(DDS_TEAM): Add proper error handling for blockchain query failures
+    # ------------------------------------------------------------
     if address:
         # Try to get real transaction data for the address
         try:
@@ -86,7 +92,11 @@ def get_transactions():
 @transaction_bp.route("/transactions/<tx_id>", methods=["GET"])
 def get_transaction(tx_id):
     """Retrieve a specific transaction by ID"""
-    # In a real implementation, this would query the blockchain for the specific transaction
+    # ------------------------------------------------------------
+    # TODO(DDS_TEAM): Implement real blockchain query to fetch transaction details
+    # TODO(DDS_TEAM): Add error handling for non-existent transaction IDs
+    # TODO(DDS_TEAM): Add transaction verification using blockchain API
+    # ------------------------------------------------------------
     logger.debug(f"Getting transaction details for: {tx_id}")
 
     mock_transactions = {
@@ -126,6 +136,13 @@ def sign_transaction():
     try:
         data = request.json
         logger.debug(f"Received data for signing: {data}")
+
+        # ------------------------------------------------------------
+        # TODO(DDS_TEAM): Implement wallet ownership verification before signing
+        # TODO(DDS_TEAM): Add proper Amino message formatting for Keplr compatibility
+        # TODO(DDS_TEAM): Validate transaction parameters against blockchain requirements
+        # TODO(DDS_TEAM): Add proper fee estimation based on gas requirements
+        # ------------------------------------------------------------
 
         if not data:
             return jsonify({"error": "Transaction data is required"}), 400
@@ -169,6 +186,13 @@ def broadcast_transaction():
         data = request.json
         logger.debug(f"Received data for broadcasting: {data}")
 
+        # ------------------------------------------------------------
+        # TODO(DDS_TEAM): Implement signature verification before broadcasting
+        # TODO(DDS_TEAM): Add proper error handling for blockchain timeouts
+        # TODO(DDS_TEAM): Implement transaction tracking and status updates
+        # TODO(DDS_TEAM): Add retry mechanism for failed broadcasts
+        # ------------------------------------------------------------
+
         if not data:
             return jsonify({"error": "Transaction data is required"}), 400
 
@@ -192,6 +216,13 @@ def create_transaction():
     try:
         data = request.json
         logger.debug(f"Received data for creating transaction: {data}")
+
+        # ------------------------------------------------------------
+        # TODO(DDS_TEAM): Implement proper property validation
+        # TODO(DDS_TEAM): Add token distribution calculations
+        # TODO(DDS_TEAM): Connect to smart contract for token creation
+        # TODO(DDS_TEAM): Implement multi-signature requirements
+        # ------------------------------------------------------------
 
         if not data or "property_id" not in data:
             return jsonify({"error": "Property ID is required"}), 400
