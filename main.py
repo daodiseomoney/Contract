@@ -9,15 +9,11 @@ from flask import Flask, render_template, url_for, request, jsonify, abort, sess
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from src.controllers.bim_controller import bim_bp
-from src.controllers.bim_agent_controller import bim_agent_bp
-from src.controllers.ifc_controller import ifc_bp
+from src.controllers.consolidated_blockchain_controller import blockchain_bp
+from src.controllers.consolidated_property_controller import property_bp
+from src.controllers.consolidated_ai_controller import ai_bp
 from src.controllers.account_controller import account_bp
-from src.controllers.transaction_controller import transaction_bp
-from src.controllers.upload_controller import upload_bp
 from src.controllers.contract_controller import contract_bp
-from src.controllers.blockchain_controller import blockchain_bp
-from src.controllers.blockchain_proxy_controller import blockchain_proxy_bp
 from src.security_utils import validate_environment, generate_csrf_token, apply_security_headers
 
 # Load environment variables from .env file if it exists
@@ -67,16 +63,12 @@ CORS(app,
      supports_credentials=True,
      expose_headers=["Content-Type", "Authorization"])
 
-# Register blueprints
-app.register_blueprint(bim_bp)
-app.register_blueprint(bim_agent_bp)
-app.register_blueprint(ifc_bp)
-app.register_blueprint(account_bp)
-app.register_blueprint(transaction_bp)
-app.register_blueprint(upload_bp)
-app.register_blueprint(contract_bp)
+# Register consolidated blueprints
 app.register_blueprint(blockchain_bp)
-app.register_blueprint(blockchain_proxy_bp)
+app.register_blueprint(property_bp)
+app.register_blueprint(ai_bp)
+app.register_blueprint(account_bp)
+app.register_blueprint(contract_bp)
 
 # Add CSRF protection
 @app.before_request
@@ -113,7 +105,7 @@ def add_security_headers(response):
 @app.route("/")
 def index():
     """Render the main dashboard page"""
-    return render_template("dashboard_production.html")
+    return render_template("dashboard.html")
 
 
 @app.route("/viewer")
@@ -188,14 +180,7 @@ def server_error(e):
     )
 
 
-# Register RPC and orchestrator routes
-from src.controllers.rpc_controller import register_rpc_routes
-from src.controllers.orchestrator_controller import orchestrator_bp
-from src.controllers.bim_analysis_controller import bim_analysis_bp
-
-register_rpc_routes(app)
-app.register_blueprint(orchestrator_bp)
-app.register_blueprint(bim_analysis_bp)
+# Note: RPC and orchestrator functionality is consolidated into existing controllers
 
 # Run the app
 if __name__ == "__main__":
