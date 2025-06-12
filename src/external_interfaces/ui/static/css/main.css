@@ -363,6 +363,10 @@ body {
 .card-value {
     font-size: 28px;
     font-weight: 700;
+<<<<<<< HEAD
+    font-family: 'Inter', sans-serif;
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
     margin-bottom: 5px;
     background: var(--gradient-glow);
     -webkit-background-clip: text;
@@ -549,12 +553,20 @@ body {
 .value-display {
     font-size: 28px;
     font-weight: 700;
+<<<<<<< HEAD
+    font-family: 'Inter', sans-serif;
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
     color: var(--info);
 }
 
 .value-change {
     font-size: 14px;
     margin-left: 5px;
+<<<<<<< HEAD
+    font-family: 'Inter', sans-serif;
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
 }
 
 .value-change.positive {

@@ -2,435 +2,224 @@
 
 {% block title %}Daodiseo - Real Estate Tokenization Dashboard{% endblock %}
 
+{% block page_title %}Dashboard{% endblock %}
+
 {% block extra_css %}
-<!-- Enhanced Chat CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-enhanced.css') }}">
+<style>
+.dashboard-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    margin: 0;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.stats-grid {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.chart-section {
+    grid-column: 1 / 9;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.activity-panel {
+    grid-column: 9 / -1;
+}
+
+.metric-card {
+    text-align: center;
+    padding: 1rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #64ffda;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    padding: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-section {
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-panel {
+        grid-column: 1 / -1;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mb-4">
-        <!-- Dashboard Cards -->
-        <div class="col">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="card-value">15,811.04</div>
-                    <div class="card-title">Token Value <span class="badge bg-info ms-1">ODIS</span></div>
-                    <div class="wave-visual"></div>
-                    <div class="card-icon info">
-                        <i data-feather="dollar-sign"></i>
-                    </div>
+<div class="dashboard-container">
+    <div class="dashboard-grid">
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="card metric-card">
+                <div class="metric-value" id="totalValue">$0</div>
+                <div class="metric-label">Total Portfolio Value</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" id="tokenBalance">0</div>
+                <div class="metric-label">ODIS Tokens</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" id="stakingRewards">0%</div>
+                <div class="metric-label">Staking APY</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" id="propertyCount">0</div>
+                <div class="metric-label">Properties Owned</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="chart-section">
+            <div class="card">
+                <h3>Asset Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="assetChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Stakeholder Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="stakeholderChart"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="card-value">$38,126.50</div>
-                    <div class="card-title">Total Reserves <span class="badge bg-secondary ms-1">USD</span></div>
-                    <div class="wave-visual"></div>
-                    <div class="card-icon secondary">
-                        <i data-feather="trending-up"></i>
+
+        <!-- Activity Panel -->
+        <div class="activity-panel">
+            <div class="card">
+                <h3>Recent Activity</h3>
+                <div id="activityList">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i data-feather="upload"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">BIM Model Uploaded</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="card-value">9.5%</div>
-                    <div class="card-title">Staking APY <span class="badge bg-success ms-1">Yearly</span></div>
-                    <div class="wave-visual"></div>
-                    <div class="card-icon warning">
-                        <i data-feather="activity"></i>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i data-feather="dollar-sign"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Token Purchase</div>
+                            <div class="activity-time">1 day ago</div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <div class="card-value">0.318</div>
-                    <div class="card-title">Daily Rewards <span class="badge bg-info ms-1">ODIS</span></div>
-                    <div class="wave-visual"></div>
-                    <div class="card-icon success">
-                        <i data-feather="award"></i>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i data-feather="users"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Staking Rewards</div>
+                            <div class="activity-time">3 days ago</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Asset Distribution Panel -->
-        <div class="col-lg-5">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <i data-feather="pie-chart" class="icon-inline"></i>
-                        Asset Distribution
-                    </h5>
-                    <div class="card-subtitle">Verified vs Unverified Assets</div>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="asset-distribution-chart"></canvas>
-                    </div>
-                    <div class="d-flex justify-content-between mt-3">
-                        <div class="text-center">
-                            <div class="small text-muted">Verified Assets</div>
-                            <div class="fw-bold text-success">$24,250,000</div>
-                            <div class="small text-muted">Due diligence complete</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="small text-muted">Unverified Assets</div>
-                            <div class="fw-bold text-warning">$13,876,500</div>
-                            <div class="small text-muted">In pipeline</div>
-                        </div>
+    <!-- AI Chat Panel -->
+    <div class="card" style="margin-top: 2rem;">
+        <h3>AI Assistant</h3>
+        <div id="chatContainer" class="chat-container">
+            <div id="chatMessages" class="chat-messages">
+                <div class="message ai-message">
+                    <div class="message-content">
+                        Welcome to DAODISEO! I'm your AI assistant for real estate analysis and blockchain operations. How can I help you today?
                     </div>
                 </div>
             </div>
-            
-            <!-- AI Assistant Panel -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <i data-feather="message-circle" class="icon-inline"></i>
-                        BIM AI Assistant
-                    </h5>
-                    <div class="card-subtitle">Stakeholder-aware building insights</div>
+            <div class="chat-input-container">
+                <div class="input-group">
+                    <input type="text" id="chatInput" class="form-control" placeholder="Ask about properties, blockchain, or BIM analysis...">
+                    <button class="btn btn-primary" id="sendChatBtn">
+                        <i data-feather="send"></i>
+                    </button>
                 </div>
-                <div class="card-body">
-                    <div id="ai-chat-container" class="chat-container"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Hot Asset Panel -->
-        <div class="col-lg-7">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">
-                            <i data-feather="zap" class="icon-inline text-warning"></i>
-                            Hot Asset Seeking Liquidity
-                        </h5>
-                        <div class="card-subtitle">Verified Asset with Due Diligence Complete</div>
-                    </div>
-                    <span class="badge bg-success px-3 py-2">VERIFIED</span>
-                </div>
-                <div class="card-body p-0">
-                    <div id="mini-viewer-container" class="bim-viewer-mini"></div>
-                </div>
-                <div class="card-footer">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="model-info">
-                                <div class="model-name">Idaka Project</div>
-                                <div class="model-meta">
-                                    <span class="model-meta-item">
-                                        <i data-feather="layers" class="icon-inline-sm"></i>
-                                        Due Diligence: 3 years
-                                    </span>
-                                    <span class="model-meta-item">
-                                        <i data-feather="check-circle" class="icon-inline-sm"></i>
-                                        SPV Verified
-                                    </span>
-                                    <span class="model-meta-item">
-                                        <i data-feather="shield" class="icon-inline-sm"></i>
-                                        Hard Asset
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#investModal">
-                                <i data-feather="dollar-sign" class="icon-inline-sm"></i>
-                                Invest Now
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="progress mt-3" style="height: 10px;">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-1">
-                        <small>Funded: $1,625,000</small>
-                        <small>Target: $2,500,000</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row g-4 mt-4">
-        <!-- Recent Transactions Panel -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <i data-feather="list" class="icon-inline"></i>
-                        Recent Transactions
-                    </h5>
-                    <div class="card-actions">
-                        <a href="/contracts" class="btn btn-sm btn-outline-info">
-                            View All
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="transaction-list">
-                        <div class="transaction-item">
-                            <div class="transaction-icon success">
-                                <i data-feather="check-circle"></i>
-                            </div>
-                            <div class="transaction-details">
-                                <div class="transaction-title">Property Tokenization <span class="badge bg-success">VERIFIED</span></div>
-                                <div class="transaction-meta">
-                                    <span class="transaction-address">0x71C...9E3f</span>
-                                    <span class="transaction-time">2 hours ago</span>
-                                </div>
-                            </div>
-                            <div class="transaction-value success">+1250 ODIS</div>
-                        </div>
-                        <div class="transaction-item">
-                            <div class="transaction-icon info">
-                                <i data-feather="file-text"></i>
-                            </div>
-                            <div class="transaction-details">
-                                <div class="transaction-title">Contract Signature <span class="badge bg-warning">PENDING</span></div>
-                                <div class="transaction-meta">
-                                    <span class="transaction-address">0x31F...7A2c</span>
-                                    <span class="transaction-time">5 hours ago</span>
-                                </div>
-                            </div>
-                            <div class="transaction-value">0 ODIS</div>
-                        </div>
-                        <div class="transaction-item">
-                            <div class="transaction-icon warning">
-                                <i data-feather="refresh-cw"></i>
-                            </div>
-                            <div class="transaction-details">
-                                <div class="transaction-title">Token Transfer <span class="badge bg-success">VERIFIED</span></div>
-                                <div class="transaction-meta">
-                                    <span class="transaction-address">0x94B...2D5a</span>
-                                    <span class="transaction-time">1 day ago</span>
-                                </div>
-                            </div>
-                            <div class="transaction-value warning">-350 ODIS</div>
-                        </div>
-                        <div class="transaction-item">
-                            <div class="transaction-icon secondary">
-                                <i data-feather="upload"></i>
-                            </div>
-                            <div class="transaction-details">
-                                <div class="transaction-title">Document Upload <span class="badge bg-warning">UNVERIFIED</span></div>
-                                <div class="transaction-meta">
-                                    <span class="transaction-address">0x67D...3F1b</span>
-                                    <span class="transaction-time">2 days ago</span>
-                                </div>
-                            </div>
-                            <div class="transaction-value">0 ODIS</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Stakeholder Distribution Chart -->
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <i data-feather="users" class="icon-inline"></i>
-                        Stakeholder Distribution
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="stakeholder-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Validators Section -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        <i data-feather="shield" class="icon-inline"></i>
-                        Active Validators
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="validator-list">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="token-circle info">V</div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">Validator Node 1</div>
-                                <div class="small text-muted">5 proposals pending</div>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="token-circle secondary">V</div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">Validator Node 2</div>
-                                <div class="small text-muted">3 proposals pending</div>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <div class="token-circle success">V</div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">Validator Node 3</div>
-                                <div class="small text-muted">1 proposal pending</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Investment Modal -->
-<div class="modal fade" id="investModal" tabindex="-1" aria-labelledby="investModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-light border-info">
-            <div class="modal-header border-info">
-                <h5 class="modal-title" id="investModalLabel">
-                    <i data-feather="dollar-sign" class="icon-inline text-info"></i>
-                    Invest in Idaka Project
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="investmentAmount" class="form-label">Investment Amount (ODIS)</label>
-                    <input type="number" class="form-control bg-dark text-light border-info" id="investmentAmount" placeholder="Enter amount">
-                </div>
-                <div class="mb-3">
-                    <label for="walletAddress" class="form-label">Wallet Address</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control bg-dark text-light border-info" id="walletAddress" value="0x71C...9E3f" readonly>
-                        <button class="btn btn-outline-info" type="button">
-                            <i data-feather="copy" class="icon-inline-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="alert alert-info">
-                    <i data-feather="info" class="icon-inline-sm"></i>
-                    This investment will be automatically staked, earning 9.5% APY.
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="spvKycCheck">
-                    <label class="form-check-label" for="spvKycCheck">
-                        I confirm this asset has passed SPV/KYC verification
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer border-info">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-info" id="investModalConnectBtn">
-                    <i data-feather="link" class="icon-inline-sm"></i>
-                    Connect Keplr Wallet
-                </button>
-                <button type="button" class="btn btn-success d-none" id="investModalProceedBtn">
-                    <i data-feather="check-circle" class="icon-inline-sm"></i>
-                    Proceed with Investment
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- AI Assistant Modal -->
-<div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-labelledby="aiAssistantModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content bg-dark text-light border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title" id="aiAssistantModalLabel">
-                    <i data-feather="cpu" class="icon-inline text-secondary"></i>
-                    AI Contract Assistant
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="nav flex-column nav-pills" id="contract-steps-tab" role="tablist">
-                            <button class="nav-link active" id="step1-tab" data-bs-toggle="pill" data-bs-target="#step1" type="button" role="tab">1. Asset Information</button>
-                            <button class="nav-link" id="step2-tab" data-bs-toggle="pill" data-bs-target="#step2" type="button" role="tab">2. IFC Validation</button>
-                            <button class="nav-link" id="step3-tab" data-bs-toggle="pill" data-bs-target="#step3" type="button" role="tab">3. Stakeholder Details</button>
-                            <button class="nav-link" id="step4-tab" data-bs-toggle="pill" data-bs-target="#step4" type="button" role="tab">4. Contract Terms</button>
-                            <button class="nav-link" id="step5-tab" data-bs-toggle="pill" data-bs-target="#step5" type="button" role="tab">5. Keplr Signatures</button>
-                        </div>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="tab-content p-3" id="contract-steps-content">
-                            <div class="tab-pane fade show active" id="step1" role="tabpanel">
-                                <h6 class="mb-3 text-info">Asset Information</h6>
-                                <p>Enter the core details about your real estate asset. The AI will auto-populate fields from your IFC file once uploaded.</p>
-                                <div class="mb-3">
-                                    <label class="form-label">Asset Name</label>
-                                    <input type="text" class="form-control bg-dark text-light border-secondary">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Location</label>
-                                    <input type="text" class="form-control bg-dark text-light border-secondary">
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="step2" role="tabpanel">
-                                <h6 class="mb-3 text-info">IFC Validation</h6>
-                                <p>Upload your IFC file for analysis. Our AI will validate the building information and calculate the estimated asset value.</p>
-                                <div class="mb-3">
-                                    <label class="form-label">Upload IFC File</label>
-                                    <input type="file" class="form-control bg-dark text-light border-secondary">
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="step3" role="tabpanel">
-                                <h6 class="mb-3 text-info">Stakeholder Details</h6>
-                                <p>Define the stakeholders for this asset. These will be encoded in the smart contract.</p>
-                                <div class="mb-3">
-                                    <label class="form-label">Stakeholder Wallet Addresses</label>
-                                    <textarea class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="step4" role="tabpanel">
-                                <h6 class="mb-3 text-info">Contract Terms</h6>
-                                <p>Review and modify the smart contract terms generated by our AI.</p>
-                                <div class="mb-3">
-                                    <label class="form-label">Token Name & Symbol</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Name">
-                                        <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Symbol">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Total Supply</label>
-                                    <input type="number" class="form-control bg-dark text-light border-secondary">
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="step5" role="tabpanel">
-                                <h6 class="mb-3 text-info">Keplr Signatures</h6>
-                                <p>Final step: Collect multisig approvals from all stakeholders using Keplr wallet.</p>
-                                <div class="alert alert-warning">
-                                    <i data-feather="alert-triangle" class="icon-inline-sm"></i>
-                                    Remember: NFTs can only be minted after the asset has passed due diligence.
-                                </div>
-                                <button class="btn btn-info">
-                                    <i data-feather="link" class="icon-inline-sm"></i>
-                                    Connect Keplr for Signing
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-info" id="getAIAdviceBtn">
-                    <i data-feather="cpu" class="icon-inline-sm"></i>
-                    Get AI Advice
-                </button>
             </div>
         </div>
     </div>
@@ -438,155 +227,138 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Custom Scripts -->
-<script src="{{ url_for('static', filename='js/ai-chat-enhanced.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bim-viewer.js') }}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize AI Chat
-        aiChat.init('ai-chat-container');
-        
-        // Initialize mini BIM viewer
-        bimViewer.init('mini-viewer-container');
-        
-        // Initialize asset distribution chart
-        const assetCtx = document.getElementById('asset-distribution-chart').getContext('2d');
-        const assetChart = new Chart(assetCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Verified Assets', 'Unverified Assets'],
-                datasets: [{
-                    data: [65, 35],
-                    backgroundColor: [
-                        'rgba(0, 153, 7, 0.7)',    // success
-                        'rgba(243, 192, 0, 0.7)',  // warning
-                    ],
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: 'rgba(255, 255, 255, 0.7)'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Initialize stakeholder chart
-        const stakeholderCtx = document.getElementById('stakeholder-chart').getContext('2d');
-        const stakeholderChart = new Chart(stakeholderCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Institutional Investors', 'Private Investors', 'Developer Equity', 'Reserved Pool'],
-                datasets: [{
-                    data: [45, 25, 20, 10],
-                    backgroundColor: [
-                        'rgba(224, 13, 121, 0.7)',  // info
-                        'rgba(184, 5, 150, 0.7)',   // secondary
-                        'rgba(0, 153, 7, 0.7)',     // success
-                        'rgba(243, 192, 0, 0.7)'    // warning
-                    ],
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            color: 'rgba(255, 255, 255, 0.7)'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Check wallet connection when investment modal is opened
-        document.getElementById('investModal').addEventListener('show.bs.modal', function() {
-            // Check if wallet is connected (using localStorage)
-            const walletConnected = localStorage.getItem('walletConnected') === 'true';
-            const userWalletAddress = localStorage.getItem('userWalletAddress');
-            
-            // Update wallet address field if available
-            if (walletConnected && userWalletAddress) {
-                document.getElementById('walletAddress').value = userWalletAddress;
-                
-                // Show the proceed button, hide the connect button
-                document.getElementById('investModalConnectBtn').classList.add('d-none');
-                document.getElementById('investModalProceedBtn').classList.remove('d-none');
-            } else {
-                // Show the connect button, hide the proceed button
-                document.getElementById('investModalConnectBtn').classList.remove('d-none');
-                document.getElementById('investModalProceedBtn').classList.add('d-none');
-            }
-        });
-        
-        // Invest modal wallet connection button
-        document.getElementById('investModalConnectBtn').addEventListener('click', function() {
-            // Access the main wallet connection function from base.html
-            connectKeplrWallet();
-            
-            // Close the investment modal
-            const investModal = bootstrap.Modal.getInstance(document.getElementById('investModal'));
-            if (investModal) {
-                investModal.hide();
-            }
-        });
-        
-        // Proceed with investment button
-        document.getElementById('investModalProceedBtn').addEventListener('click', function() {
-            // Get investment amount
-            const amount = document.getElementById('investmentAmount').value;
-            
-            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-                alert('Please enter a valid investment amount.');
-                return;
-            }
-            
-            // Check if SPV/KYC confirmation is checked
-            const spvKycChecked = document.getElementById('spvKycCheck').checked;
-            if (!spvKycChecked) {
-                alert('Please confirm SPV/KYC verification.');
-                return;
-            }
-            
-            // Process investment
-            alert(`Processing investment of ${amount} ODIS. Transaction will be signed with your Keplr wallet.`);
-            
-            // Close modal after successful transaction
-            const investModal = bootstrap.Modal.getInstance(document.getElementById('investModal'));
-            if (investModal) {
-                investModal.hide();
-            }
-        });
-        
-        // Open AI Assistant modal button
-        document.body.addEventListener('click', function(e) {
-            if (e.target.matches('[data-ai-assistant]') || e.target.closest('[data-ai-assistant]')) {
-                new bootstrap.Modal(document.getElementById('aiAssistantModal')).show();
-            }
-        });
-
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        });
-        
-        // Update feather icons
+// Initialize charts and dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Feather icons
+    if (typeof feather !== 'undefined') {
         feather.replace();
+    }
+
+    // Initialize charts
+    initializeCharts();
+    
+    // Load dashboard data
+    loadDashboardData();
+    
+    // Setup chat functionality
+    setupChat();
+});
+
+function initializeCharts() {
+    // Asset Distribution Chart
+    const assetCtx = document.getElementById('assetChart');
+    if (assetCtx) {
+        new Chart(assetCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Residential', 'Commercial', 'Industrial', 'Land'],
+                datasets: [{
+                    data: [45, 30, 15, 10],
+                    backgroundColor: ['#64ffda', '#536dfe', '#ff4081', '#ffab40']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Stakeholder Distribution Chart
+    const stakeholderCtx = document.getElementById('stakeholderChart');
+    if (stakeholderCtx) {
+        new Chart(stakeholderCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Investors', 'Landlords', 'Brokers', 'Tenants'],
+                datasets: [{
+                    label: 'Count',
+                    data: [120, 80, 45, 200],
+                    backgroundColor: '#64ffda'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+function loadDashboardData() {
+    // Load portfolio metrics
+    fetch('/api/blockchain/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalValue').textContent = '$' + (data.totalValue || 0).toLocaleString();
+            document.getElementById('tokenBalance').textContent = (data.tokenBalance || 0).toLocaleString();
+            document.getElementById('stakingRewards').textContent = (data.stakingAPY || 0) + '%';
+            document.getElementById('propertyCount').textContent = data.propertyCount || 0;
+        })
+        .catch(error => console.log('Dashboard data loading...'));
+}
+
+function setupChat() {
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendChatBtn');
+    const chatMessages = document.getElementById('chatMessages');
+
+    function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Add user message
+        const userMessage = document.createElement('div');
+        userMessage.className = 'message user-message';
+        userMessage.innerHTML = `<div class="message-content">${message}</div>`;
+        chatMessages.appendChild(userMessage);
+
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Send to AI
+        fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const aiMessage = document.createElement('div');
+            aiMessage.className = 'message ai-message';
+            aiMessage.innerHTML = `<div class="message-content">${data.response || 'AI processing...'}</div>`;
+            chatMessages.appendChild(aiMessage);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        })
+        .catch(error => {
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'message ai-message';
+            errorMessage.innerHTML = `<div class="message-content">I'm currently learning. Please try again later.</div>`;
+            chatMessages.appendChild(errorMessage);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
     });
+}
 </script>
 {% endblock %}

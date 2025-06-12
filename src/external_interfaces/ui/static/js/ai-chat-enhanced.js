@@ -24,9 +24,16 @@ const aiChat = {
         this.render();
         this.bindEvents();
         this.checkEnhancedStatus();
+<<<<<<< HEAD
+        this.checkChainBrainStatus();
+        
+        // Add system welcome message
+        this.addSystemMessage("Welcome to the BIM AI Assistant with Chain Brain integration. How can I help you today?");
+=======
         
         // Add system welcome message
         this.addSystemMessage("Welcome to the BIM AI Assistant. How can I help you today?");
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
     },
     
     // Render the chat interface
@@ -128,7 +135,11 @@ const aiChat = {
     
     // Check enhanced mode status
     checkEnhancedStatus: function() {
+<<<<<<< HEAD
+        fetch('/api/bim-agent/enhanced-status')
+=======
         fetch('/api/bim/enhanced-status')
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -143,7 +154,11 @@ const aiChat = {
     
     // Toggle enhanced mode
     toggleEnhancedMode: function(enabled) {
+<<<<<<< HEAD
+        fetch('/api/bim-agent/toggle-enhanced', {
+=======
         fetch('/api/bim/toggle-enhanced', {
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -191,6 +206,22 @@ const aiChat = {
         // Clear input
         inputElement.value = '';
         
+<<<<<<< HEAD
+        // Get CSRF token from meta tag or session
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                         window.csrf_token || '';
+        
+        // Send message to server with the enhanced parameter
+        fetch('/api/bim-agent/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken
+            },
+            body: JSON.stringify({
+                message: message,
+                enhanced: this.isEnhancedMode
+=======
         // Send message to server with the use_agent parameter
         fetch('/api/bim/message', {
             method: 'POST',
@@ -200,6 +231,7 @@ const aiChat = {
             body: JSON.stringify({
                 message: message,
                 use_agent: this.isEnhancedMode
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
             })
         })
         .then(response => response.json())
@@ -460,5 +492,48 @@ const aiChat = {
     // Scroll to the bottom of the chat
     scrollToBottom: function() {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+<<<<<<< HEAD
+    },
+    
+    // Check chain brain status
+    checkChainBrainStatus: function() {
+        fetch('/api/bim-agent/chain-brain-status')
+            .then(response => response.json())
+            .then(data => {
+                this.updateChainBrainIndicator(data);
+            })
+            .catch(error => {
+                console.error('Error checking chain brain status:', error);
+            });
+    },
+    
+    // Update chain brain status indicator
+    updateChainBrainIndicator: function(status) {
+        let indicator = document.getElementById('chain-brain-indicator');
+        if (!indicator) {
+            // Create chain brain status indicator
+            indicator = document.createElement('div');
+            indicator.id = 'chain-brain-indicator';
+            indicator.className = 'chain-brain-status';
+            
+            const header = document.querySelector('.chat-header');
+            if (header) {
+                header.appendChild(indicator);
+            }
+        }
+        
+        const isActive = status.chain_brain_active;
+        indicator.className = `chain-brain-status ${isActive ? 'active' : 'inactive'}`;
+        indicator.innerHTML = `
+            <div class="status-dot ${isActive ? 'active' : 'inactive'}"></div>
+            <span class="status-text">${isActive ? 'Chain Brain Active' : 'Chain Brain Inactive'}</span>
+            <div class="status-tooltip">
+                ${status.message || 'Chain brain feeds real blockchain data to o3-mini AI'}
+                ${status.recent_insights && status.recent_insights.length > 0 ? 
+                    `<br>Recent insights: ${status.recent_insights.length}` : ''}
+            </div>
+        `;
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
     }
 };

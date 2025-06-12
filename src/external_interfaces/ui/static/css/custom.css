@@ -679,6 +679,63 @@ input:checked + .toggle-slider:before {
     background: linear-gradient(135deg, #ff1a61, #c40039);
 }
 
+<<<<<<< HEAD
+/* Card improvements for status indicators */
+.card {
+    position: relative;
+    overflow: visible;
+    border-radius: 12px;
+}
+
+.card-header {
+    position: relative;
+    overflow: visible;
+    border-radius: 12px 12px 0 0;
+}
+
+/* Status indicator positioning */
+.card .status-indicator {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    z-index: 15;
+    border: 3px solid var(--bg-dark);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 currentColor;
+    }
+    70% {
+        box-shadow: 0 0 0 6px transparent;
+    }
+    100% {
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+.status-indicator.online {
+    background: #00ff00;
+}
+
+.status-indicator.active {
+    background: #0dcaf0;
+}
+
+.status-indicator.warning {
+    background: #ffc107;
+}
+
+.status-indicator.error {
+    background: #dc3545;
+}
+
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
 /* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 6px;

@@ -1,0 +1,308 @@
+/* DAODISEO UX Enhancement Styles */
+
+/* Points System in Header */
+.points-system {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.points-system:hover {
+    background: rgba(255, 193, 7, 0.2);
+    transform: translateY(-1px);
+}
+
+.points-badge {
+    font-weight: 600;
+    color: #ffc107;
+    font-size: 0.9rem;
+}
+
+/* Wallet Connection in Header */
+.wallet-connection {
+    display: flex;
+    align-items: center;
+}
+
+.wallet-connection .btn {
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ODIS Trading Widget */
+.odis-trading-widget {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.15) 0%, rgba(13, 202, 240, 0.15) 100%);
+    border: 2px solid rgba(13, 110, 253, 0.4);
+    box-shadow: 0 8px 32px rgba(13, 110, 253, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Ensure all numbers in ODIS widget use Inter font */
+.odis-trading-widget .current-price,
+.odis-trading-widget .stat-value,
+.odis-trading-widget .price-display,
+.odis-trading-widget h1,
+.odis-trading-widget h2,
+.odis-trading-widget h3,
+.odis-trading-widget h4,
+.odis-trading-widget h5,
+.odis-trading-widget h6 {
+    font-family: 'Inter', sans-serif !important;
+}
+
+.odis-trading-widget .card-header {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.2) 0%, rgba(13, 202, 240, 0.2) 100%);
+    border-bottom: 2px solid rgba(13, 110, 253, 0.4);
+    padding: 1.5rem;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.2) 0%, rgba(13, 202, 240, 0.2) 100%) !important;
+}
+
+.bg-gradient-dark {
+    background: linear-gradient(135deg, rgba(33, 37, 41, 0.8) 0%, rgba(52, 58, 64, 0.8) 100%);
+}
+
+.token-stats .stat-item {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(13, 110, 253, 0.2);
+}
+
+.token-stats .stat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    border-color: rgba(13, 110, 253, 0.4);
+}
+
+.token-stats .stat-value {
+    font-weight: 600;
+    font-size: 1.2rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.price-display {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.current-price {
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.price-change {
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(25, 135, 84, 0.2);
+}
+
+.price-alert-section {
+    backdrop-filter: blur(10px);
+}
+
+.token-icon .rounded-circle {
+    border: 2px solid rgba(13, 110, 253, 0.5);
+}
+
+.price-chart-container {
+    height: 100%;
+}
+
+.price-chart-placeholder {
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+.price-chart-placeholder:hover {
+    border-color: rgba(13, 110, 253, 0.6) !important;
+    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.2);
+}
+
+.price-chart-placeholder {
+    background: linear-gradient(45deg, rgba(108, 117, 125, 0.2), rgba(108, 117, 125, 0.1));
+    border: 1px dashed rgba(108, 117, 125, 0.5);
+}
+
+/* Price Alert Input */
+.price-alert-section .input-group {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.price-alert-section .form-control {
+    border-right: none;
+}
+
+.price-alert-section .btn {
+    border-left: none;
+}
+
+/* Points Notification */
+.points-notification .alert {
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Clean Header Layout */
+.top-bar {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Sidebar Branding Update */
+.app-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, #e91e63, #9c27b0, #673ab7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .top-actions {
+        gap: 8px;
+    }
+    
+    .wallet-connection .btn,
+    .points-system {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .price-display {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .token-stats {
+        margin-top: 16px;
+    }
+}
+
+/* Enhanced Modal Styles */
+.modal-content.bg-dark {
+    background: linear-gradient(135deg, rgba(33, 37, 41, 0.95) 0%, rgba(52, 58, 64, 0.95) 100%) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Icon Animation */
+.icon-inline-sm {
+    transition: transform 0.2s ease;
+}
+
+.btn:hover .icon-inline-sm {
+    transform: scale(1.1);
+}
+
+/* Token Icon Styling */
+.token-icon .rounded-circle {
+    background: linear-gradient(135deg, #0dcaf0, #0d6efd) !important;
+    box-shadow: 0 2px 10px rgba(13, 202, 240, 0.3);
+}
+
+/* Fix for component card status dots */
+.card {
+    position: relative;
+    overflow: visible !important;
+}
+
+.card-header {
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Status indicator dots in top-right corner */
+.status-dot {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    z-index: 10;
+    border: 2px solid var(--bg-dark);
+}
+
+.status-dot.success {
+    background: var(--success);
+    box-shadow: 0 0 8px rgba(0, 153, 7, 0.4);
+}
+
+.status-dot.warning {
+    background: var(--warning);
+    box-shadow: 0 0 8px rgba(243, 192, 0, 0.4);
+}
+
+.status-dot.info {
+    background: var(--info);
+    box-shadow: 0 0 8px rgba(224, 13, 121, 0.4);
+}
+
+.status-dot.primary {
+    background: var(--primary);
+    box-shadow: 0 0 8px rgba(13, 110, 253, 0.4);
+}
+
+/* Component icon in top-right */
+.component-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+    z-index: 5;
+}
+
+/* Ensure card content doesn't overlap with status indicators */
+.card-body {
+    padding-top: 1.5rem;
+}
+
+/* Token value cards specific styling */
+.token-value-card {
+    position: relative;
+    overflow: visible;
+}
+
+.token-value-card .card-header {
+    padding-right: 2.5rem; /* Make space for the dot */
+}

@@ -6,15 +6,18 @@ import os
 import logging
 import sys
 from flask import Flask, render_template, url_for, request, jsonify, abort, session
+from flask_cors import CORS
 from dotenv import load_dotenv
 
 from src.controllers.bim_controller import bim_bp
+from src.controllers.bim_agent_controller import bim_agent_bp
 from src.controllers.ifc_controller import ifc_bp
 from src.controllers.account_controller import account_bp
 from src.controllers.transaction_controller import transaction_bp
 from src.controllers.upload_controller import upload_bp
 from src.controllers.contract_controller import contract_bp
 from src.controllers.blockchain_controller import blockchain_bp
+from src.controllers.blockchain_proxy_controller import blockchain_proxy_bp
 from src.security_utils import validate_environment, generate_csrf_token, apply_security_headers
 
 # Load environment variables from .env file if it exists
@@ -56,26 +59,41 @@ app.config['SESSION_COOKIE_SECURE'] = not app.debug  # Secure cookies in product
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JS access to cookies
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protect against CSRF
 
+# Configure CORS for blockchain RPC endpoints and browser compatibility
+CORS(app, 
+     origins=["*"],  # Allow all origins for blockchain proxy
+     methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+     allow_headers=["Content-Type", "Authorization", "X-CSRF-Token", "Accept", "Origin", "X-Requested-With"],
+     supports_credentials=True,
+     expose_headers=["Content-Type", "Authorization"])
+
 # Register blueprints
 app.register_blueprint(bim_bp)
+app.register_blueprint(bim_agent_bp)
 app.register_blueprint(ifc_bp)
 app.register_blueprint(account_bp)
 app.register_blueprint(transaction_bp)
 app.register_blueprint(upload_bp)
 app.register_blueprint(contract_bp)
 app.register_blueprint(blockchain_bp)
+app.register_blueprint(blockchain_proxy_bp)
 
 # Add CSRF protection
 @app.before_request
 def csrf_protect():
     """Generate CSRF token for the session"""
+    # Skip CSRF validation for API endpoints that handle their own security
+    if request.path.startswith('/api/'):
+        return
+    
     if request.method != 'GET':
         token = session.get('csrf_token')
         header_token = request.headers.get('X-CSRF-Token')
         
         if not token or token != header_token:
             logger.warning(f"CSRF validation failed from IP: {request.remote_addr}")
-            if not app.debug:  # Only apply in production for now
+            # Only enforce CSRF in production for non-API routes
+            if not app.debug and not request.path.startswith('/api/'):
                 abort(403)  # Forbidden
 
 # Generate CSRF token for all templates
@@ -95,7 +113,7 @@ def add_security_headers(response):
 @app.route("/")
 def index():
     """Render the main dashboard page"""
-    return render_template("dashboard.html")
+    return render_template("dashboard_production.html")
 
 
 @app.route("/viewer")
@@ -116,6 +134,41 @@ def contracts():
     return render_template("contracts.html")
 
 
+@app.route('/api/bim/assets')
+def bim_assets():
+    """Get available BIM assets for investment"""
+    # For now, return demo assets until IFC upload system is fully implemented
+    assets = [
+        {
+            'id': 'property-downtown-001',
+            'name': 'Downtown Office Complex',
+            'value': 2400000,
+            'type': 'Commercial',
+            'status': 'verified',
+            'uploaded_at': '2025-06-10T14:30:00Z'
+        },
+        {
+            'id': 'property-residential-002', 
+            'name': 'Luxury Residential Tower',
+            'value': 8900000,
+            'type': 'Residential',
+            'status': 'verified',
+            'uploaded_at': '2025-06-09T09:15:00Z'
+        },
+        {
+            'id': 'property-industrial-003',
+            'name': 'Industrial Warehouse Complex',
+            'value': 1200000,
+            'type': 'Industrial',
+            'status': 'pending',
+            'uploaded_at': '2025-06-11T08:45:00Z'
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'assets': assets
+    })
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
@@ -134,6 +187,15 @@ def server_error(e):
         500,
     )
 
+
+# Register RPC and orchestrator routes
+from src.controllers.rpc_controller import register_rpc_routes
+from src.controllers.orchestrator_controller import orchestrator_bp
+from src.controllers.bim_analysis_controller import bim_analysis_bp
+
+register_rpc_routes(app)
+app.register_blueprint(orchestrator_bp)
+app.register_blueprint(bim_analysis_bp)
 
 # Run the app
 if __name__ == "__main__":

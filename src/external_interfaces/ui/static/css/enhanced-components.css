@@ -1,0 +1,306 @@
+
+/* Enhanced Dashboard Components CSS */
+
+/* AI Status Indicators */
+.ai-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.5rem;
+    color: #e00d79;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.ai-status-indicator:hover {
+    opacity: 1;
+}
+
+.ai-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Enhanced Stats Cards */
+.stats-card.error-state {
+    border-color: #ed0048;
+    background: rgba(237, 0, 72, 0.1);
+}
+
+.update-timestamp {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.25rem;
+}
+
+.card-status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+}
+
+.status-active { background: rgba(0, 153, 7, 0.2); color: #009907; }
+.status-high { background: rgba(243, 192, 0, 0.2); color: #f3c000; }
+.status-normal { background: rgba(224, 13, 121, 0.2); color: #e00d79; }
+
+/* AI Tooltips */
+.ai-tooltip {
+    position: fixed;
+    z-index: 1000;
+    background: rgba(10, 18, 30, 0.95);
+    border: 1px solid rgba(224, 13, 121, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    max-width: 300px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.ai-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #e00d79;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(224, 13, 121, 0.2);
+    padding-bottom: 0.5rem;
+}
+
+.ai-tooltip-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Enhanced Transaction List */
+.transaction-item {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.transaction-item:hover {
+    background: rgba(224, 13, 121, 0.05);
+    transform: translateX(4px);
+}
+
+.risk-indicator {
+    color: #f3c000;
+    margin-left: 0.5rem;
+    width: 14px;
+    height: 14px;
+}
+
+.ai-insight {
+    background: rgba(224, 13, 121, 0.2);
+    color: #e00d79;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    margin-left: 0.5rem;
+}
+
+.transaction-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #ed0048;
+    padding: 2rem;
+}
+
+/* Transaction Modal */
+.transaction-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.transaction-modal-content {
+    background: rgba(10, 18, 30, 0.95);
+    border: 1px solid rgba(224, 13, 121, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+    backdrop-filter: blur(15px);
+}
+
+.transaction-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(224, 13, 121, 0.2);
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-modal:hover {
+    color: #e00d79;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.detail-row .label {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+}
+
+.detail-row .value {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* AI Insights Panel */
+.ai-insights-panel {
+    margin-top: 1rem;
+    background: rgba(224, 13, 121, 0.1);
+    border: 1px solid rgba(224, 13, 121, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.ai-insights-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #e00d79;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.ai-insights-content {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* AI Analysis Button */
+.ai-analysis-btn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* AI Segment Tooltip */
+.ai-segment-tooltip {
+    position: fixed;
+    z-index: 1000;
+    background: rgba(10, 18, 30, 0.95);
+    border: 1px solid rgba(0, 153, 7, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    max-width: 250px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #009907;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.tooltip-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+/* AI Analysis Modal */
+.ai-analysis-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.ai-analysis-modal .modal-content {
+    background: rgba(10, 18, 30, 0.95);
+    border: 1px solid rgba(224, 13, 121, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    backdrop-filter: blur(15px);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(224, 13, 121, 0.2);
+}
+
+.analysis-content {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ai-tooltip, .ai-segment-tooltip {
+        max-width: 250px;
+        font-size: 0.8rem;
+    }
+    
+    .transaction-modal-content,
+    .ai-analysis-modal .modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .ai-analysis-btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Animation for enhanced interactions */
+@keyframes pulse-ai {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.ai-status-indicator.active {
+    animation: pulse-ai 2s infinite;
+}
+
+.stats-card.loading .card-value::after {
+    content: '...';
+    animation: pulse-ai 1s infinite;
+}

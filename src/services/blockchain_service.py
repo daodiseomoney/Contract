@@ -11,7 +11,7 @@ import base64
 import dotenv
 from typing import Dict, Any, Optional, List
 
-from src.gateways.pingpub_gateway import PingPubGateway
+from src.gateways.consolidated_blockchain_gateway import ConsolidatedBlockchainGateway
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -32,16 +32,16 @@ class BlockchainService:
         
         # Initialize gateways
         try:
-            self.pingpub_gateway = PingPubGateway()
+            self.blockchain_gateway = ConsolidatedBlockchainGateway()
         except Exception as e:
-            logger.error(f"Failed to initialize PingPubGateway: {str(e)}")
+            logger.error(f"Failed to initialize ConsolidatedBlockchainGateway: {str(e)}")
             raise
         
-        # Get contract address from PingPubGateway, which already handles mock values
-        self.contract_address = self.pingpub_gateway.contract_address
+        # Get contract address from environment or use default
+        self.contract_address = os.environ.get("CONTRACT_ADDRESS", "odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt")
         
-        # Validator pool address from PingPubGateway
-        self.validator_pool_address = self.pingpub_gateway.validator_pool_address
+        # Validator pool address from environment or use default
+        self.validator_pool_address = os.environ.get("VALIDATOR_POOL_ADDRESS", "odiseo1k5vh4mzjncn4tnvan463whhrkkcsvjzgxm384q")
         
         logger.info("Blockchain service initialized")
     
@@ -73,11 +73,11 @@ class BlockchainService:
         transaction_id = f"ifc_{content_hash[:8]}"
         
         # Get account info to prepare transaction
-        account_info = self.pingpub_gateway.get_account_info(user_address)
+        account_info = self.blockchain_gateway.get_account_info(user_address)
         logger.debug(f"Account info: {account_info}")
         
         # Create the transaction message
-        msg, memo = self.pingpub_gateway.create_upload_message(
+        msg, memo = self._create_upload_message(
             from_address=user_address,
             to_address=self.contract_address,
             content_hash=content_hash,
@@ -90,7 +90,7 @@ class BlockchainService:
             "content_hash": content_hash,
             "user_address": user_address,
             "account_info": account_info,
-            "chain_id": self.pingpub_gateway.chain_id,
+            "chain_id": self.blockchain_gateway.network_config.chain_id,
             "tx_msg": msg,
             "memo": memo,
             "fee": {
@@ -133,13 +133,13 @@ class BlockchainService:
         broadcast_tx = self._format_for_broadcast(signed_tx)
         
         # Broadcast transaction
-        broadcast_result = self.pingpub_gateway.broadcast_transaction(broadcast_tx)
+        broadcast_result = self.blockchain_gateway.broadcast_transaction(broadcast_tx)
         
         # Get transaction hash
         tx_hash = broadcast_result.get("txhash")
         
         # Prepare explorer URL
-        explorer_url = self.pingpub_gateway.get_explorer_url(tx_hash)
+        explorer_url = self.blockchain_gateway.get_explorer_url(tx_hash)
         
         # Prepare response
         response = {
@@ -227,7 +227,7 @@ class BlockchainService:
             dict: Transaction verification result
         """
         # Check transaction status
-        status = self.pingpub_gateway.check_transaction_status(tx_hash)
+        status = self.blockchain_gateway.check_transaction_status(tx_hash)
         
         # Prepare response
         response = {
@@ -235,7 +235,7 @@ class BlockchainService:
             "transaction_hash": tx_hash,
             "height": status.get("height"),
             "timestamp": status.get("timestamp"),
-            "explorer_url": self.pingpub_gateway.get_explorer_url(tx_hash),
+            "explorer_url": self.blockchain_gateway.get_explorer_url(tx_hash),
             "status": status
         }
         
@@ -258,7 +258,8 @@ class BlockchainService:
                 "name": validator.get("description", {}).get("moniker", "Unknown"),
                 "status": validator.get("status", "UNKNOWN"),
                 "voting_power": validator.get("voting_power", 0),
-                "commission": validator.get("commission", {}).get("commission_rates", {}).get("rate", 0)
+                "commission": validator.get("commission", {}).get("commission_rates", {}).get("rate", 0),
+                "proposals_pending": validator.get("proposals_pending", 0)
             })
         
         return formatted_validators
@@ -279,6 +280,7 @@ class BlockchainService:
             except Exception as e:
                 logger.warning(f"Failed to get validators: {str(e)}")
                 network_alive = False
+                validators = []
                 
             # Try to get token price and staking info
             try:
@@ -321,7 +323,7 @@ class BlockchainService:
             # Get hot asset data
             hot_asset = self._get_hot_asset()
             
-            # Construct response with all data
+            # Construct response with all data including validators
             return {
                 'token_value': token_value,
                 'staking_apy': staking_apy,
@@ -330,7 +332,8 @@ class BlockchainService:
                 'verified_assets': verified_assets,
                 'unverified_assets': unverified_assets,
                 'hot_asset': hot_asset,
-                'network_status': 'active' if network_alive else 'degraded'
+                'network_status': 'active' if network_alive else 'degraded',
+                'validators': validators  # Include real validator data from blockchain
             }
             
         except Exception as e:
@@ -351,7 +354,8 @@ class BlockchainService:
                     'funded_amount': 1625000,
                     'target_amount': 2500000
                 },
-                'network_status': 'error'
+                'network_status': 'error',
+                'validators': []  # Empty array when network is unavailable
             }
     
     def _get_hot_asset(self) -> Dict[str, Any]:

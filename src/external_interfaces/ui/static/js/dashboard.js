@@ -7,8 +7,50 @@
 document.addEventListener('DOMContentLoaded', () => {
     initDashboardData();
     initDashboardCharts();
+<<<<<<< HEAD
+    initDashboardStateListeners();
 });
 
+// Initialize dashboard state listeners for cross-route synchronization
+function initDashboardStateListeners() {
+    // Listen for transaction events from other routes
+    document.addEventListener('transactionCreated', (event) => {
+        const { transactionId, hash, type } = event.detail;
+        console.log('Dashboard received transaction event:', { transactionId, hash, type });
+        
+        // Update portfolio metrics to reflect new transaction
+        refreshPortfolioData();
+        
+        // Add to recent transactions list
+        addRecentTransaction({ transactionId, hash, type });
+    });
+    
+    // Listen for file upload events to update asset counts
+    document.addEventListener('fileUploaded', (event) => {
+        const { fileName, fileHash } = event.detail;
+        console.log('Dashboard received file upload event:', { fileName, fileHash });
+        
+        // Refresh verified assets count
+        refreshAssetMetrics();
+    });
+    
+    // Listen for wallet state changes
+    document.addEventListener('stateChange:wallet', (event) => {
+        const walletState = event.detail.data;
+        updateWalletDashboard(walletState);
+    });
+    
+    // Listen for contract state changes
+    document.addEventListener('stateChange:contracts', (event) => {
+        const contractsState = event.detail.data;
+        updateContractMetrics(contractsState);
+    });
+}
+
+=======
+});
+
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
 // Initialize dashboard data from API
 async function initDashboardData() {
     try {
@@ -66,6 +108,106 @@ function updateDashboardMetrics(data) {
     }
 }
 
+<<<<<<< HEAD
+// Refresh portfolio data after cross-route events
+async function refreshPortfolioData() {
+    try {
+        const statsData = await fetchApi('/api/blockchain/stats');
+        updateDashboardMetrics(statsData);
+    } catch (error) {
+        console.warn('Failed to refresh portfolio data:', error);
+    }
+}
+
+// Refresh asset metrics after file uploads
+async function refreshAssetMetrics() {
+    try {
+        const assetData = await fetchApi('/api/blockchain/asset-distribution');
+        updateAssetDistribution(assetData);
+    } catch (error) {
+        console.warn('Failed to refresh asset metrics:', error);
+    }
+}
+
+// Add recent transaction to dashboard
+function addRecentTransaction(transaction) {
+    const recentTransactionsList = document.querySelector('.recent-transactions-list');
+    if (!recentTransactionsList) return;
+    
+    const transactionElement = document.createElement('div');
+    transactionElement.className = 'transaction-item d-flex justify-content-between align-items-center py-2 border-bottom';
+    transactionElement.innerHTML = `
+        <div>
+            <div class="fw-medium">${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)} Transaction</div>
+            <small class="text-muted">ID: ${transaction.transactionId}</small>
+        </div>
+        <div class="text-end">
+            <div class="badge bg-success">Completed</div>
+            <small class="d-block text-muted">Just now</small>
+        </div>
+    `;
+    
+    // Insert at the top of the list
+    recentTransactionsList.insertBefore(transactionElement, recentTransactionsList.firstChild);
+    
+    // Limit to 5 recent transactions
+    const transactionItems = recentTransactionsList.querySelectorAll('.transaction-item');
+    if (transactionItems.length > 5) {
+        recentTransactionsList.removeChild(transactionItems[transactionItems.length - 1]);
+    }
+}
+
+// Update wallet dashboard display
+function updateWalletDashboard(walletState) {
+    const walletAddressElement = document.querySelector('.wallet-address-display');
+    const walletBalanceElement = document.querySelector('.wallet-balance-display');
+    
+    if (walletState.connected && walletState.address) {
+        if (walletAddressElement) {
+            const shortAddress = walletState.address.slice(0, 8) + '...' + walletState.address.slice(-4);
+            walletAddressElement.textContent = shortAddress;
+        }
+        
+        if (walletBalanceElement && walletState.balance) {
+            walletBalanceElement.textContent = formatNumber(walletState.balance) + ' ODIS';
+        }
+    } else {
+        if (walletAddressElement) {
+            walletAddressElement.textContent = 'Not Connected';
+        }
+        if (walletBalanceElement) {
+            walletBalanceElement.textContent = '0 ODIS';
+        }
+    }
+}
+
+// Update contract metrics in dashboard
+function updateContractMetrics(contractsState) {
+    const activeContractsElement = document.querySelector('.active-contracts-count');
+    const pendingContractsElement = document.querySelector('.pending-contracts-count');
+    
+    if (activeContractsElement) {
+        activeContractsElement.textContent = contractsState.active?.length || 0;
+    }
+    
+    if (pendingContractsElement) {
+        pendingContractsElement.textContent = contractsState.pending?.length || 0;
+    }
+}
+
+// Update asset distribution chart
+function updateAssetDistribution(assetData) {
+    const assetChart = document.querySelector('#assetDistributionChart');
+    if (assetChart && window.assetDistributionChart) {
+        // Update chart data if chart instance exists
+        window.assetDistributionChart.data.datasets[0].data = assetData.values;
+        window.assetDistributionChart.data.labels = assetData.labels;
+        window.assetDistributionChart.update();
+    }
+}
+
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
 // Update hot asset display
 function updateHotAsset(hotAsset) {
     const hotAssetNameElement = document.querySelector('.hot-asset-name');
