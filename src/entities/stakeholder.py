@@ -26,6 +26,20 @@ class StakeholderGroup(str, Enum):
             if member.value.lower() == value.lower():
                 return member
         return cls.INVESTOR  # Default to investor if not found
+    
+    @classmethod
+    def get_name(cls, stakeholder_type):
+        """Get display name for stakeholder type"""
+        name_mapping = {
+            cls.TENANT_BUYER: "Tenant/Buyer",
+            cls.BROKER: "Broker",
+            cls.LANDLORD: "Landlord",
+            cls.PROPERTY_MANAGER: "Property Manager",
+            cls.APPRAISER: "Appraiser",
+            cls.MORTGAGE_BROKER: "Mortgage Broker",
+            cls.INVESTOR: "Investor"
+        }
+        return name_mapping.get(stakeholder_type, "Unknown")
 
 
 class StakeholderProfile:

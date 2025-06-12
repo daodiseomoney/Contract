@@ -2,7 +2,7 @@ import logging
 import json
 from flask import Blueprint, jsonify, request
 import os
-from src.gateways.multisig_gateway import MultiSigBlockchainGateway
+from src.gateways.consolidated_blockchain_gateway import ConsolidatedBlockchainGateway, NetworkConfig
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)

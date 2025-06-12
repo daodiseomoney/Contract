@@ -1,0 +1,100 @@
+<!-- ODIS Token Trading Widget -->
+<div class="card h-100" style="position: relative; overflow: visible;">
+    <div class="status-dot success"></div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <div class="token-icon me-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: linear-gradient(135deg, #0dcaf0, #0d6efd); color: white; box-shadow: 0 2px 10px rgba(13, 202, 240, 0.3);">
+                    <strong style="font-size: 12px;">ODIS</strong>
+                </div>
+            </div>
+            <div>
+                <h6 class="mb-0 fw-bold" style="font-family: 'Inter', -apple-system, sans-serif; letter-spacing: 0.5px;">ODIS Token</h6>
+                <small class="text-muted" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 400;">Cosmos Network's Real Estate Tokenization</small>
+            </div>
+        </div>
+        <button class="btn btn-success btn-sm px-3" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 500; letter-spacing: 0.3px;">
+            <i data-feather="shopping-cart" class="icon-inline-sm"></i>
+            Buy ODIS
+        </button>
+    </div>
+
+    <div class="card-body p-4">
+        <!-- Current Price Display -->
+        <div class="price-display mb-4">
+            <div class="d-flex align-items-baseline mb-2">
+                <h3 class="current-price mb-0 me-3" id="odisCurrentPrice" style="color: #0dcaf0; font-weight: 700; letter-spacing: -0.5px;">$0.1209</h3>
+                <span class="price-change text-success" id="odisPriceChange" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 600;">↑ 2.46%</span>
+            </div>
+            <small class="text-muted" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 400;">Last updated: Real-time</small>
+        </div>
+
+        <!-- Token Statistics Grid -->
+        <div class="token-stats row g-3 mb-4">
+            <div class="col-6">
+                <div class="stat-item p-3 rounded" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(13, 110, 253, 0.2); transition: all 0.3s ease;">
+                    <div class="small text-muted mb-1" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 400; font-size: 0.75rem;">24h High</div>
+                    <div class="stat-value text-white" style="font-weight: 600; font-size: 1.1rem;">$0.1289</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-item p-3 rounded" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(13, 110, 253, 0.2); transition: all 0.3s ease;">
+                    <div class="small text-muted mb-1" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 400; font-size: 0.75rem;">24h Low</div>
+                    <div class="stat-value text-white" style="font-weight: 600; font-size: 1.1rem;">$0.1156</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-item p-3 rounded" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(13, 110, 253, 0.2); transition: all 0.3s ease;">
+                    <div class="small text-muted mb-1" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 400; font-size: 0.75rem;">Volume (24h)</div>
+                    <div class="stat-value text-white" style="font-weight: 600; font-size: 1.1rem;">$2.5M</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-item p-3 rounded" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(13, 110, 253, 0.2); transition: all 0.3s ease;">
+                    <div class="small text-muted mb-1" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 400; font-size: 0.75rem;">Market Cap</div>
+                    <div class="stat-value text-white" style="font-weight: 600; font-size: 1.1rem;">$12.4M</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Chart with Integrated Alert -->
+        <div class="price-chart-container mb-3">
+            <div class="price-chart-placeholder rounded" style="height: 150px; background: linear-gradient(45deg, rgba(108, 117, 125, 0.2), rgba(108, 117, 125, 0.1)); border: 1px dashed rgba(108, 117, 125, 0.5); backdrop-filter: blur(5px); transition: all 0.3s ease; position: relative;">
+                <div class="d-flex align-items-center justify-content-center h-100 text-center text-muted">
+                    <div>
+                        <i data-feather="trending-up" class="mb-2" style="width: 32px; height: 32px;"></i>
+                        <div style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 500; font-size: 1rem;">Live Price Chart</div>
+                        <small style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 400;">Coming Soon</small>
+                    </div>
+                </div>
+
+                <!-- Price Alert in Chart Corner -->
+                <div class="position-absolute" style="bottom: 12px; right: 12px;">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="number" class="form-control form-control-sm" placeholder="Alert $" step="0.0001" 
+                               style="width: 80px; font-family: 'Inter', monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,193,7,0.3); color: #fff;">
+                        <button class="btn btn-warning btn-sm px-2 py-1" type="button" style="font-family: 'Inter', sans-serif; font-size: 0.7rem;">
+                            <i data-feather="bell" style="width: 12px; height: 12px;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Validators Section -->
+        <div class="validators-section mb-4">
+            <div class="d-flex align-items-center mb-3">
+                <i data-feather="shield" class="me-2" style="color: #0dcaf0;"></i>
+                <h6 class="mb-0" style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 600; color: #fff;">Active Validators</h6>
+            </div>
+
+            <div class="validators-list" id="validatorsContainer">
+                <!-- Validators will be loaded dynamically from real chain data -->
+                <div class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-info me-2" role="status"></div>
+                    <small class="text-muted">Loading validators...</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

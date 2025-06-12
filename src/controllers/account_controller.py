@@ -1,7 +1,6 @@
 import logging
 from flask import Blueprint, jsonify, request
-from src.gateways.kepler_gateway import KeplerGateway
-from src.gateways.pingpub_gateway import PingPubGateway
+from src.gateways.consolidated_blockchain_gateway import ConsolidatedBlockchainGateway, NetworkConfig
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -10,16 +9,15 @@ logger = logging.getLogger(__name__)
 # Create blueprint
 account_bp = Blueprint("account", __name__, url_prefix="/api")
 
-# Initialize kepler gateway with network configuration
-network_config = {
-    "chain_id": "ithaca-1",  # Updated to match the testnet chain ID
-    "rpc_url": "https://odiseo.test.rpc.nodeshub.online",
-    "api_url": "https://odiseo.test.api.nodeshub.online"
-}
-kepler_gateway = KeplerGateway(network_config)
+# Initialize consolidated blockchain gateway
+network_config = NetworkConfig(
+    chain_id="ithaca-1",
+    rpc_url="https://testnet-rpc.daodiseo.chaintools.tech",
+    api_url="https://testnet-api.daodiseo.chaintools.tech"
+)
+blockchain_gateway = ConsolidatedBlockchainGateway(network_config)
 
-# Initialize the PingPub gateway for blockchain interactions
-pingpub_gateway = PingPubGateway()
+
 
 
 @account_bp.route("/account", methods=["GET"])
@@ -33,7 +31,7 @@ def get_account():
     
     try:
         # Get real account information from the blockchain
-        account_info = pingpub_gateway.get_account_info(wallet_address)
+        account_info = blockchain_gateway.get_account_info(wallet_address)
         
         # Add additional user information
         # TODO(DDS_TEAM): Replace with real database lookup for user profile
@@ -61,14 +59,14 @@ def connect_wallet():
 
         address = data["address"]
 
-        # Store the connected address locally (async cannot be used in Flask routes directly)
-        kepler_gateway.connected_address = address
+        # Store the connected address locally (note: address stored in session)
+        # blockchain_gateway.connected_address = address
         logger.info(f"Wallet connected: {address}")
 
         # Get account info from blockchain
         try:
             # Get real account information from the blockchain
-            account_info = pingpub_gateway.get_account_info(address)
+            account_info = blockchain_gateway.get_account_info(address)
             logger.debug(f"Retrieved account info: {account_info}")
         except Exception as account_error:
             logger.warning(f"Error retrieving account info: {str(account_error)}")
@@ -94,7 +92,16 @@ def get_network_config():
     """Get Cosmos network configuration for Keplr wallet integration"""
     try:
         # Get network configuration from the gateway
-        config = kepler_gateway.get_network_config()
+        config = {
+            "chainId": blockchain_gateway.network_config.chain_id,
+            "chainName": "Odiseo Testnet",
+            "rpc": blockchain_gateway.network_config.rpc_url,
+            "rest": blockchain_gateway.network_config.api_url,
+            "bip44": {"coinType": 118},
+            "currencies": [{"coinDenom": "ODIS", "coinMinimalDenom": "uodis", "coinDecimals": 6}],
+            "feeCurrencies": [{"coinDenom": "ODIS", "coinMinimalDenom": "uodis", "coinDecimals": 6}],
+            "stakeCurrency": {"coinDenom": "ODIS", "coinMinimalDenom": "uodis", "coinDecimals": 6}
+        }
         logger.debug(f"Returning network config: {config}")
         return jsonify(config)
     except Exception as e:

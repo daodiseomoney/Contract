@@ -1,3 +1,37 @@
+<<<<<<< HEAD
+
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer ring with gradient from magenta to purple -->
+  <defs>
+    <linearGradient id="outerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e91e63;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9c27b0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#673ab7;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="innerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e91e63;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9c27b0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer ring -->
+  <circle cx="128" cy="128" r="100" fill="none" stroke="url(#outerGradient)" stroke-width="24"/>
+  
+  <!-- Middle ring -->
+  <circle cx="128" cy="128" r="70" fill="none" stroke="url(#innerGradient)" stroke-width="16"/>
+  
+  <!-- Inner oval shape -->
+  <ellipse cx="128" cy="128" rx="30" ry="55" fill="none" stroke="url(#innerGradient)" stroke-width="12"/>
+  
+  <!-- Left filled section -->
+  <path d="M 98 128 A 30 55 0 0 1 128 73 A 30 55 0 0 1 158 128 A 30 55 0 0 1 128 183 A 30 55 0 0 1 98 128 Z" fill="url(#innerGradient)"/>
+  
+  <!-- Right gap (white space) -->
+  <path d="M 158 128 A 30 55 0 0 0 128 73 A 30 55 0 0 0 98 128 A 30 55 0 0 0 128 183 A 30 55 0 0 0 158 128 Z" fill="white"/>
+  
+  <!-- Central vertical divider line -->
+  <line x1="128" y1="28" x2="128" y2="228" stroke="white" stroke-width="6"/>
+=======
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background -->
   <circle cx="100" cy="100" r="95" fill="#001e00" stroke="url(#paint0_linear)" stroke-width="5"/>
@@ -39,4 +73,5 @@
       <stop offset="1" stop-color="#b80596"/>
     </linearGradient>
   </defs>
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
 </svg>

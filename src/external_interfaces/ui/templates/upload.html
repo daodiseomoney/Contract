@@ -17,6 +17,14 @@
                 </div>
             </div>
             <div class="card-body">
+<<<<<<< HEAD
+                <!-- Wallet Connection Status -->
+                <div class="wallet-required-message" style="display: none;">
+                    <!-- Dynamic content added by wallet-state-sync.js -->
+                </div>
+                
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
                 <div class="alert alert-info mb-4">
                     <i data-feather="info" class="icon-inline-sm"></i>
                     <strong>Due Diligence Process:</strong> Once uploaded, IFC files will be analyzed by our AI system and validators. Only verified assets can mint NFTs.
@@ -477,9 +485,16 @@
         async function handleFiles(files) {
             console.log('Files selected:', files);
             
+<<<<<<< HEAD
+            // Check if wallet is connected using global state
+            const walletState = window.DaodiseoState ? window.DaodiseoState.getState('wallet') : null;
+            const walletConnected = walletState?.connected || false;
+            const userWalletAddress = walletState?.address || null;
+=======
             // Check if wallet is connected
             const walletConnected = localStorage.getItem('walletConnected') === 'true';
             const userWalletAddress = localStorage.getItem('userWalletAddress');
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
             
             if (!walletConnected || !userWalletAddress) {
                 // Show wallet connection prompt
@@ -627,6 +642,47 @@
                             throw new Error(broadcastData.error || 'Failed to broadcast transaction');
                         }
                         
+<<<<<<< HEAD
+                        // Update global state with transaction data
+                        if (window.DaodiseoState) {
+                            window.DaodiseoState.setState('transaction', {
+                                currentId: broadcastData.transaction_id || data.transaction_id,
+                                status: 'verified',
+                                hash: broadcastData.tx_hash,
+                                type: 'upload'
+                            });
+                            
+                            window.DaodiseoState.setState('upload', {
+                                currentFile: {
+                                    name: file.name,
+                                    hash: data.content_hash,
+                                    size: file.size,
+                                    type: file.type
+                                },
+                                uploadStatus: 'verified'
+                            });
+                        }
+                        
+                        // Dispatch cross-route events
+                        document.dispatchEvent(new CustomEvent('transactionCreated', {
+                            detail: {
+                                transactionId: broadcastData.transaction_id || data.transaction_id,
+                                hash: broadcastData.tx_hash,
+                                type: 'upload'
+                            }
+                        }));
+                        
+                        document.dispatchEvent(new CustomEvent('fileUploaded', {
+                            detail: {
+                                fileName: file.name,
+                                fileHash: data.content_hash,
+                                fileSize: file.size,
+                                fileType: file.type
+                            }
+                        }));
+                        
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
                         // Update status to "Verified"
                         statusBadge.classList.remove('bg-warning');
                         statusBadge.classList.add('bg-success');

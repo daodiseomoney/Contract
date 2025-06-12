@@ -1,0 +1,1186 @@
+{% extends "base.html" %}
+
+{% block title %}Daodiseo - Real Estate Tokenization Dashboard{% endblock %}
+
+{% block extra_css %}
+<!-- Enhanced Chat CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat-enhanced.css') }}">
+<style>
+/* PIXEL-PERFECT DASHBOARD GRID SYSTEM */
+.dashboard-container {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+    margin: 0 !important;
+}
+
+/* Responsive Grid Breakpoints */
+@media (min-width: 769px) and (max-width: 1200px) {
+    .dashboard-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (min-width: 1201px) {
+    .dashboard-container {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .container-fluid {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    text-align: center;
+    padding: 2rem 0;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-verified {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-loading {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.status-error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Card Layout */
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.card-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.primary-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.value-unit {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+}
+
+.update-timestamp {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Section Header */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 1.5rem;
+}
+
+/* Liquid Glass Card Enhancement */
+.liquid-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+.liquid-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* AI Agent Section Headers */
+.ai-agent-section {
+    border-left: 4px solid rgba(224, 13, 121, 0.8) !important;
+    padding-left: 1rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.ai-agent-section .section-title {
+    margin-bottom: 0.5rem !important;
+}
+
+.ai-agent-section .section-subtitle {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Main Dashboard Header -->
+    <div class="dashboard-header mb-4">
+        <h1 class="dashboard-title">Tokenize your real estate using the functionality below! Enjoy.</h1>
+        <p class="dashboard-subtitle">Manage your blockchain real estate investments with AI-powered insights</p>
+    </div>
+
+    <!-- AI Agent Section: Token Metrics -->
+    <div class="ai-agent-section">
+        <h5 class="section-title">
+            <i data-feather="database"></i>
+            Token Metrics Agent
+        </h5>
+        <div class="section-subtitle">Real-time market intelligence and pricing data</div>
+    </div>
+        
+    <div class="dashboard-container">
+            <!-- Token Value Agent -->
+            <div class="liquid-card stats-card" data-card-type="token-value">
+                <div class="card-body">
+                    <div class="card-header-row">
+                        <div class="card-title">Token Value</div>
+                        <span class="status-badge status-verified">
+                            <i data-feather="check-circle"></i>
+                            Verified
+                        </span>
+                    </div>
+                    <div class="card-value">
+                        <span class="primary-value" id="token-value">Loading...</span>
+                        <span class="value-unit">ODIS</span>
+                    </div>
+                    <div class="update-timestamp">
+                        Updated: <span id="token-value-time">--</span>
+                    </div>
+=======
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-4 mb-4">
+        <!-- Dashboard Cards -->
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">15,811.04</div>
+                    <div class="card-title">Token Value <span class="badge bg-info ms-1">ODIS</span></div>
+                    <div class="wave-visual"></div>
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                    <div class="card-icon info">
+                        <i data-feather="dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+<<<<<<< HEAD
+
+            <!-- Total Reserves Agent -->
+            <div class="col">
+                <div class="card stats-card" data-card-type="total-reserves">
+                    <div class="card-body">
+                        <div class="card-header-row">
+                            <div class="card-title">Total Reserves</div>
+                            <span class="status-badge status-verified">
+                                <i data-feather="check-circle"></i>
+                                Verified
+                            </span>
+                        </div>
+                        <div class="card-value">
+                            <span class="primary-value" id="total-reserves">Loading...</span>
+                            <span class="value-unit">ODIS</span>
+                        </div>
+                        <div class="update-timestamp">
+                            Updated: <span id="total-reserves-time">--</span>
+                        </div>
+                        <div class="card-icon secondary">
+                            <i data-feather="layers"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Staking APY Agent -->
+            <div class="col">
+                <div class="card stats-card" data-card-type="staking-apy">
+                    <div class="card-body">
+                        <div class="card-header-row">
+                            <div class="card-title">Staking APY</div>
+                            <span class="status-badge status-verified">
+                                <i data-feather="check-circle"></i>
+                                Verified
+                            </span>
+                        </div>
+                        <div class="card-value">
+                            <span class="primary-value" id="staking-apy">Loading...</span>
+                            <span class="value-unit">%</span>
+                        </div>
+                        <div class="update-timestamp">
+                            Updated: <span id="staking-apy-time">--</span>
+                        </div>
+                        <div class="card-icon warning">
+                            <i data-feather="percent"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Rewards Agent -->
+            <div class="col">
+                <div class="card stats-card" data-card-type="daily-rewards">
+                    <div class="card-body">
+                        <div class="card-header-row">
+                            <div class="card-title">Daily Rewards</div>
+                            <span class="status-badge status-verified">
+                                <i data-feather="check-circle"></i>
+                                Verified
+                            </span>
+                        </div>
+                        <div class="card-value">
+                            <span class="primary-value" id="daily-rewards">Loading...</span>
+                            <span class="value-unit">ODIS</span>
+                        </div>
+                        <div class="update-timestamp">
+                            Updated: <span id="daily-rewards-time">--</span>
+                        </div>
+                        <div class="card-icon success">
+                            <i data-feather="gift"></i>
+                        </div>
+=======
+        </div>
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">$38,126.50</div>
+                    <div class="card-title">Total Reserves <span class="badge bg-secondary ms-1">USD</span></div>
+                    <div class="wave-visual"></div>
+                    <div class="card-icon secondary">
+                        <i data-feather="trending-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">9.5%</div>
+                    <div class="card-title">Staking APY <span class="badge bg-success ms-1">Yearly</span></div>
+                    <div class="wave-visual"></div>
+                    <div class="card-icon warning">
+                        <i data-feather="activity"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="card-value">0.318</div>
+                    <div class="card-title">Daily Rewards <span class="badge bg-info ms-1">ODIS</span></div>
+                    <div class="wave-visual"></div>
+                    <div class="card-icon success">
+                        <i data-feather="award"></i>
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                    </div>
+                </div>
+            </div>
+        </div>
+<<<<<<< HEAD
+    </section>
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+    </div>
+
+    <div class="row g-4">
+        <!-- Asset Distribution Panel -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+<<<<<<< HEAD
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                        <i data-feather="pie-chart" class="icon-inline"></i>
+                        Asset Distribution
+                    </h5>
+                    <div class="card-subtitle">Verified vs Unverified Assets</div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="asset-distribution-chart"></canvas>
+                    </div>
+                    <div class="d-flex justify-content-between mt-3">
+                        <div class="text-center">
+                            <div class="small text-muted">Verified Assets</div>
+                            <div class="fw-bold text-success">$24,250,000</div>
+                            <div class="small text-muted">Due diligence complete</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="small text-muted">Unverified Assets</div>
+                            <div class="fw-bold text-warning">$13,876,500</div>
+                            <div class="small text-muted">In pipeline</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<<<<<<< HEAD
+
+=======
+            
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+            <!-- AI Assistant Panel -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title">
+<<<<<<< HEAD
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                        <i data-feather="message-circle" class="icon-inline"></i>
+                        BIM AI Assistant
+                    </h5>
+                    <div class="card-subtitle">Stakeholder-aware building insights</div>
+                </div>
+                <div class="card-body">
+                    <div id="ai-chat-container" class="chat-container"></div>
+                </div>
+            </div>
+        </div>
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        <!-- Hot Asset Panel -->
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">
+<<<<<<< HEAD
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                            <i data-feather="zap" class="icon-inline text-warning"></i>
+                            Hot Asset Seeking Liquidity
+                        </h5>
+                        <div class="card-subtitle">Verified Asset with Due Diligence Complete</div>
+                    </div>
+                    <span class="badge bg-success px-3 py-2">VERIFIED</span>
+                </div>
+                <div class="card-body p-0">
+                    <div id="mini-viewer-container" class="bim-viewer-mini"></div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+<<<<<<< HEAD
+
+                        <div class="col-md-8">
+                            <div class="model-info">
+                                <div class="model-name">Ithaca Project</div>
+=======
+                        <div class="col-md-8">
+                            <div class="model-info">
+                                <div class="model-name">Idaka Project</div>
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                                <div class="model-meta">
+                                    <span class="model-meta-item">
+                                        <i data-feather="layers" class="icon-inline-sm"></i>
+                                        Due Diligence: 3 years
+                                    </span>
+                                    <span class="model-meta-item">
+                                        <i data-feather="check-circle" class="icon-inline-sm"></i>
+                                        SPV Verified
+                                    </span>
+                                    <span class="model-meta-item">
+                                        <i data-feather="shield" class="icon-inline-sm"></i>
+                                        Hard Asset
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#investModal">
+                                <i data-feather="dollar-sign" class="icon-inline-sm"></i>
+                                Invest Now
+                            </button>
+                        </div>
+                    </div>
+<<<<<<< HEAD
+
+=======
+                    
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                    <div class="progress mt-3" style="height: 10px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <small>Funded: $1,625,000</small>
+                        <small>Target: $2,500,000</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<<<<<<< HEAD
+
+=======
+    
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+    <div class="row g-4 mt-4">
+        <!-- Recent Transactions Panel -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+<<<<<<< HEAD
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                        <i data-feather="list" class="icon-inline"></i>
+                        Recent Transactions
+                    </h5>
+                    <div class="card-actions">
+                        <a href="/contracts" class="btn btn-sm btn-outline-info">
+                            View All
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="transaction-list">
+                        <div class="transaction-item">
+                            <div class="transaction-icon success">
+                                <i data-feather="check-circle"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Property Tokenization <span class="badge bg-success">VERIFIED</span></div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x71C...9E3f</span>
+                                    <span class="transaction-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value success">+1250 ODIS</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon info">
+                                <i data-feather="file-text"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Contract Signature <span class="badge bg-warning">PENDING</span></div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x31F...7A2c</span>
+                                    <span class="transaction-time">5 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value">0 ODIS</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon warning">
+                                <i data-feather="refresh-cw"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Token Transfer <span class="badge bg-success">VERIFIED</span></div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x94B...2D5a</span>
+                                    <span class="transaction-time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value warning">-350 ODIS</div>
+                        </div>
+                        <div class="transaction-item">
+                            <div class="transaction-icon secondary">
+                                <i data-feather="upload"></i>
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-title">Document Upload <span class="badge bg-warning">UNVERIFIED</span></div>
+                                <div class="transaction-meta">
+                                    <span class="transaction-address">0x67D...3F1b</span>
+                                    <span class="transaction-time">2 days ago</span>
+                                </div>
+                            </div>
+                            <div class="transaction-value">0 ODIS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        <!-- Stakeholder Distribution Chart -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">
+<<<<<<< HEAD
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+    <div class="ai-status-indicator" title="AI Enhanced">
+        <i data-feather="cpu" class="ai-icon"></i>
+    </div>
+=======
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                        <i data-feather="users" class="icon-inline"></i>
+                        Stakeholder Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="stakeholder-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+<<<<<<< HEAD
+
+
+        </div>
+    </div>
+
+    <!-- ODIS Token Trading Component -->
+    <div class="row mt-4">
+        <div class="col-12">
+            {% include 'components/odis_trading.html' %}
+=======
+            
+            <!-- Validators Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title">
+                        <i data-feather="shield" class="icon-inline"></i>
+                        Active Validators
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="validator-list">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="token-circle info">V</div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Validator Node 1</div>
+                                <div class="small text-muted">5 proposals pending</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="token-circle secondary">V</div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Validator Node 2</div>
+                                <div class="small text-muted">3 proposals pending</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="token-circle success">V</div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Validator Node 3</div>
+                                <div class="small text-muted">1 proposal pending</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        </div>
+    </div>
+</div>
+
+<!-- Investment Modal -->
+<div class="modal fade" id="investModal" tabindex="-1" aria-labelledby="investModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-info">
+            <div class="modal-header border-info">
+                <h5 class="modal-title" id="investModalLabel">
+                    <i data-feather="dollar-sign" class="icon-inline text-info"></i>
+<<<<<<< HEAD
+                    Invest in Ithaca Project
+=======
+                    Invest in Idaka Project
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="investmentAmount" class="form-label">Investment Amount (ODIS)</label>
+                    <input type="number" class="form-control bg-dark text-light border-info" id="investmentAmount" placeholder="Enter amount">
+                </div>
+                <div class="mb-3">
+                    <label for="walletAddress" class="form-label">Wallet Address</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-dark text-light border-info" id="walletAddress" value="0x71C...9E3f" readonly>
+                        <button class="btn btn-outline-info" type="button">
+                            <i data-feather="copy" class="icon-inline-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i data-feather="info" class="icon-inline-sm"></i>
+                    This investment will be automatically staked, earning 9.5% APY.
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="spvKycCheck">
+                    <label class="form-check-label" for="spvKycCheck">
+                        I confirm this asset has passed SPV/KYC verification
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer border-info">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" id="investModalConnectBtn">
+                    <i data-feather="link" class="icon-inline-sm"></i>
+                    Connect Keplr Wallet
+                </button>
+                <button type="button" class="btn btn-success d-none" id="investModalProceedBtn">
+                    <i data-feather="check-circle" class="icon-inline-sm"></i>
+                    Proceed with Investment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Assistant Modal -->
+<div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-labelledby="aiAssistantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-light border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="aiAssistantModalLabel">
+                    <i data-feather="cpu" class="icon-inline text-secondary"></i>
+                    AI Contract Assistant
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="nav flex-column nav-pills" id="contract-steps-tab" role="tablist">
+                            <button class="nav-link active" id="step1-tab" data-bs-toggle="pill" data-bs-target="#step1" type="button" role="tab">1. Asset Information</button>
+                            <button class="nav-link" id="step2-tab" data-bs-toggle="pill" data-bs-target="#step2" type="button" role="tab">2. IFC Validation</button>
+                            <button class="nav-link" id="step3-tab" data-bs-toggle="pill" data-bs-target="#step3" type="button" role="tab">3. Stakeholder Details</button>
+                            <button class="nav-link" id="step4-tab" data-bs-toggle="pill" data-bs-target="#step4" type="button" role="tab">4. Contract Terms</button>
+                            <button class="nav-link" id="step5-tab" data-bs-toggle="pill" data-bs-target="#step5" type="button" role="tab">5. Keplr Signatures</button>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="tab-content p-3" id="contract-steps-content">
+                            <div class="tab-pane fade show active" id="step1" role="tabpanel">
+                                <h6 class="mb-3 text-info">Asset Information</h6>
+                                <p>Enter the core details about your real estate asset. The AI will auto-populate fields from your IFC file once uploaded.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Asset Name</label>
+                                    <input type="text" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step2" role="tabpanel">
+                                <h6 class="mb-3 text-info">IFC Validation</h6>
+                                <p>Upload your IFC file for analysis. Our AI will validate the building information and calculate the estimated asset value.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Upload IFC File</label>
+                                    <input type="file" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step3" role="tabpanel">
+                                <h6 class="mb-3 text-info">Stakeholder Details</h6>
+                                <p>Define the stakeholders for this asset. These will be encoded in the smart contract.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Stakeholder Wallet Addresses</label>
+                                    <textarea class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step4" role="tabpanel">
+                                <h6 class="mb-3 text-info">Contract Terms</h6>
+                                <p>Review and modify the smart contract terms generated by our AI.</p>
+                                <div class="mb-3">
+                                    <label class="form-label">Token Name & Symbol</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Name">
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="Symbol">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Total Supply</label>
+                                    <input type="number" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="step5" role="tabpanel">
+                                <h6 class="mb-3 text-info">Keplr Signatures</h6>
+                                <p>Final step: Collect multisig approvals from all stakeholders using Keplr wallet.</p>
+                                <div class="alert alert-warning">
+                                    <i data-feather="alert-triangle" class="icon-inline-sm"></i>
+                                    Remember: NFTs can only be minted after the asset has passed due diligence.
+                                </div>
+                                <button class="btn btn-info">
+                                    <i data-feather="link" class="icon-inline-sm"></i>
+                                    Connect Keplr for Signing
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-info" id="getAIAdviceBtn">
+                    <i data-feather="cpu" class="icon-inline-sm"></i>
+                    Get AI Advice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Custom Scripts -->
+<script src="{{ url_for('static', filename='js/ai-chat-enhanced.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bim-viewer.js') }}"></script>
+<<<<<<< HEAD
+<!-- Prevent JavaScript duplicate variable errors -->
+<script>
+(function() {
+    'use strict';
+    
+    // Prevent duplicate initialization
+    if (window.dashboardInitialized) {
+        return;
+    }
+    window.dashboardInitialized = true;
+    
+    // Clear any existing enhanced component variables
+    delete window.EnhancedStatsCards;
+    delete window.EnhancedTransactionList;
+    delete window.EnhancedAssetDistribution;
+})();
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Populate Data Source Agent Cards with real blockchain data
+        populateDataSourceCards();
+        
+        // Set up periodic updates
+        setInterval(populateDataSourceCards, 30000); // Update every 30 seconds
+
+        // Initialize AI Chat
+        if (typeof aiChat !== 'undefined') {
+            aiChat.init('ai-chat-container');
+        }
+
+        // Initialize mini BIM viewer
+        if (typeof bimViewer !== 'undefined') {
+            bimViewer.init('mini-viewer-container');
+        }
+
+=======
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize AI Chat
+        aiChat.init('ai-chat-container');
+        
+        // Initialize mini BIM viewer
+        bimViewer.init('mini-viewer-container');
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        // Initialize asset distribution chart
+        const assetCtx = document.getElementById('asset-distribution-chart').getContext('2d');
+        const assetChart = new Chart(assetCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Verified Assets', 'Unverified Assets'],
+                datasets: [{
+                    data: [65, 35],
+                    backgroundColor: [
+                        'rgba(0, 153, 7, 0.7)',    // success
+                        'rgba(243, 192, 0, 0.7)',  // warning
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        });
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        // Initialize stakeholder chart
+        const stakeholderCtx = document.getElementById('stakeholder-chart').getContext('2d');
+        const stakeholderChart = new Chart(stakeholderCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Institutional Investors', 'Private Investors', 'Developer Equity', 'Reserved Pool'],
+                datasets: [{
+                    data: [45, 25, 20, 10],
+                    backgroundColor: [
+                        'rgba(224, 13, 121, 0.7)',  // info
+                        'rgba(184, 5, 150, 0.7)',   // secondary
+                        'rgba(0, 153, 7, 0.7)',     // success
+                        'rgba(243, 192, 0, 0.7)'    // warning
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        });
+<<<<<<< HEAD
+    });
+
+    // Function to populate Data Source Agent cards with real blockchain data
+    async function populateDataSourceCards() {
+        const cards = [
+            {
+                id: 'token-value',
+                endpoint: '/api/blockchain/token-price',
+                valueKey: 'price',
+                format: (val) => `$${parseFloat(val).toFixed(4)}`
+            },
+            {
+                id: 'total-reserves',
+                endpoint: '/api/blockchain/stats',
+                valueKey: 'total_supply',
+                format: (val) => formatNumber(val)
+            },
+            {
+                id: 'staking-apy',
+                endpoint: '/api/blockchain/stakeholder-distribution',
+                valueKey: 'staking_apy',
+                format: (val) => `${parseFloat(val).toFixed(2)}`
+            },
+            {
+                id: 'daily-rewards',
+                endpoint: '/api/blockchain/stats',
+                valueKey: 'inflation',
+                format: (val) => parseFloat(val).toFixed(4)
+            }
+        ];
+
+        for (const card of cards) {
+            try {
+                updateCardStatus(card.id, 'loading');
+                
+                const response = await fetch(card.endpoint);
+                const data = await response.json();
+                
+                const valueElement = document.getElementById(card.id);
+                const timeElement = document.getElementById(`${card.id}-time`);
+                
+                if (valueElement && data[card.valueKey] !== undefined && data[card.valueKey] !== null) {
+                    const formattedValue = card.format(data[card.valueKey]);
+                    valueElement.textContent = formattedValue;
+                    updateCardStatus(card.id, 'verified', formattedValue);
+                } else {
+                    valueElement.textContent = 'Awaiting data...';
+                    updateCardStatus(card.id, 'error', null);
+                }
+                
+                if (timeElement) {
+                    timeElement.textContent = new Date().toLocaleTimeString();
+                }
+            } catch (error) {
+                console.error(`Failed to load data for ${card.id}:`, error);
+                updateCardStatus(card.id, 'error', null);
+                
+                const valueElement = document.getElementById(card.id);
+                if (valueElement) {
+                    valueElement.textContent = 'Awaiting data...';
+                }
+            }
+        }
+    }
+
+    // Function to update card status badges with data synchronization
+    function updateCardStatus(cardId, status, value = null) {
+        const card = document.querySelector(`[data-card-type="${cardId}"]`);
+        if (!card) return;
+        
+        const badge = card.querySelector('.status-badge');
+        const valueElement = card.querySelector('.primary-value');
+        const timeElement = card.querySelector(`#${cardId}-time`);
+        
+        if (!badge) return;
+        
+        // Remove existing status classes
+        badge.classList.remove('status-verified', 'status-loading', 'status-error');
+        
+        // Synchronize status with actual data presence
+        let finalStatus = status;
+        if (status === 'verified' && (value === null || value === undefined || value === 'Loading...')) {
+            finalStatus = 'loading';
+        }
+        
+        // Add new status class
+        badge.classList.add(`status-${finalStatus}`);
+        
+        // Update badge content
+        const icons = {
+            'verified': 'check-circle',
+            'loading': 'loader', 
+            'error': 'alert-circle'
+        };
+        
+        const texts = {
+            'verified': 'Verified',
+            'loading': 'Loading',
+            'error': 'Error'
+        };
+        
+        badge.innerHTML = `<i data-feather="${icons[finalStatus]}"></i> ${texts[finalStatus]}`;
+        
+        // Update value element with proper data or fallback
+        if (valueElement) {
+            if (finalStatus === 'verified' && value !== null && value !== undefined) {
+                valueElement.textContent = value;
+            } else if (finalStatus === 'loading') {
+                valueElement.textContent = 'Loading...';
+            } else {
+                valueElement.textContent = 'Awaiting data...';
+            }
+        }
+        
+        // Update timestamp
+        if (timeElement) {
+            timeElement.textContent = new Date().toLocaleTimeString();
+        }
+        
+        // Re-initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }
+
+    // Function to format large numbers
+    function formatNumber(num) {
+        if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+        if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+        if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+        return num.toString();
+    }
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        // Check wallet connection when investment modal is opened
+        document.getElementById('investModal').addEventListener('show.bs.modal', function() {
+            // Check if wallet is connected (using localStorage)
+            const walletConnected = localStorage.getItem('walletConnected') === 'true';
+            const userWalletAddress = localStorage.getItem('userWalletAddress');
+<<<<<<< HEAD
+
+            // Update wallet address field if available
+            if (walletConnected && userWalletAddress) {
+                document.getElementById('walletAddress').value = userWalletAddress;
+
+=======
+            
+            // Update wallet address field if available
+            if (walletConnected && userWalletAddress) {
+                document.getElementById('walletAddress').value = userWalletAddress;
+                
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+                // Show the proceed button, hide the connect button
+                document.getElementById('investModalConnectBtn').classList.add('d-none');
+                document.getElementById('investModalProceedBtn').classList.remove('d-none');
+            } else {
+                // Show the connect button, hide the proceed button
+                document.getElementById('investModalConnectBtn').classList.remove('d-none');
+                document.getElementById('investModalProceedBtn').classList.add('d-none');
+            }
+        });
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        // Invest modal wallet connection button
+        document.getElementById('investModalConnectBtn').addEventListener('click', function() {
+            // Access the main wallet connection function from base.html
+            connectKeplrWallet();
+<<<<<<< HEAD
+
+=======
+            
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+            // Close the investment modal
+            const investModal = bootstrap.Modal.getInstance(document.getElementById('investModal'));
+            if (investModal) {
+                investModal.hide();
+            }
+        });
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        // Proceed with investment button
+        document.getElementById('investModalProceedBtn').addEventListener('click', function() {
+            // Get investment amount
+            const amount = document.getElementById('investmentAmount').value;
+<<<<<<< HEAD
+
+=======
+            
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                alert('Please enter a valid investment amount.');
+                return;
+            }
+<<<<<<< HEAD
+
+=======
+            
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+            // Check if SPV/KYC confirmation is checked
+            const spvKycChecked = document.getElementById('spvKycCheck').checked;
+            if (!spvKycChecked) {
+                alert('Please confirm SPV/KYC verification.');
+                return;
+            }
+<<<<<<< HEAD
+
+            // Process investment
+            alert(`Processing investment of ${amount} ODIS. Transaction will be signed with your Keplr wallet.`);
+
+=======
+            
+            // Process investment
+            alert(`Processing investment of ${amount} ODIS. Transaction will be signed with your Keplr wallet.`);
+            
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+            // Close modal after successful transaction
+            const investModal = bootstrap.Modal.getInstance(document.getElementById('investModal'));
+            if (investModal) {
+                investModal.hide();
+            }
+        });
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        // Open AI Assistant modal button
+        document.body.addEventListener('click', function(e) {
+            if (e.target.matches('[data-ai-assistant]') || e.target.closest('[data-ai-assistant]')) {
+                new bootstrap.Modal(document.getElementById('aiAssistantModal')).show();
+            }
+        });
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+<<<<<<< HEAD
+
+=======
+        
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+        // Update feather icons
+        feather.replace();
+    });
+</script>
+<<<<<<< HEAD
+{% endblock %}
+=======
+{% endblock %}
+>>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113

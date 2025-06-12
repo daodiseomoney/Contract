@@ -35,8 +35,8 @@ class BIMAgentManager:
         if not os.path.exists(self.upload_dir):
             os.makedirs(self.upload_dir)
             
-        # Try to load a default IFC file if available
-        self._load_first_available_ifc()
+        # Default IFC file loading is now lazy-loaded to prevent startup delays
+        # self._load_first_available_ifc()
         
     def _load_first_available_ifc(self) -> bool:
         """
@@ -63,7 +63,8 @@ class BIMAgentManager:
                 
             # Load the first file
             file_path = ifc_files[0]
-            success = self.load_ifc_file(file_path)
+            result = self.load_ifc_file(file_path)
+            success = result.get("success", False)
             if success:
                 logger.info(f"Loaded IFC file: {os.path.basename(file_path)}")
             return success
@@ -72,12 +73,13 @@ class BIMAgentManager:
             logger.error(f"Error loading default IFC file: {e}")
             return False
             
-    def load_ifc_file(self, file_path: str) -> Dict:
+    def load_ifc_file(self, file_path: str, include_analysis: bool = False) -> Dict:
         """
         Load a specific IFC file.
 
         Args:
             file_path: Path to the IFC file
+            include_analysis: Whether to include AI analysis (may cause delays)
 
         Returns:
             Dict: Response with success/failure status
@@ -97,16 +99,24 @@ class BIMAgentManager:
             # Get summary
             summary = self.ifc_gateway.summary()
             
-            # Do an AI analysis of the IFC file
-            analysis = self.ai_service.analyze_ifc_file(file_path)
-            
-            return {
+            # Prepare response
+            response = {
                 "success": True,
                 "message": f"Successfully loaded {os.path.basename(file_path)}",
                 "building": summary,
-                "agent_enabled": agent_success,
-                "analysis": analysis.get("analysis", "")
+                "agent_enabled": agent_success
             }
+            
+            # Only do AI analysis if explicitly requested
+            if include_analysis:
+                try:
+                    analysis = self.ai_service.analyze_ifc_file(file_path)
+                    response["analysis"] = analysis.get("analysis", "")
+                except Exception as e:
+                    logger.warning(f"AI analysis failed: {e}")
+                    response["analysis"] = "AI analysis unavailable"
+            
+            return response
             
         except Exception as e:
             logger.error(f"Error loading IFC file: {e}")
@@ -174,7 +184,7 @@ class BIMAgentManager:
                     
             return {
                 "success": True,
-                "message": response_text,
+                "response": response_text,
                 "metadata": metadata
             }
             
