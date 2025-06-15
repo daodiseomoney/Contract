@@ -1,0 +1,17 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8F43E9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A96CFF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main D Shape -->
+  <path d="M8 4h8c6.627 0 12 5.373 12 12s-5.373 12-12 12H8V4z" fill="url(#logoGradient)"/>
+  
+  <!-- Inner D cutout -->
+  <path d="M12 8h4c4.418 0 8 3.582 8 8s-3.582 8-8 8h-4V8z" fill="#0a0a0f"/>
+  
+  <!-- Accent line -->
+  <rect x="4" y="14" width="4" height="4" rx="2" fill="url(#logoGradient)"/>
+</svg>

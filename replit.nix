@@ -1,5 +1,9 @@
 {pkgs}: {
   deps = [
+    pkgs.gh
+    pkgs.gcc
+    pkgs.chromium
+    pkgs.jq
     pkgs.tree
     pkgs.black
     pkgs.wget
