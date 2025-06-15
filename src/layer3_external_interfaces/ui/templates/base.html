@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAODISEO - Real Estate Tokenization dApp</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://unpkg.com; script-src-elem 'self'; img-src 'self' data:">
+    
+    <!-- Custom CSS with cache busting -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v={{ build_hash }}">
+    
+    <!-- Feather Icons now bundled locally via Vite -->
+    
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body class="bg-[#0a0a0f] text-white antialiased">
+    <!-- Vue App Mount Point -->
+    <div id="app">
+        <!-- Fallback content while Vue loads -->
+        <div class="min-h-screen flex items-center justify-center">
+            <div class="text-center">
+                <div class="text-violet-400 text-2xl font-bold mb-2">DAODISEO</div>
+                <div class="text-gray-400">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vue App Bundle -->
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}?v={{ build_hash }}"></script>
+    
+    <!-- Feather Icons initialized via bundled Vue app -->
+</body>
+</html>

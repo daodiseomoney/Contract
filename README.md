@@ -1,48 +1,111 @@
-<<<<<<< HEAD
-# DAODISEO 🏗️
+# DAODISEO - Real Estate Tokenization Platform
 
-A cutting-edge blockchain real estate investment platform that transforms complex cryptocurrency interactions into intuitive, user-friendly experiences through advanced AI and blockchain technologies.
+A sophisticated blockchain real estate investment platform that leverages cutting-edge technologies to simplify cryptocurrency workflows and enhance developer productivity.
 
-## 📋 What is DAODISEO
+## 🏗️ Clean Architecture
 
-DAODISEO is a tokenized real estate investment platform built on Clean Architecture principles, integrating:
+This project follows Clean Architecture principles with a 4-layer structure:
 
-- **Real Estate Tokenization**: Convert physical properties into blockchain assets
-- **AI-Powered Analysis**: o3-mini investment intelligence and risk assessment
-- **Blockchain Integration**: Cosmos-based network with Keplr wallet support
-- **BIM Visualization**: 3D property modeling and investment analytics
-- **Responsive Dashboard**: Real-time network metrics and portfolio tracking
+```
+src/
+├── layer0_entities/           # Enterprise Business Rules
+├── layer1_use_cases/          # Application Business Rules  
+├── layer2_interface_adapters/ # Controllers, Gateways, Presenters
+└── layer3_external_interfaces/ # Frameworks & Drivers (Flask, Vue, DB)
+```
 
-## 🔐 Wallet Connection
+## 🛠️ Technical Stack
 
-### Connecting Keplr Wallet
+**Backend:**
+- Flask (Python web framework)
+- Clean Architecture with 4-layer separation
+- OpenAI API (AI integration with o3-mini)
+- Cosmos SDK (Blockchain interaction)
 
-1. **Install Keplr Extension**: Download from [keplr.app](https://keplr.app)
-2. **Network Configuration**: DAODISEO uses Odiseo testnet (`ithaca-1`)
-3. **Connect**: Click "Connect Wallet" in the dashboard header
-4. **Authorize**: Approve the connection in Keplr popup
+**Frontend:**
+- Vue.js 3 (Reactive UI framework)
+- Pinia (State management)
+- Chart.js (Data visualization)
+- Tailwind CSS (Styling framework)
+- Three.js (3D BIM rendering)
 
-**Testnet Details:**
-- Chain ID: `ithaca-1`
-- RPC Endpoint: `https://testnet-rpc.daodiseo.chaintools.tech`
-- Token: ODIS
+**Blockchain:**
+- Cosmos-based Odiseo network
+- Keplr wallet integration
+- ODIS token economics
+- IBC protocol support
+
+## ✨ Features
+
+**Dashboard:**
+- Real-time Odiseo testnet metrics with Chart.js visualization
+- Network health monitoring (50 validators, live block height)
+- ODIS token distribution analytics
+- 3D IFC property rendering with Three.js
+- Mobile-inspired glassmorphism design
+
+**Workflow:**
+- Upload → Viewer → Broadcast → Asset Management
+- Authentic 3D geometry processing
+- Blockchain integration via Cosmos SDK
+- Keplr wallet connectivity
 
 ## 🚀 Quick Start
 
-### Local Development
+### Prerequisites
+- Python 3.11+
+- Node.js 20+
+- PostgreSQL (DATABASE_URL environment variable)
 
+### Local Development
 ```bash
 # Clone repository
-git clone https://github.com/daodiseo/app.git
-cd app
+git clone https://github.com/your-org/daodiseo.git
+cd daodiseo
 
-# Install dependencies
-npm install
+# Python environment
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Set environment variables
-export OPENAI_API_KEY="your_openai_key"
-export SESSION_SECRET="your_session_secret"
+# Frontend build
+cd src/layer3_external_interfaces/ui
+npm install && npm run build
+cd ../../..
+
+# Run server
+python main.py
+```
+
+### Environment Variables
+```bash
+SESSION_SECRET="your-secure-session-secret"
+DATABASE_URL="postgresql://user:pass@localhost/dbname"
+OPENAI_API_KEY="sk-..."  # Optional for AI features
+```
+
+## 🚀 Deployment
+
+### Replit
+1. Fork this repository on Replit
+2. Set environment variables in Secrets tab
+3. Run automatically via `.replit` configuration
+
+### Docker
+```bash
+docker build -t daodiseo .
+docker run -p 8080:8080 --env-file .env daodiseo
+```
+
+### Heroku
+```bash
+heroku create your-app-name
+heroku config:set SESSION_SECRET=your-secret
+git push heroku main
+```
+export DATABASE_URL="postgresql://..."  # Optional
+
+# Install dependencies (already installed in Replit)
+pip install -r requirements.txt
 
 # Run development server
 python main.py
@@ -50,238 +113,189 @@ python main.py
 
 The application will be available at `http://localhost:5000`
 
-### Production Deployment
+### Local Development
 
+**Static Assets:** Vite build output is served from `src/layer3_external_interfaces/ui/static/` directory. Flask automatically serves JS bundles from `/static/js/main.js` and CSS from `/static/css/style.css`.
+
+### Production Deployment
 ```bash
-# Build frontend assets
+# Build frontend assets (if using separate build process)
 npm run build
 
 # Start production server
 gunicorn -w 4 -b 0.0.0.0:5000 main:app
 ```
 
-## 🧠 AI Integration
+## 🏛️ Architecture Overview
 
-DAODISEO uses OpenAI's o3-mini model for:
+### Data Flow
+```
+UI Component → API Controller → Use Case → Entity → Gateway → External Service
+     ↑                                                              ↓
+Presenter ← Data Formatter ← Repository ← Service Implementation ←
+```
 
+### Layer Responsibilities
+
+**Layer 0 - Entities (Enterprise Business Rules)**
+- Core business models: Property, BIMModel, Stakeholder
+- Domain logic and validation rules
+- Framework-independent business rules
+
+**Layer 1 - Use Cases (Application Business Rules)**  
+- Application-specific business logic
+- Orchestrates entity interactions
+- Independent of UI and database concerns
+
+**Layer 2 - Interface Adapters**
+- Controllers: Handle HTTP requests/responses
+- Gateways: Abstract external service interactions  
+- Presenters: Format data for UI consumption
+
+**Layer 3 - External Interfaces**
+- Flask web framework and routing
+- Vue.js frontend application
+- Database connections and external APIs
+
+## 🔑 Key Features
+
+### Real Estate Tokenization
+- Upload BIM/IFC files for property modeling
+- AI-powered property valuation and analysis
+- Smart contract generation and deployment
+- Blockchain-based token creation
+
+### Investment Management
+- Real-time portfolio tracking
+- Asset performance analytics
+- ROI calculations and projections
+- Risk assessment tools
+
+### Blockchain Integration
+- Live Odiseo testnet connectivity
+- Network health monitoring
+- Validator information display
+- Transaction history tracking
+
+## 🤖 AI Integration
+
+DAODISEO uses OpenAI's API for:
 - **Property Analysis**: Investment scoring and ROI projections
+- **BIM Model Analysis**: Quality, sustainability, and complexity scoring
 - **Market Intelligence**: Trend analysis and risk assessment
 - **Portfolio Optimization**: Asset allocation recommendations
-- **Network Analytics**: Blockchain performance insights
 
-**AI Orchestrator Location**: `src/external_interfaces/ai_agents/orchestrator.py`
+## 🌐 API Endpoints
 
-## 🌐 Network Integration
+### Blockchain
+- `GET /api/network-health` - Network status and health
+- `GET /api/odis-value` - ODIS token metrics
+- `GET /api/validators` - Validator information
 
-### Blockchain Endpoints
+### Assets
+- `GET /api/asset-metrics` - Portfolio metrics
+- `GET /api/hot-asset` - Featured investment
+- `GET /api/properties` - Property listings
+- `POST /api/tokenize` - Tokenize property
 
-- **Network Status**: Real-time block height and health
-- **Validators**: Active validator set and voting power
-- **Transactions**: Transaction history and analytics
-- **Staking**: Delegation and rewards tracking
+### BIM
+- `POST /api/bim/upload` - Upload BIM model
+- `POST /api/bim/analyze/{id}` - Analyze model
+- `GET /api/bim/models` - List models
 
-### API Architecture
+## 🧪 Testing
 
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src
+
+# Run specific test file
+pytest tests/test_entities.py
 ```
-Frontend → Flask Routes → Use Cases → Blockchain Gateway
-    ↑                                         ↓
-Presenter ← Interface Adapter ← Repository ←
-```
-
-## 💼 Investment Features
-
-### Property Management
-- Upload BIM/IFC files for property modeling
-- AI-powered property valuation
-- Tokenization workflow and smart contracts
-- Investment opportunity analysis
-
-### Portfolio Dashboard
-- Real-time asset performance tracking
-- Staking rewards and delegation management
-- Network analytics and validator insights
-- Risk assessment and recommendations
-
-## 🛠️ Technical Stack
-
-**Backend:**
-- Flask (Python web framework)
-- SQLAlchemy (Database ORM)
-- OpenAI API (AI integration)
-- Cosmos SDK (Blockchain interaction)
-
-**Frontend:**
-- Vue.js (Reactive UI framework)
-- Chart.js (Data visualization)
-- Tailwind CSS (Styling framework)
-- Three.js (3D BIM rendering)
-
-**Blockchain:**
-- Cosmos-based network
-- Keplr wallet integration
-- ODIS token economics
-- IBC protocol support
 
 ## 📁 Project Structure
 
 ```
 src/
-├── entities/             # Core business models
-├── use_cases/            # Application logic
-├── interface_adapters/   # Gateways and repositories
-└── external_interfaces/  # Controllers and UI
+├── layer0_entities/
+│   ├── bim_model.py          # BIM model domain logic
+│   ├── property.py           # Property domain logic
+│   ├── role.py              # User role management
+│   └── stakeholder.py       # Stakeholder profiles
+├── layer1_use_cases/
+│   ├── get_network_status.py    # Network health use case
+│   ├── get_token_metrics.py     # Token data use case  
+│   ├── get_asset_metrics.py     # Portfolio metrics use case
+│   ├── upload_bim_model.py      # BIM upload use case
+│   ├── analyze_bim_model.py     # AI analysis use case
+│   └── tokenize_property.py     # Property tokenization use case
+├── layer2_interface_adapters/
+│   ├── controllers/
+│   │   ├── blockchain_controller.py # Blockchain API endpoints
+│   │   ├── asset_controller.py      # Asset API endpoints
+│   │   └── bim_controller.py        # BIM API endpoints
+│   └── gateways/
+│       ├── blockchain_gateway.py    # Blockchain service gateway
+│       └── ai_gateway.py           # AI service gateway
+├── layer3_external_interfaces/
+│   └── ui/
+│       ├── templates/base.html     # Vue.js SPA container
+│       └── static/favicon.svg     # Application assets
+└── security_utils.py              # Security utilities
 ```
 
-For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md)
+## 🔒 Security Features
 
-## 🔧 Configuration
+- CSRF protection for all state-changing operations
+- Secure session management with HTTP-only cookies
+- Security headers (XSS protection, content type options)
+- Rate limiting for API endpoints
+- Input sanitization and validation
+- Wallet ownership verification
 
-### Environment Variables
+## 🌟 Development Guidelines
 
-```bash
-# Required
-OPENAI_API_KEY=sk-...           # OpenAI API key for AI features
-SESSION_SECRET=random_string    # Flask session secret
-DATABASE_URL=postgresql://...   # Database connection
+1. **Follow Clean Architecture**: Never allow dependencies to point inward
+2. **Dependency Injection**: Use interfaces for external services
+3. **Testing**: Write tests for all layers, especially business logic
+4. **Error Handling**: Implement comprehensive error handling
+5. **Documentation**: Keep README and ARCHITECTURE.md updated
 
-# Optional
-FLASK_ENV=development          # Development mode
-DEBUG=True                     # Enable debug logging
-```
+## 🚀 Deployment
 
-### Network Configuration
+### Replit Deployment
+This application is configured for Replit deployment with:
+- Automatic dependency management
+- Environment variable configuration
+- Production-ready Gunicorn setup
 
-The platform connects to the Odiseo testnet by default. For mainnet deployment, update the RPC endpoints in the configuration files.
+### Manual Deployment
+1. Set up environment variables
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run migrations if using database
+4. Start with: `gunicorn -w 4 -b 0.0.0.0:5000 main:app`
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow Clean Architecture principles
+4. Write tests for new functionality
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+## 🔗 Links
 
-For support and questions:
-- Create an issue on GitHub
-- Join our Discord community
-- Contact the development team
-
----
-
-Built with ❤️ by the DAODISEO team
-=======
-# Real Estate Tokenization Platform
-
-A blockchain-powered real estate tokenization platform that enables secure and transparent property investment through advanced blockchain technology, with comprehensive transaction management and wallet integration.
-
-## Key Technologies
-
-- Flask web framework
-- Cosmos blockchain (Odiseo testnet)
-- CosmPy for blockchain interactions
-- Keplr wallet browser integration
-- BIMserver for advanced BIM file management
-- PostgreSQL database
-
-## Features
-
-- Upload and validate Building Information Modeling (BIM) files
-- Tokenize real estate properties on the blockchain
-- Distribute budget allocations among stakeholders
-- Multi-signature transaction processing
-- Comprehensive transaction tracking
-- Advanced error handling for blockchain transactions
-- Interactive micro-rewards system with blockchain animations
-- PingPub integration for validator transactions
-
-## BIMserver Integration
-
-The platform now features integration with [BIMserver](https://github.com/opensourceBIM/BIMserver), a dedicated Building Information Modeling server that provides:
-
-- Project and revision management for BIM files
-- Model-driven architecture (storing BIM as objects rather than files)
-- Advanced querying and validation capabilities
-- Format conversion between IFC, XML, and JSON
-- Multi-user collaboration support
-
-### Configuration
-
-To enable BIMserver integration, set the following environment variables:
-
-```bash
-# Enable BIMserver integration
-export BIMSERVER_ENABLED=True
-
-# BIMserver connection settings
-export BIMSERVER_URL=http://your-bimserver-instance:8080
-export BIMSERVER_USERNAME=your_username
-export BIMSERVER_PASSWORD=your_password
-```
-
-Without these variables, the system will automatically fall back to local file storage.
-
-## PingPub Blockchain Integration
-
-The platform integrates with the Odiseo blockchain network through PingPub API, enabling:
-
-- Secure transaction broadcasting to the Odiseo blockchain
-- Multi-signature validation through the validator network
-- IFC file hash verification on-chain
-- Transparent transaction history via block explorer
-
-### Configuration
-
-Configure the blockchain connection with these environment variables:
-
-```bash
-# PingPub API endpoint for Odiseo testnet
-export PINGPUB_API_URL=https://pingpub-testnet.daodiseo.com/api/
-
-# Blockchain network settings
-export CHAIN_ID=ithaca-1
-export CONTRACT_ADDRESS=odiseo1qg5ega6dykkxc307y25pecuv380qje7zp9qpxt
-export VALIDATOR_POOL_ADDRESS=odiseo1k5vh4mzjncn4tnvan463whhrkkcsvjzgxm384q
-```
-
-## Installation
-
-1. Clone the repository
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Set up environment variables (optional, for BIMserver integration)
-4. Start the application:
-
-```bash
-python main.py
-```
-
-## System Architecture
-
-See [architecture.md](architecture.md) for a detailed overview of the system architecture.
-
-## API Documentation
-
-For BIMserver API integration details, see [docs/api/bimserver_api.html](docs/api/bimserver_api.html).
-
-## Testing
-
-Run the test suite to validate the application:
-
-```bash
-python -m pytest
-```
-
-## License
-
-Copyright © 2025 Real Estate Tokenization Platform. All rights reserved.
->>>>>>> fb24633dab07b7e0a60328f87ead6e6396c2f113
+- [Odiseo Testnet](https://testnet.daodiseo.chaintools.tech)
+- [Keplr Wallet](https://www.keplr.app/)
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [Vue.js Documentation](https://vuejs.org/)
+- [Flask Documentation](https://flask.palletsprojects.com/)

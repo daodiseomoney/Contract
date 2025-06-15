@@ -22,6 +22,11 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "openai>=1.71.0",
     "pytest-asyncio>=0.26.0",
+    "google-api-python-client>=2.170.0",
+    "flask-cors>=6.0.0",
+    "aiohttp>=3.11.14",
+    "selenium>=4.33.0",
+    "trafilatura>=2.0.0",
 ]
 
 [[tool.uv.index]]
