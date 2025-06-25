@@ -81,9 +81,93 @@ python main.py
 SESSION_SECRET="your-secure-session-secret"
 DATABASE_URL="postgresql://user:pass@localhost/dbname"
 OPENAI_API_KEY="sk-..."  # Optional for AI features
+FLASK_APP="main.py"
+FLASK_ENV="development"
+ASK in daodiseo community about
+⦁ CHAIN_ID
+⦁ CONTRACT_ADDRESS
+⦁ EXPLORER_URL
+⦁ OPENAI_API_KEY
+⦁ PINGPUB_API_URL
+⦁ VALIDATOR_POOL_ADDRESS
+
+
 ```
 
-## 🚀 Deployment
+## 🚀 Ubuntu Server Deployment
+
+This project uses modern Python packaging with `pyproject.toml` (Poetry) but includes a fallback `deployment-requirements.txt` for traditional pip installation.
+
+### Quick Deploy (Copy-Paste Block)
+
+```bash
+# Step 1: Install system dependencies (CRITICAL - prevents grpcio build errors)
+sudo apt update && sudo apt install -y build-essential libssl-dev python3-dev python3-venv python3-pip \
+    libgrpc++-dev libprotobuf-dev protobuf-compiler pkg-config nodejs npm git
+
+# Step 2: Clone and setup project
+git clone https://github.com/daodiseomoney/Contract.git -b indrad3v4-daodiseoApp-pythonvue
+cd Contract
+python3 -m venv venv && source venv/bin/activate
+
+# Step 3: Install Python dependencies (choose one method)
+# Method A: Modern approach with Poetry
+pip install poetry && poetry install
+# Method B: Fallback with pip (if you prefer)
+# pip install -r deployment-requirements.txt
+
+# Step 4: Build Vue frontend
+cd src/layer3_external_interfaces/ui
+npm install
+npm install three chart.js
+npm install -D tailwindcss postcss autoprefixer @tailwindcss/postcss
+npm run build
+cd ../../..
+
+# Step 5: Create environment file (see .env template below)
+nano .env
+
+# Step 6: Start the application
+python main.py
+```
+
+**Application URL:** `http://YOUR_SERVER_IP:5000`
+
+
+
+### Deployment Checklist
+
+- [ ] System headers installed (prevents grpcio wheel error)
+- [ ] Python virtual environment activated
+- [ ] Dependencies installed via Poetry or pip
+- [ ] Vue frontend built successfully
+- [ ] .env file created with required variables
+- [ ] Application accessible at `http://SERVER_IP:5000`
+- [ ] Dashboard loads with network metrics
+- [ ] Upload functionality works
+- [ ] No console errors in browser
+
+### Common Issues
+
+**⚠️ CRITICAL:** Skipping Step 1 (system headers) will recreate the grpcio wheel build error. The build-essential and libgrpc++-dev packages are essential.
+
+**Dependency Management:** Poetry is preferred for consistent dependency resolution, but the deployment-requirements.txt fallback ensures compatibility. Both methods install identical package versions.
+
+**Environment Setup:** The .env file must exist before running the application. Missing environment variables will cause startup failures.
+
+### Production Considerations
+
+For production deployment, use a WSGI server:
+
+```bash
+# Install production server
+pip install gunicorn
+
+# Start with multiple workers
+gunicorn -w 4 -b 0.0.0.0:5000 main:app
+```
+
+### Alternative Deployment Methods
 
 ### Replit
 1. Fork this repository on Replit
@@ -96,35 +180,9 @@ docker build -t daodiseo .
 docker run -p 8080:8080 --env-file .env daodiseo
 ```
 
-### Heroku
-```bash
-heroku create your-app-name
-heroku config:set SESSION_SECRET=your-secret
-git push heroku main
-```
-export DATABASE_URL="postgresql://..."  # Optional
-
-# Install dependencies (already installed in Replit)
-pip install -r requirements.txt
-
-# Run development server
-python main.py
-```
-
-The application will be available at `http://localhost:5000`
-
 ### Local Development
 
 **Static Assets:** Vite build output is served from `src/layer3_external_interfaces/ui/static/` directory. Flask automatically serves JS bundles from `/static/js/main.js` and CSS from `/static/css/style.css`.
-
-### Production Deployment
-```bash
-# Build frontend assets (if using separate build process)
-npm run build
-
-# Start production server
-gunicorn -w 4 -b 0.0.0.0:5000 main:app
-```
 
 ## 🏛️ Architecture Overview
 
@@ -264,19 +322,7 @@ src/
 4. **Error Handling**: Implement comprehensive error handling
 5. **Documentation**: Keep README and ARCHITECTURE.md updated
 
-## 🚀 Deployment
 
-### Replit Deployment
-This application is configured for Replit deployment with:
-- Automatic dependency management
-- Environment variable configuration
-- Production-ready Gunicorn setup
-
-### Manual Deployment
-1. Set up environment variables
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run migrations if using database
-4. Start with: `gunicorn -w 4 -b 0.0.0.0:5000 main:app`
 
 ## 🤝 Contributing
 
