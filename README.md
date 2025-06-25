@@ -102,8 +102,9 @@ This project uses modern Python packaging with `pyproject.toml` (Poetry) but inc
 
 ```bash
 # Step 1: Install system dependencies (CRITICAL - prevents grpcio build errors)
-sudo apt update && sudo apt install -y build-essential libssl-dev python3-dev python3-venv python3-pip \
-    libgrpc++-dev libprotobuf-dev protobuf-compiler pkg-config nodejs npm git
+sudo apt install -y build-essential libssl-dev python3-dev python3-venv python3-pip
+sudo apt install libgrpc++-dev libprotobuf-dev protobuf-compiler pkg-config nodejs npm git
+
 
 # Step 2: Clone and setup project
 git clone https://github.com/daodiseomoney/Contract.git -b indrad3v4-daodiseoApp-pythonvue
@@ -128,6 +129,7 @@ cd ../../..
 nano .env
 
 # Step 6: Start the application
+pip install flask-cors
 python main.py
 ```
 
